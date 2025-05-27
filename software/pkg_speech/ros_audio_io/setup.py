@@ -3,7 +3,7 @@ from glob import glob
 
 from setuptools import find_packages, setup
 
-package_name = "voice_assistant"
+package_name = "ros_audio_io"
 
 setup(
     name=package_name,
@@ -23,12 +23,9 @@ setup(
     tests_require=["pytest"],
     entry_points={
         "console_scripts": [
-            "assistant = voice_assistant.assistant:main",
-            "chat = voice_assistant.chat:main",
-            "audio_recorder = voice_assistant.audio_recorder:main",
-            "audio_player = voice_assistant.audio_player:main",
-            "token_service = voice_assistant.token_service:main",
-            "doa_listener = voice_assistant.doa_listener:main",
+            "audio_streamer = ros_audio_io.audio_streamer:main",
+            "doa_publisher = ros_audio_io.doa_publisher:main",
+            "doa_listener = ros_audio_io.doa_listener:main",            
         ],
     },
 )
