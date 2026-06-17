@@ -1,0 +1,37 @@
+services:
+  ros-examples:
+    image: ros_examples
+    build:
+      context: .
+      dockerfile: ./ros_packages/examples/Dockerfile
+    command: ros2 launch motors launch.py
+    profiles:
+      - demo
+    networks:
+      - pib-network
+#???    extra_hosts:
+#???      - "host.docker.internal:host-gateway"-
+    restart: always
+
+  ros-drive:
+    image: ros_drive
+    build:
+      context: .
+      dockerfile: ./ros_packages/drive/Dockerfile
+    command: ros2 launch ros2_ws/drive/drive.launch.py
+    profiles:
+      - all
+    networks:
+      - pib-network
+#???    extra_hosts:
+#???      - "host.docker.internal:host-gateway"-
+    restart: always
+
+
+volumes:
+  programs:
+
+networks:
+  pib-network:
+    driver: bridge
+

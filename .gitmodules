@@ -1,0 +1,3 @@
+[submodule "ros_packages/georg_interfaces"]
+	path = ros_packages/georg_interfaces
+	url = https://github.com/autonohm/georg_interfaces.git
