@@ -1,4 +1,5 @@
 import os
+import pathlib
 
 from ament_index_python.packages import get_package_share_path
 
@@ -17,6 +18,7 @@ def generate_launch_description():
     edu_robot_namespace_arg = DeclareLaunchArgument(
         'edu_robot_namespace', default_value=os.getenv('EDU_ROBOT_NAMESPACE', default='georg')
     )
+    cwd_path = pathlib.Path(__file__).parent.resolve()
 
     # nodes
 
@@ -24,7 +26,7 @@ def generate_launch_description():
       package='edu_robot',
       executable='thn-georg-bot',
       name='thn_georg_bot',
-      parameters=[PathJoinSubstitution([__file__, 'edu_robot.yaml'])],
+      parameters=[PathJoinSubstitution([cwd_path, 'edu_robot.yaml'])],
       namespace='georg',
       # prefix=['gdbserver localhost:3000'],
       output='screen',
@@ -38,7 +40,7 @@ def generate_launch_description():
     remote_control_node = Node(
       package='edu_robot_control',
       executable='remote_control',
-      parameters=[PathJoinSubstitution([__file__, 'edu_robot_control.yaml'])],
+      parameters=[PathJoinSubstitution([cwd_path, 'edu_robot_control.yaml'])],
       namespace=edu_robot_namespace
     )
 

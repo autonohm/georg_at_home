@@ -21,12 +21,12 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
         build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-ENV REBUILD=1
+ENV REBUILD=2
 
 RUN git clone https://github.com/EduArt-Robotik/edu_robot.git --branch hotfix/single_channel_motor_controller ros2_ws/edu_robot && \
     git clone https://github.com/EduArt-Robotik/edu_robot_control.git ros2_ws/edu_robot_control
 
-# COPY ./ros_packages/georg_interfaces ros2_ws/georg_interfaces
+#COPY ./ros_packages/georg_interfaces ros2_ws/georg_interfaces
 COPY ./ros_packages/drive ros2_ws/drive
 
 RUN cd ros2_ws && \
