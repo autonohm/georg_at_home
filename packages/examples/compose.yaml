@@ -1,0 +1,11 @@
+services:
+  examples:
+    image: examples
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    volumes:
+      - ./launch-content:/launch-content:ro
+    privileged: true
+    command: ros2 launch /launch-content/examples.launch.py
+    # command: sleep 1d
