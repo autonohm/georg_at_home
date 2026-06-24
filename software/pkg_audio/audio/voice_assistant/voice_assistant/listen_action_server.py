@@ -175,6 +175,7 @@ class ListenActionServer(Node):
                         sample_width,
                         channels,
                     )
+                    waveform = self._resample_to_16khz(waveform, sample_rate)
 
                     if waveform.size == 0:
                         continue
@@ -250,6 +251,7 @@ class ListenActionServer(Node):
                     sample_width=2,
                     channels=1,
                 )
+                waveform = self._resample_to_16khz(waveform, sample_rate)
 
                 if waveform.size == 0:
                     continue
@@ -315,17 +317,43 @@ class ListenActionServer(Node):
         feedback.state = state
         goal_handle.publish_feedback(feedback)
 
+    def _resample_to_16khz(
+        self,
+        waveform: np.ndarray,
+        source_sample_rate: int,
+    ) -> np.ndarray:
+        target_sample_rate = 16000
+
+        if waveform.size == 0:
+            return np.array([], dtype=np.float32)
+
+        if source_sample_rate == target_sample_rate:
+            return waveform.astype(np.float32)
+
+        duration = waveform.size / float(source_sample_rate)
+        target_size = int(duration * target_sample_rate)
+
+        if target_size <= 0:
+            return np.array([], dtype=np.float32)
+
+        old_positions = np.linspace(0.0, duration, num=waveform.size, endpoint=False)
+        new_positions = np.linspace(0.0, duration, num=target_size, endpoint=False)
+
+        return np.interp(new_positions, old_positions, waveform).astype(np.float32)
+
 
 def main(args=None) -> None:
     rclpy.init(args=args)
-
     node = ListenActionServer()
 
     try:
         rclpy.spin(node)
+    except KeyboardInterrupt:
+        pass
     finally:
         node.destroy_node()
-        rclpy.shutdown()
+        if rclpy.ok():
+            rclpy.shutdown()
 
 
 if __name__ == "__main__":
