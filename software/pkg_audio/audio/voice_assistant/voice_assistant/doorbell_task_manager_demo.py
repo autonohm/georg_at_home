@@ -88,14 +88,15 @@ class DoorbellTaskManagerDemo(Node):
             rclpy.shutdown()
 
 
-def main(args=None):
+def main(args=None) -> None:
     rclpy.init(args=args)
     node = DoorbellTaskManagerDemo()
 
     try:
         rclpy.spin(node)
+    except KeyboardInterrupt:
+        pass
     finally:
         node.destroy_node()
-
         if rclpy.ok():
             rclpy.shutdown()
