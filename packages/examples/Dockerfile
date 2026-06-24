@@ -12,8 +12,8 @@ RUN apt-get update # && apt-get install --no-install-recommends -y \
 # change this variable to trick docker cache into rebuilding
 ENV REBUILD=1
 
-COPY ./pib_action_template /ws/actions
-COPY ./pib_topic_template /ws/topics
+COPY ./pib_action_template /ws/pib_action_template
+COPY ./pib_topic_template /ws/pib_topic_template
 
 RUN rosdep install --from-paths . --ignore-src -r -y && \
     rm -rf /var/lib/apt/lists/*
