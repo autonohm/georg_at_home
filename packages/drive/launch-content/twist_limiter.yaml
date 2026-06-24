@@ -1,0 +1,9 @@
+twist_limiter_node:
+  ros__parameters:
+    acceleration_limit_mps2: 1.0
+    publisher_hz: 20
+    # qos.reliability: 'best_effort'   # or 'best_effort'
+    # qos_overrides:
+      # '/georg/teleop/cmd_vel':
+        # publisher:
+          # reliability: best_effort

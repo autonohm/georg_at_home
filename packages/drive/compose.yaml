@@ -1,0 +1,13 @@
+services:
+  drive:
+    image: drive
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    volumes:
+      - /dev:/dev
+      - ./launch-content:/launch-content:ro
+    privileged: true
+    restart: always
+    command: ros2 launch /launch-content/drive.launch.py
+    # command: sleep 1d

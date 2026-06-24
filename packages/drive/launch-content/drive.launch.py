@@ -1,16 +1,12 @@
 import os
 import pathlib
 
-from ament_index_python.packages import get_package_share_path
-
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
-from launch.conditions import IfCondition, UnlessCondition
-from launch.substitutions import Command, LaunchConfiguration, EnvironmentVariable, PathJoinSubstitution
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 
 from launch_ros.actions import Node
-from launch_ros.parameter_descriptions import ParameterValue
-from launch_ros.substitutions import FindPackageShare
+
 
 def generate_launch_description():
     # robot namespace
@@ -37,10 +33,20 @@ def generate_launch_description():
       # ]
     )
 
+    twist_limiter = Node(
+      package='twist_limiter',
+      executable='twist_limiter_node',
+      parameters=[PathJoinSubstitution([cwd_path, 'twist_limiter.yaml'])],
+      remappings=[('twist_limiter/in', 'teleop/cmd_vel'),
+                  ('twist_limiter/out', 'cmd_vel')],
+      namespace=edu_robot_namespace
+    )
+
     remote_control_node = Node(
       package='edu_robot_control',
       executable='remote_control',
       parameters=[PathJoinSubstitution([cwd_path, 'edu_robot_control.yaml'])],
+      remappings=[('cmd_vel', 'teleop/cmd_vel')],
       namespace=edu_robot_namespace
     )
 
@@ -57,7 +63,8 @@ def generate_launch_description():
 
     return LaunchDescription([
       edu_robot_namespace_arg,
-      joy_node,
+      twist_limiter,
       remote_control_node,
+      joy_node,
       drive_node
     ])
