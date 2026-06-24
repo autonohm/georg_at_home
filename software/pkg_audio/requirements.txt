@@ -1,0 +1,11 @@
+numpy==1.26.4
+tensorflow==2.16.2
+tensorflow-hub==0.16.1
+tf_keras==2.16.0
+PyAudio==0.2.14
+
+# needed because colcon/rosidl runs inside the active venv
+empy==3.3.4
+PyYAML==6.0.3
+catkin_pkg==1.1.0
+lark==1.3.1
