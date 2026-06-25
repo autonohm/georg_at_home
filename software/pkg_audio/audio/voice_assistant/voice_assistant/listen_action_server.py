@@ -18,6 +18,7 @@ from rclpy.action import ActionServer, CancelResponse, GoalResponse
 from rclpy.node import Node
 
 from voice_assistant.yamnet_doorbell_classifier import YamnetDoorbellClassifier
+from voice_assistant.whisper_speech_transcriber import WhisperSpeechTranscriber
 
 
 @dataclass
@@ -35,6 +36,10 @@ class ListenActionServer(Node):
         self.declare_parameter("action_name", "/audio/listen")
         self.declare_parameter("doorbell_threshold", 0.30)
         self.declare_parameter("speech_max_threshold", 0.25)
+        self.declare_parameter("speech_model_size", "base")
+        self.declare_parameter("speech_language", "de")
+        self.declare_parameter("speech_device", "cpu")
+        self.declare_parameter("speech_compute_type", "int8")
         self.declare_parameter("timeout_sec", 5.0)
         self.declare_parameter("wav_path", "")
         self.declare_parameter("sample_rate", 16000)
@@ -53,6 +58,13 @@ class ListenActionServer(Node):
             speech_max_threshold=speech_max_threshold,
         )
 
+        self.speech_transcriber = WhisperSpeechTranscriber(
+            model_size=str(self.get_parameter("speech_model_size").value),
+            language=str(self.get_parameter("speech_language").value),
+            device=str(self.get_parameter("speech_device").value),
+            compute_type=str(self.get_parameter("speech_compute_type").value),
+        )
+
         self.get_logger().info("[ListenAction] YAMNet model loaded")
 
         # ros registriert die Action
@@ -67,11 +79,14 @@ class ListenActionServer(Node):
 
         self.get_logger().info(f"[ListenAction] Ready on {action_name}")
 
-    # checkt ob das Goal angenommen werden darf/kann, aktuell nur doorbell mode
+    # checkt ob das Goal angenommen werden darf/kann, aktuell nur doorbell und speech mode
     def goal_callback(self, goal_request: Listen.Goal) -> GoalResponse:
-        if goal_request.mode != Listen.Goal.MODE_DOORBELL:
+        if goal_request.mode not in (
+            Listen.Goal.MODE_DOORBELL,
+            Listen.Goal.MODE_SPEECH,
+        ):
             self.get_logger().warn(
-                f"Rejecting listen goal: mode={goal_request.mode} is not implemented yet"
+                f"Rejecting listen goal: unknown mode={goal_request.mode}"
             )
             return GoalResponse.REJECT
 
@@ -91,55 +106,22 @@ class ListenActionServer(Node):
         timeout_sec = float(goal_handle.request.timeout_sec or default_timeout)
         wav_path = str(self.get_parameter("wav_path").value or "")
 
-        self.get_logger().info(
-            f"[ListenAction] Listening for doorbell with YAMNet: "
-            f"timeout={timeout_sec:.1f}s"
-        )
-
-        self._publish_feedback(goal_handle, "listening")
-
         started_at = time.monotonic()
+        mode = goal_handle.request.mode
 
-        if wav_path:
-            state = self._detect_doorbell_from_wav(
+        if mode == Listen.Goal.MODE_SPEECH:
+            return self._execute_speech(
+                goal_handle,
+                timeout_sec,
                 wav_path,
-                timeout_sec,
-                goal_handle,
-                started_at,
-            )
-        else:
-            state = self._detect_doorbell_from_microphone(
-                timeout_sec,
-                goal_handle,
-                started_at,
             )
 
-        result = Listen.Result()
-        result.detected = state.detected
-        result.confidence = float(state.confidence)
-        result.transcript = ""
-
-        if goal_handle.is_cancel_requested:
-            self._publish_feedback(goal_handle, "cancelled")
-            goal_handle.canceled()
-            return result
-
-        if state.detected:
-            self._publish_feedback(goal_handle, "doorbell_detected")
-        else:
-            self._publish_feedback(goal_handle, "timeout")
-
-        goal_handle.succeed()
-
-        self.get_logger().info(
-            f"[ListenAction] Finished: "
-            f"detected={result.detected} "
-            f"confidence={result.confidence:.3f} "
-            f"top_class={state.top_class} "
-            f"speech_score={state.speech_score:.3f}"
+        return self._execute_doorbell(
+            goal_handle,
+            timeout_sec,
+            wav_path,
+            started_at,
         )
-
-        return result
 
     # liest ein wav file ein
     def _detect_doorbell_from_wav(
@@ -287,6 +269,113 @@ class ListenActionServer(Node):
                 stream.close()
 
             audio.terminate()
+
+    def _execute_speech(
+        self,
+        goal_handle,
+        timeout_sec: float,
+        wav_path: str,
+    ) -> Listen.Result:
+        result = Listen.Result()
+        result.detected = False
+        result.confidence = 0.0
+        result.transcript = ""
+
+        self.get_logger().info(
+            f"[ListenAction] Listening for speech: timeout={timeout_sec:.1f}s"
+        )
+
+        self._publish_feedback(goal_handle, "listening_for_speech")
+
+        try:
+            if not wav_path:
+                self.get_logger().error(
+                    "[ListenAction] Speech mode currently needs wav_path."
+                )
+                self._publish_feedback(goal_handle, "error")
+                goal_handle.succeed()
+                return result
+
+            transcript = self.speech_transcriber.transcribe(wav_path)
+
+            result.transcript = transcript
+            result.detected = bool(transcript.strip())
+            result.confidence = 1.0 if result.detected else 0.0
+
+            if result.detected:
+                self._publish_feedback(goal_handle, "speech_detected")
+            else:
+                self._publish_feedback(goal_handle, "no_speech_detected")
+
+            goal_handle.succeed()
+
+            self.get_logger().info(
+                f"[ListenAction] Speech result: "
+                f"detected={result.detected}, transcript='{result.transcript}'"
+            )
+
+            return result
+
+        except Exception as exc:
+            self.get_logger().error(f"[ListenAction] Speech recognition failed: {exc}")
+            self._publish_feedback(goal_handle, "error")
+            goal_handle.succeed()
+            return result
+
+    def _execute_doorbell(
+        self,
+        goal_handle,
+        timeout_sec: float,
+        wav_path: str,
+        started_at: float,
+    ) -> Listen.Result:
+        self.get_logger().info(
+            f"[ListenAction] Listening for doorbell with YAMNet: "
+            f"timeout={timeout_sec:.1f}s"
+        )
+
+        self._publish_feedback(goal_handle, "listening")
+
+        if wav_path:
+            state = self._detect_doorbell_from_wav(
+                wav_path,
+                timeout_sec,
+                goal_handle,
+                started_at,
+            )
+        else:
+            state = self._detect_doorbell_from_microphone(
+                timeout_sec,
+                goal_handle,
+                started_at,
+            )
+
+        result = Listen.Result()
+        result.detected = state.detected
+        result.confidence = float(state.confidence)
+        result.transcript = ""
+
+        if goal_handle.is_cancel_requested:
+            self._publish_feedback(goal_handle, "cancelled")
+            goal_handle.canceled()
+            return result
+
+        if state.detected:
+            self._publish_feedback(goal_handle, "doorbell_detected")
+        else:
+            self._publish_feedback(goal_handle, "timeout")
+
+        goal_handle.succeed()
+
+        self.get_logger().info(
+            f"[ListenAction] Finished: "
+            f"detected={result.detected} "
+            f"confidence={result.confidence:.3f} "
+            f"top_class={state.top_class} "
+            f"speech_score={state.speech_score:.3f}"
+        )
+
+        return result
 
     # verwandel die Audiodaten in floatdaten damit sie von yamnet verarbeitet werden können
     def _pcm_to_float_mono(

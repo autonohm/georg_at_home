@@ -3,6 +3,7 @@ tensorflow==2.16.2
 tensorflow-hub==0.16.1
 tf_keras==2.16.0
 PyAudio==0.2.14
+faster-whisper==1.2.1
 
 # needed because colcon/rosidl runs inside the active venv
 empy==3.3.4

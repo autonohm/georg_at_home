@@ -26,11 +26,6 @@ setup(
     tests_require=["pytest"],
     entry_points={
         "console_scripts": [
-            "assistant = voice_assistant.assistant:main",
-            "chat = voice_assistant.chat:main",
-            "audio_recorder = voice_assistant.audio_recorder:main",
-            "audio_player = voice_assistant.audio_player:main",
-            "token_service = voice_assistant.token_service:main",
             "demo_doorbell_detector = voice_assistant.demo_doorbell_detector:main",
             "voice_rule_engine = voice_assistant.voice_rule_engine:main",
             "voice_task_dispatcher = voice_assistant.voice_task_dispatcher:main",
@@ -38,6 +33,7 @@ setup(
             "doorbell_audio_stream_detector = voice_assistant.doorbell_audio_stream_detector:main",
             "listen_action_server = voice_assistant.listen_action_server:main",
             "doorbell_task_manager_demo = voice_assistant.doorbell_task_manager_demo:main",
+            "speech_task_manager_demo = voice_assistant.speech_task_manager_demo:main",
         ],
     },
 )
