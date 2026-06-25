@@ -18,7 +18,7 @@ class YamnetDoorbellClassifier:
         class_map_path = self.model.class_map_path().numpy().decode("utf-8")
         self.class_names = self._load_class_names(class_map_path)
 
-        self.doorbell_indices = self._find_indices(["Doorbell", "Ding-dong"])
+        self.doorbell_indices = self._find_indices(["Doorbell", "Ding-dong", "Knock", "Tap"])
         self.speech_indices = self._find_indices(["Speech", "Conversation", "Human voice"])
 
     # bekommt audio als floatformat
