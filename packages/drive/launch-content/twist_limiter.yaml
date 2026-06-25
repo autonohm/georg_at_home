@@ -1,7 +1,13 @@
-twist_limiter_node:
+/**:
   ros__parameters:
     acceleration_limit_mps2: 1.0
     publisher_hz: 20
+    maximum.linear.x: 0.47
+    maximum.linear.y: 0.47
+    maximum.linear.z: 0.0
+    maximum.angular.x: 0.0
+    maximum.angular.y: 0.0
+    maximum.angular.z: 1.55
     # qos.reliability: 'best_effort'   # or 'best_effort'
     # qos_overrides:
       # '/georg/teleop/cmd_vel':
