@@ -1,7 +1,7 @@
 # Startet einen ros2 Action Server
 # Nimmt ein Goal mit Mode für Speech oder Doorbell + timeout von einem Client entgegen
 #     für Doorbell: MODE_DOORBELL=1
-#     Speech ist noch nicht implementiert
+#     für Speech: MODE_SPEECH=2
 # Hört bis zum timeout entweder auf .wav file oder oder über pyAudio auf das Mikro
 # returned werden detected, confidence, transscript
 # transscript ist im Fall einer Doorbell einfach leer
@@ -35,6 +35,7 @@ class ListenActionServer(Node):
 
         self.declare_parameter("action_name", "/audio/listen")
         self.declare_parameter("doorbell_threshold", 0.30)
+        self.declare_parameter("speech_threshold", 0.30)
         self.declare_parameter("speech_max_threshold", 0.25)
         self.declare_parameter("speech_model_size", "base")
         self.declare_parameter("speech_language", "de")
@@ -49,12 +50,14 @@ class ListenActionServer(Node):
 
         doorbell_threshold = float(self.get_parameter("doorbell_threshold").value)
         speech_max_threshold = float(self.get_parameter("speech_max_threshold").value)
+        speech_threshold = float(self.get_parameter("speech_threshold").value)
 
         self.get_logger().info("[ListenAction] Loading YAMNet model...")
 
         # lädt bei start das Modell einmal 
         self.classifier = YamnetDoorbellClassifier(
             doorbell_threshold=doorbell_threshold,
+            speech_threshold=speech_threshold,
             speech_max_threshold=speech_max_threshold,
         )
 
@@ -109,22 +112,29 @@ class ListenActionServer(Node):
         started_at = time.monotonic()
         mode = goal_handle.request.mode
 
-        if mode == Listen.Goal.MODE_SPEECH:
-            return self._execute_speech(
-                goal_handle,
-                timeout_sec,
+        self._publish_feedback(goal_handle, "listening")
+
+        if wav_path:
+            state = self._detect_audio_from_wav(
                 wav_path,
+                timeout_sec,
+                goal_handle,
+                started_at,
+            )
+        else:
+            state = self._detect_audio_from_microphone(
+                timeout_sec,
+                goal_handle,
+                started_at,
             )
 
-        return self._execute_doorbell(
-            goal_handle,
-            timeout_sec,
-            wav_path,
-            started_at,
-        )
+        if mode == Listen.Goal.MODE_SPEECH:
+            return self._finish_speech(goal_handle, state, wav_path)
+
+        return self._finish_doorbell(goal_handle, state)
 
     # liest ein wav file ein
-    def _detect_doorbell_from_wav(
+    def _detect_audio_from_wav(
         self,
         wav_path: str,
         timeout_sec: float,
@@ -168,8 +178,8 @@ class ListenActionServer(Node):
                     speech_score = float(classification["speech_score"])
                     top_class = str(classification["top_class"])
 
-                    state.confidence = max(state.confidence, doorbell_score)
-                    state.speech_score = speech_score
+                    state.confidence = max(state.confidence, doorbell_score, speech_score)
+                    state.speech_score = max(state.speech_score, speech_score)
                     state.top_class = top_class
 
                     self.get_logger().info(
@@ -179,8 +189,13 @@ class ListenActionServer(Node):
                         f"top_class={top_class}"
                     )
 
-                    if classification["detected"]:
-                        state.detected = True
+                    doorbell_detected = bool(
+                        classification.get("doorbell_detected", classification.get("detected", False))
+                    )
+                    speech_detected = bool(classification.get("speech_detected", False))
+
+                    if doorbell_detected or speech_detected:
+                        state.detected = doorbell_detected
                         return state
 
                     time.sleep(frames_per_chunk / max(sample_rate, 1))
@@ -190,7 +205,7 @@ class ListenActionServer(Node):
             return state
 
     # ließt audio vom mikro in einer Schleife über pyaudio ein ein 
-    def _detect_doorbell_from_microphone(
+    def _detect_audio_from_microphone(
         self,
         timeout_sec: float,
         goal_handle,
@@ -244,8 +259,8 @@ class ListenActionServer(Node):
                 speech_score = float(classification["speech_score"])
                 top_class = str(classification["top_class"])
 
-                state.confidence = max(state.confidence, doorbell_score)
-                state.speech_score = speech_score
+                state.confidence = max(state.confidence, doorbell_score, speech_score)
+                state.speech_score = max(state.speech_score, speech_score)
                 state.top_class = top_class
 
                 self.get_logger().info(
@@ -255,8 +270,13 @@ class ListenActionServer(Node):
                     f"top_class={top_class}"
                 )
 
-                if classification["detected"]:
-                    state.detected = True
+                doorbell_detected = bool(
+                    classification.get("doorbell_detected", classification.get("detected", False))
+                )
+                speech_detected = bool(classification.get("speech_detected", False))
+
+                if doorbell_detected or speech_detected:
+                    state.detected = doorbell_detected
                     return state
 
         except Exception as exc:
@@ -270,86 +290,83 @@ class ListenActionServer(Node):
 
             audio.terminate()
 
-    def _execute_speech(
+    def _finish_speech(
         self,
         goal_handle,
-        timeout_sec: float,
+        state: DetectionState,
         wav_path: str,
     ) -> Listen.Result:
         result = Listen.Result()
         result.detected = False
-        result.confidence = 0.0
+        result.confidence = float(state.speech_score)
         result.transcript = ""
 
-        self.get_logger().info(
-            f"[ListenAction] Listening for speech: timeout={timeout_sec:.1f}s"
-        )
+        if goal_handle.is_cancel_requested:
+            self._publish_feedback(goal_handle, "cancelled")
+            goal_handle.canceled()
+            return result
 
-        self._publish_feedback(goal_handle, "listening_for_speech")
+        speech_threshold = float(self.get_parameter("speech_threshold").value)
 
-        try:
-            if not wav_path:
-                self.get_logger().error(
-                    "[ListenAction] Speech mode currently needs wav_path."
-                )
-                self._publish_feedback(goal_handle, "error")
-                goal_handle.succeed()
-                return result
-
-            transcript = self.speech_transcriber.transcribe(wav_path)
-
-            result.transcript = transcript
-            result.detected = bool(transcript.strip())
-            result.confidence = 1.0 if result.detected else 0.0
-
-            if result.detected:
-                self._publish_feedback(goal_handle, "speech_detected")
-            else:
-                self._publish_feedback(goal_handle, "no_speech_detected")
-
+        if state.speech_score < speech_threshold:
+            self._publish_feedback(goal_handle, "no_speech_detected")
             goal_handle.succeed()
 
             self.get_logger().info(
-                f"[ListenAction] Speech result: "
-                f"detected={result.detected}, transcript='{result.transcript}'"
+                f"[ListenAction] No speech detected by YAMNet: "
+                f"speech_score={state.speech_score:.3f}, "
+                f"threshold={speech_threshold:.3f}, "
+                f"top_class={state.top_class}"
             )
 
             return result
 
+        if not wav_path:
+            self.get_logger().error(
+                "[ListenAction] Speech transcription currently needs wav_path. "
+                "YAMNet detected speech, but microphone transcription is not implemented yet."
+            )
+            self._publish_feedback(goal_handle, "error")
+            goal_handle.succeed()
+            return result
+
+        self._publish_feedback(goal_handle, "speech_detected")
+        self._publish_feedback(goal_handle, "transcribing")
+
+        try:
+            transcript = self.speech_transcriber.transcribe(wav_path)
         except Exception as exc:
             self.get_logger().error(f"[ListenAction] Speech recognition failed: {exc}")
             self._publish_feedback(goal_handle, "error")
             goal_handle.succeed()
             return result
 
-    def _execute_doorbell(
-        self,
-        goal_handle,
-        timeout_sec: float,
-        wav_path: str,
-        started_at: float,
-    ) -> Listen.Result:
+        result.transcript = transcript
+        result.detected = bool(transcript.strip())
+        result.confidence = float(state.speech_score)
+
+        if result.detected:
+            self._publish_feedback(goal_handle, "speech_transcribed")
+        else:
+            self._publish_feedback(goal_handle, "no_transcript")
+
+        goal_handle.succeed()
+
         self.get_logger().info(
-            f"[ListenAction] Listening for doorbell with YAMNet: "
-            f"timeout={timeout_sec:.1f}s"
+            f"[ListenAction] Speech result: "
+            f"yamnet_speech_score={state.speech_score:.3f}, "
+            f"top_class={state.top_class}, "
+            f"detected={result.detected}, "
+            f"transcript='{result.transcript}'"
         )
 
-        self._publish_feedback(goal_handle, "listening")
+        return result
 
-        if wav_path:
-            state = self._detect_doorbell_from_wav(
-                wav_path,
-                timeout_sec,
-                goal_handle,
-                started_at,
-            )
-        else:
-            state = self._detect_doorbell_from_microphone(
-                timeout_sec,
-                goal_handle,
-                started_at,
-            )
-
+    def _finish_doorbell(
+        self,
+        goal_handle,
+        state: DetectionState,
+    ) -> Listen.Result:
         result = Listen.Result()
         result.detected = state.detected
         result.confidence = float(state.confidence)
