@@ -1,11 +1,3 @@
-# Startet einen ros2 Action Server
-# Nimmt ein Goal mit Mode für Speech oder Doorbell + timeout von einem Client entgegen
-# für Doorbell: MODE_DOORBELL=1
-# für Speech: MODE_SPEECH=2
-# Hört bis zum timeout entweder auf .wav file oder über pyAudio auf das Mikro
-# returned werden detected, confidence, transcript
-# transcript ist im Fall einer Doorbell leer
-
 import time
 import wave
 from collections import deque
@@ -20,6 +12,31 @@ from rclpy.node import Node
 
 from voice_assistant.yamnet_doorbell_classifier import YamnetDoorbellClassifier
 from voice_assistant.whisper_speech_transcriber import WhisperSpeechTranscriber
+
+
+class TerminalColor:
+    RESET = "\033[0m"
+    GREEN = "\033[92m"
+    RED = "\033[91m"
+    YELLOW = "\033[93m"
+    BLUE = "\033[94m"
+    CYAN = "\033[96m"
+
+
+FEEDBACK_MESSAGES = {
+    "listening": ("Listening for doorbell...", TerminalColor.BLUE),
+    "listening_for_speech": ("Preparing microphone for speech...", TerminalColor.BLUE),
+    "ready_for_speech": ("Microphone ready. You can speak now.", TerminalColor.GREEN),
+    "speech_detected": ("Speech detected. Keep speaking...", TerminalColor.YELLOW),
+    "transcribing": ("Transcribing speech...", TerminalColor.CYAN),
+    "speech_transcribed": ("Speech transcribed.", TerminalColor.GREEN),
+    "no_speech_detected": ("No speech detected.", TerminalColor.RED),
+    "no_transcript": ("Speech detected, but no transcript was created.", TerminalColor.RED),
+    "doorbell_detected": ("Doorbell detected.", TerminalColor.GREEN),
+    "timeout": ("Timeout. Nothing detected.", TerminalColor.RED),
+    "cancelled": ("Listen goal cancelled.", TerminalColor.RED),
+    "error": ("An error occurred.", TerminalColor.RED),
+}
 
 
 @dataclass
@@ -49,22 +66,16 @@ class ListenActionServer(Node):
         self.declare_parameter("sample_rate", 16000)
         self.declare_parameter("chunk_size", 16000)
 
-        # Speech-Live-Parameter
         self.declare_parameter("speech_pre_roll_sec", 0.5)
         self.declare_parameter("speech_tail_sec", 1.2)
         self.declare_parameter("speech_max_segment_sec", 6.0)
 
         action_name = self.get_parameter("action_name").value
 
-        doorbell_threshold = float(self.get_parameter("doorbell_threshold").value)
-        speech_max_threshold = float(self.get_parameter("speech_max_threshold").value)
-        speech_threshold = float(self.get_parameter("speech_threshold").value)
-
         self.get_logger().info("[ListenAction] Loading YAMNet model...")
         self.classifier = YamnetDoorbellClassifier(
-            doorbell_threshold=doorbell_threshold,
-            speech_threshold=speech_threshold,
-            speech_max_threshold=speech_max_threshold,
+            doorbell_threshold=float(self.get_parameter("doorbell_threshold").value),
+            speech_max_threshold=float(self.get_parameter("speech_max_threshold").value),
         )
 
         self.get_logger().info("[ListenAction] Loading Whisper model...")
@@ -304,12 +315,7 @@ class ListenActionServer(Node):
                 frames_per_buffer=chunk_size,
             )
 
-            self.get_logger().info(
-                f"[ListenAction] Listening for live speech: "
-                f"timeout={timeout_sec:.1f}s, "
-                f"tail={speech_tail_sec:.1f}s, "
-                f"max_segment={speech_max_segment_sec:.1f}s"
-            )
+            self._publish_feedback(goal_handle, "ready_for_speech")
 
             while True:
                 now = time.monotonic()
@@ -348,9 +354,6 @@ class ListenActionServer(Node):
                         pre_roll_buffer.clear()
 
                         self._publish_feedback(goal_handle, "speech_detected")
-                        self.get_logger().info(
-                            "[ListenAction] Speech started, buffering short segment..."
-                        )
 
                     continue
 
@@ -359,16 +362,16 @@ class ListenActionServer(Node):
                 if current_chunk_is_speech:
                     last_speech_at = now
 
-                if speech_started_at is not None:
-                    segment_duration = now - speech_started_at
-                else:
-                    segment_duration = 0.0
+                segment_duration = (
+                    now - speech_started_at
+                    if speech_started_at is not None
+                    else 0.0
+                )
 
                 silence_after_speech = (
                     last_speech_at is not None
                     and now - last_speech_at >= speech_tail_sec
                 )
-
                 segment_too_long = segment_duration >= speech_max_segment_sec
 
                 if silence_after_speech or segment_too_long:
@@ -445,9 +448,8 @@ class ListenActionServer(Node):
                             classification.get("detected", False),
                         )
                     )
-                    speech_detected = bool(classification.get("speech_detected", False))
 
-                    if doorbell_detected or speech_detected:
+                    if doorbell_detected or self._speech_was_detected(state):
                         state.detected = doorbell_detected
                         return state
 
@@ -646,6 +648,15 @@ class ListenActionServer(Node):
         feedback = Listen.Feedback()
         feedback.state = state
         goal_handle.publish_feedback(feedback)
+
+        message, color = FEEDBACK_MESSAGES.get(
+            state,
+            (f"State: {state}", TerminalColor.RESET),
+        )
+
+        self.get_logger().info(
+            f"{color}[ListenAction] {message}{TerminalColor.RESET}"
+        )
 
 
 def main(args=None) -> None:
