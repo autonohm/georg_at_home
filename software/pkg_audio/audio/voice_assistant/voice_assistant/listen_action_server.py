@@ -1,7 +1,14 @@
-# src/voice_assistant/voice_assistant/listen_action_server.py
+# Startet einen ros2 Action Server
+# Nimmt ein Goal mit Mode für Speech oder Doorbell + timeout von einem Client entgegen
+# für Doorbell: MODE_DOORBELL=1
+# für Speech: MODE_SPEECH=2
+# Hört bis zum timeout entweder auf .wav file oder über pyAudio auf das Mikro
+# returned werden detected, confidence, transcript
+# transcript ist im Fall einer Doorbell leer
 
 import time
 import wave
+from collections import deque
 from dataclasses import dataclass
 from typing import Optional
 
@@ -42,12 +49,22 @@ class ListenActionServer(Node):
         self.declare_parameter("sample_rate", 16000)
         self.declare_parameter("chunk_size", 16000)
 
+        # Speech-Live-Parameter
+        self.declare_parameter("speech_pre_roll_sec", 0.5)
+        self.declare_parameter("speech_tail_sec", 1.2)
+        self.declare_parameter("speech_max_segment_sec", 6.0)
+
         action_name = self.get_parameter("action_name").value
+
+        doorbell_threshold = float(self.get_parameter("doorbell_threshold").value)
+        speech_max_threshold = float(self.get_parameter("speech_max_threshold").value)
+        speech_threshold = float(self.get_parameter("speech_threshold").value)
 
         self.get_logger().info("[ListenAction] Loading YAMNet model...")
         self.classifier = YamnetDoorbellClassifier(
-            doorbell_threshold=float(self.get_parameter("doorbell_threshold").value),
-            speech_max_threshold=float(self.get_parameter("speech_max_threshold").value),
+            doorbell_threshold=doorbell_threshold,
+            speech_threshold=speech_threshold,
+            speech_max_threshold=speech_max_threshold,
         )
 
         self.get_logger().info("[ListenAction] Loading Whisper model...")
@@ -85,122 +102,26 @@ class ListenActionServer(Node):
         return CancelResponse.ACCEPT
 
     def execute_callback(self, goal_handle) -> Listen.Result:
-        timeout_sec = float(
-            goal_handle.request.timeout_sec
-            or self.get_parameter("timeout_sec").value
-        )
+        default_timeout = float(self.get_parameter("timeout_sec").value)
+        timeout_sec = float(goal_handle.request.timeout_sec or default_timeout)
         wav_path = str(self.get_parameter("wav_path").value or "")
         started_at = time.monotonic()
         mode = goal_handle.request.mode
 
         if mode == Listen.Goal.MODE_SPEECH:
-            return self._execute_speech(goal_handle, timeout_sec, wav_path, started_at)
+            if wav_path:
+                return self._execute_speech_from_wav(
+                    goal_handle,
+                    wav_path,
+                    timeout_sec,
+                    started_at,
+                )
 
-        return self._execute_doorbell(goal_handle, timeout_sec, wav_path, started_at)
-
-    def _execute_speech(
-        self,
-        goal_handle,
-        timeout_sec: float,
-        wav_path: str,
-        started_at: float,
-    ) -> Listen.Result:
-        result = Listen.Result()
-        result.detected = False
-        result.confidence = 0.0
-        result.transcript = ""
-
-        self._publish_feedback(goal_handle, "listening_for_speech")
-        self.get_logger().info(
-            f"[ListenAction] Listening for speech: timeout={timeout_sec:.1f}s"
-        )
-
-        if wav_path:
-            state = self._detect_audio_from_wav(
-                wav_path,
-                timeout_sec,
+            return self._execute_speech_from_microphone(
                 goal_handle,
+                timeout_sec,
                 started_at,
             )
-
-            if goal_handle.is_cancel_requested:
-                self._publish_feedback(goal_handle, "cancelled")
-                goal_handle.canceled()
-                return result
-
-            result.confidence = float(state.speech_score)
-
-            if not self._speech_was_detected(state):
-                self._publish_feedback(goal_handle, "no_speech_detected")
-                goal_handle.succeed()
-                return result
-
-            self._publish_feedback(goal_handle, "transcribing")
-            transcript = self.speech_transcriber.transcribe(wav_path)
-
-        else:
-            waveform = self._capture_microphone_audio(
-                timeout_sec,
-                goal_handle,
-                started_at,
-            )
-
-            if goal_handle.is_cancel_requested:
-                self._publish_feedback(goal_handle, "cancelled")
-                goal_handle.canceled()
-                return result
-
-            if waveform.size == 0:
-                self._publish_feedback(goal_handle, "no_audio")
-                goal_handle.succeed()
-                return result
-
-            state = self._detect_speech_in_waveform(waveform)
-            result.confidence = float(state.speech_score)
-
-            if not self._speech_was_detected(state):
-                self._publish_feedback(goal_handle, "no_speech_detected")
-                goal_handle.succeed()
-                return result
-
-            self._publish_feedback(goal_handle, "transcribing")
-            transcript = self.speech_transcriber.transcribe_waveform(waveform)
-
-        result.transcript = transcript.strip()
-        result.detected = bool(result.transcript)
-
-        if result.detected:
-            self._publish_feedback(goal_handle, "speech_transcribed")
-        else:
-            self._publish_feedback(goal_handle, "no_transcript")
-
-        goal_handle.succeed()
-
-        self.get_logger().info(
-            f"[ListenAction] Speech result: "
-            f"detected={result.detected}, "
-            f"confidence={result.confidence:.3f}, "
-            f"transcript='{result.transcript}'"
-        )
-
-        return result
-
-    def _execute_doorbell(
-        self,
-        goal_handle,
-        timeout_sec: float,
-        wav_path: str,
-        started_at: float,
-    ) -> Listen.Result:
-        result = Listen.Result()
-        result.detected = False
-        result.confidence = 0.0
-        result.transcript = ""
-
-        self._publish_feedback(goal_handle, "listening")
-        self.get_logger().info(
-            f"[ListenAction] Listening for doorbell: timeout={timeout_sec:.1f}s"
-        )
 
         if wav_path:
             state = self._detect_audio_from_wav(
@@ -216,49 +137,163 @@ class ListenActionServer(Node):
                 started_at,
             )
 
-        result.detected = state.detected
-        result.confidence = float(state.confidence)
+        return self._finish_doorbell(goal_handle, state)
+
+    def _execute_speech_from_wav(
+        self,
+        goal_handle,
+        wav_path: str,
+        timeout_sec: float,
+        started_at: float,
+    ) -> Listen.Result:
+        result = Listen.Result()
+        result.detected = False
+        result.confidence = 0.0
+        result.transcript = ""
+
+        self._publish_feedback(goal_handle, "listening_for_speech")
+
+        state = self._detect_audio_from_wav(
+            wav_path,
+            timeout_sec,
+            goal_handle,
+            started_at,
+        )
 
         if goal_handle.is_cancel_requested:
             self._publish_feedback(goal_handle, "cancelled")
             goal_handle.canceled()
             return result
 
-        if result.detected:
-            self._publish_feedback(goal_handle, "doorbell_detected")
-        else:
-            self._publish_feedback(goal_handle, "timeout")
+        result.confidence = float(state.speech_score)
 
+        if not self._speech_was_detected(state):
+            self._publish_feedback(goal_handle, "no_speech_detected")
+            goal_handle.succeed()
+            return result
+
+        self._publish_feedback(goal_handle, "transcribing")
+
+        try:
+            transcript = self.speech_transcriber.transcribe(wav_path)
+        except Exception as exc:
+            self.get_logger().error(f"[ListenAction] Speech recognition failed: {exc}")
+            self._publish_feedback(goal_handle, "error")
+            goal_handle.succeed()
+            return result
+
+        result.transcript = transcript.strip()
+        result.detected = bool(result.transcript)
+
+        self._publish_feedback(
+            goal_handle,
+            "speech_transcribed" if result.detected else "no_transcript",
+        )
         goal_handle.succeed()
 
         self.get_logger().info(
-            f"[ListenAction] Doorbell result: "
+            f"[ListenAction] Speech result: "
             f"detected={result.detected}, "
             f"confidence={result.confidence:.3f}, "
-            f"top_class={state.top_class}, "
-            f"speech_score={state.speech_score:.3f}"
+            f"transcript='{result.transcript}'"
         )
 
         return result
 
-    def _capture_microphone_audio(
+    def _execute_speech_from_microphone(
+        self,
+        goal_handle,
+        timeout_sec: float,
+        started_at: float,
+    ) -> Listen.Result:
+        result = Listen.Result()
+        result.detected = False
+        result.confidence = 0.0
+        result.transcript = ""
+
+        self._publish_feedback(goal_handle, "listening_for_speech")
+
+        speech_segment, state = self._capture_speech_segment_from_microphone(
+            timeout_sec,
+            goal_handle,
+            started_at,
+        )
+
+        if goal_handle.is_cancel_requested:
+            self._publish_feedback(goal_handle, "cancelled")
+            goal_handle.canceled()
+            return result
+
+        result.confidence = float(state.speech_score)
+
+        if speech_segment.size == 0:
+            self._publish_feedback(goal_handle, "no_speech_detected")
+            goal_handle.succeed()
+            return result
+
+        self._publish_feedback(goal_handle, "transcribing")
+
+        try:
+            transcript = self.speech_transcriber.transcribe_waveform(speech_segment)
+        except Exception as exc:
+            self.get_logger().error(f"[ListenAction] Speech recognition failed: {exc}")
+            self._publish_feedback(goal_handle, "error")
+            goal_handle.succeed()
+            return result
+
+        result.transcript = transcript.strip()
+        result.detected = bool(result.transcript)
+
+        self._publish_feedback(
+            goal_handle,
+            "speech_transcribed" if result.detected else "no_transcript",
+        )
+        goal_handle.succeed()
+
+        self.get_logger().info(
+            f"[ListenAction] Speech result: "
+            f"detected={result.detected}, "
+            f"confidence={result.confidence:.3f}, "
+            f"transcript='{result.transcript}'"
+        )
+
+        return result
+
+    def _capture_speech_segment_from_microphone(
         self,
         timeout_sec: float,
         goal_handle,
         started_at: float,
-    ) -> np.ndarray:
+    ) -> tuple[np.ndarray, DetectionState]:
+        state = DetectionState()
+
         try:
             import pyaudio
         except ImportError:
-            self.get_logger().error("pyaudio is required for microphone input")
-            return np.array([], dtype=np.float32)
+            self.get_logger().error("pyaudio is required for microphone listening")
+            return np.array([], dtype=np.float32), state
 
         sample_rate = int(self.get_parameter("sample_rate").value)
         chunk_size = int(self.get_parameter("chunk_size").value)
 
+        speech_pre_roll_sec = float(self.get_parameter("speech_pre_roll_sec").value)
+        speech_tail_sec = float(self.get_parameter("speech_tail_sec").value)
+        speech_max_segment_sec = float(
+            self.get_parameter("speech_max_segment_sec").value
+        )
+
+        chunk_duration_sec = chunk_size / 16000.0
+        pre_roll_chunks = max(1, int(speech_pre_roll_sec / chunk_duration_sec))
+
+        pre_roll_buffer = deque(maxlen=pre_roll_chunks)
+        speech_buffer: list[np.ndarray] = []
+
+        speech_started = False
+        speech_started_at: Optional[float] = None
+        last_speech_at: Optional[float] = None
+
         audio = pyaudio.PyAudio()
         stream: Optional[object] = None
-        chunks: list[np.ndarray] = []
 
         try:
             stream = audio.open(
@@ -269,11 +304,20 @@ class ListenActionServer(Node):
                 frames_per_buffer=chunk_size,
             )
 
-            while True:
-                if goal_handle.is_cancel_requested:
-                    return np.array([], dtype=np.float32)
+            self.get_logger().info(
+                f"[ListenAction] Listening for live speech: "
+                f"timeout={timeout_sec:.1f}s, "
+                f"tail={speech_tail_sec:.1f}s, "
+                f"max_segment={speech_max_segment_sec:.1f}s"
+            )
 
-                if time.monotonic() - started_at >= timeout_sec:
+            while True:
+                now = time.monotonic()
+
+                if goal_handle.is_cancel_requested:
+                    return np.array([], dtype=np.float32), state
+
+                if now - started_at >= timeout_sec:
                     break
 
                 raw = stream.read(chunk_size, exception_on_overflow=False)
@@ -284,23 +328,135 @@ class ListenActionServer(Node):
                 )
                 waveform = self._resample_to_16khz(waveform, sample_rate)
 
-                if waveform.size > 0:
-                    chunks.append(waveform)
+                if waveform.size == 0:
+                    continue
 
-            if not chunks:
-                return np.array([], dtype=np.float32)
+                classification = self.classifier.classify(waveform)
+                self._update_state_from_classification(state, classification)
 
-            return np.concatenate(chunks).astype(np.float32)
+                current_chunk_is_speech = self._speech_was_detected(state)
+
+                if not speech_started:
+                    pre_roll_buffer.append(waveform)
+
+                    if current_chunk_is_speech:
+                        speech_started = True
+                        speech_started_at = now
+                        last_speech_at = now
+
+                        speech_buffer.extend(list(pre_roll_buffer))
+                        pre_roll_buffer.clear()
+
+                        self._publish_feedback(goal_handle, "speech_detected")
+                        self.get_logger().info(
+                            "[ListenAction] Speech started, buffering short segment..."
+                        )
+
+                    continue
+
+                speech_buffer.append(waveform)
+
+                if current_chunk_is_speech:
+                    last_speech_at = now
+
+                if speech_started_at is not None:
+                    segment_duration = now - speech_started_at
+                else:
+                    segment_duration = 0.0
+
+                silence_after_speech = (
+                    last_speech_at is not None
+                    and now - last_speech_at >= speech_tail_sec
+                )
+
+                segment_too_long = segment_duration >= speech_max_segment_sec
+
+                if silence_after_speech or segment_too_long:
+                    break
+
+            if not speech_buffer:
+                return np.array([], dtype=np.float32), state
+
+            segment = np.concatenate(speech_buffer).astype(np.float32)
+
+            self.get_logger().info(
+                f"[ListenAction] Speech segment ready: "
+                f"duration={segment.size / 16000.0:.2f}s, "
+                f"speech_score={state.speech_score:.3f}, "
+                f"top_class={state.top_class}"
+            )
+
+            return segment, state
 
         except Exception as exc:
-            self.get_logger().error(f"Microphone capture failed: {exc}")
-            return np.array([], dtype=np.float32)
+            self.get_logger().error(f"Microphone speech listen failed: {exc}")
+            return np.array([], dtype=np.float32), state
 
         finally:
             if stream is not None:
                 stream.stop_stream()
                 stream.close()
             audio.terminate()
+
+    def _detect_audio_from_wav(
+        self,
+        wav_path: str,
+        timeout_sec: float,
+        goal_handle,
+        started_at: float,
+    ) -> DetectionState:
+        state = DetectionState()
+
+        try:
+            with wave.open(wav_path, "rb") as wav:
+                sample_rate = wav.getframerate()
+                channels = wav.getnchannels()
+                sample_width = wav.getsampwidth()
+                frames_per_chunk = int(self.get_parameter("chunk_size").value)
+
+                while True:
+                    if goal_handle.is_cancel_requested:
+                        return state
+
+                    if time.monotonic() - started_at >= timeout_sec:
+                        return state
+
+                    raw = wav.readframes(frames_per_chunk)
+
+                    if not raw:
+                        return state
+
+                    waveform = self._pcm_to_float_mono(
+                        raw,
+                        sample_width,
+                        channels,
+                    )
+                    waveform = self._resample_to_16khz(waveform, sample_rate)
+
+                    if waveform.size == 0:
+                        continue
+
+                    classification = self.classifier.classify(waveform)
+                    self._update_state_from_classification(state, classification)
+
+                    doorbell_detected = bool(
+                        classification.get(
+                            "doorbell_detected",
+                            classification.get("detected", False),
+                        )
+                    )
+                    speech_detected = bool(classification.get("speech_detected", False))
+
+                    if doorbell_detected or speech_detected:
+                        state.detected = doorbell_detected
+                        return state
+
+                    time.sleep(frames_per_chunk / max(sample_rate, 1))
+
+        except Exception as exc:
+            self.get_logger().error(f"Could not analyse wav_path={wav_path}: {exc}")
+
+        return state
 
     def _detect_doorbell_from_microphone(
         self,
@@ -352,13 +508,19 @@ class ListenActionServer(Node):
                 classification = self.classifier.classify(waveform)
                 self._update_state_from_classification(state, classification)
 
-                if bool(classification.get("detected", False)):
+                doorbell_detected = bool(
+                    classification.get(
+                        "doorbell_detected",
+                        classification.get("detected", False),
+                    )
+                )
+
+                if doorbell_detected:
                     state.detected = True
                     return state
 
         except Exception as exc:
             self.get_logger().error(f"Microphone listen failed: {exc}")
-            return state
 
         finally:
             if stream is not None:
@@ -366,78 +528,39 @@ class ListenActionServer(Node):
                 stream.close()
             audio.terminate()
 
-    def _detect_audio_from_wav(
-        self,
-        wav_path: str,
-        timeout_sec: float,
-        goal_handle,
-        started_at: float,
-    ) -> DetectionState:
-        state = DetectionState()
-
-        try:
-            with wave.open(wav_path, "rb") as wav:
-                sample_rate = wav.getframerate()
-                channels = wav.getnchannels()
-                sample_width = wav.getsampwidth()
-                frames_per_chunk = int(self.get_parameter("chunk_size").value)
-
-                while True:
-                    if goal_handle.is_cancel_requested:
-                        return state
-
-                    if time.monotonic() - started_at >= timeout_sec:
-                        return state
-
-                    raw = wav.readframes(frames_per_chunk)
-
-                    if not raw:
-                        return state
-
-                    waveform = self._pcm_to_float_mono(
-                        raw,
-                        sample_width,
-                        channels,
-                    )
-                    waveform = self._resample_to_16khz(waveform, sample_rate)
-
-                    if waveform.size == 0:
-                        continue
-
-                    classification = self.classifier.classify(waveform)
-                    self._update_state_from_classification(state, classification)
-
-                    if bool(classification.get("detected", False)):
-                        state.detected = True
-                        return state
-
-                    if self._speech_was_detected(state):
-                        return state
-
-                    time.sleep(frames_per_chunk / max(sample_rate, 1))
-
-        except Exception as exc:
-            self.get_logger().error(f"Could not analyse wav_path={wav_path}: {exc}")
-            return state
-
-    def _detect_speech_in_waveform(self, waveform: np.ndarray) -> DetectionState:
-        state = DetectionState()
-
-        chunk_size = int(self.get_parameter("chunk_size").value)
-
-        for start in range(0, waveform.size, chunk_size):
-            chunk = waveform[start:start + chunk_size]
-
-            if chunk.size == 0:
-                continue
-
-            classification = self.classifier.classify(chunk)
-            self._update_state_from_classification(state, classification)
-
-            if self._speech_was_detected(state):
-                return state
-
         return state
+
+    def _finish_doorbell(
+        self,
+        goal_handle,
+        state: DetectionState,
+    ) -> Listen.Result:
+        result = Listen.Result()
+        result.detected = state.detected
+        result.confidence = float(state.confidence)
+        result.transcript = ""
+
+        if goal_handle.is_cancel_requested:
+            self._publish_feedback(goal_handle, "cancelled")
+            goal_handle.canceled()
+            return result
+
+        if state.detected:
+            self._publish_feedback(goal_handle, "doorbell_detected")
+        else:
+            self._publish_feedback(goal_handle, "timeout")
+
+        goal_handle.succeed()
+
+        self.get_logger().info(
+            f"[ListenAction] Finished: "
+            f"detected={result.detected} "
+            f"confidence={result.confidence:.3f} "
+            f"top_class={state.top_class} "
+            f"speech_score={state.speech_score:.3f}"
+        )
+
+        return result
 
     def _speech_was_detected(self, state: DetectionState) -> bool:
         speech_threshold = float(self.get_parameter("speech_threshold").value)
@@ -452,7 +575,7 @@ class ListenActionServer(Node):
         speech_score = float(classification["speech_score"])
         top_class = str(classification["top_class"])
 
-        state.confidence = max(state.confidence, doorbell_score)
+        state.confidence = max(state.confidence, doorbell_score, speech_score)
         state.speech_score = max(state.speech_score, speech_score)
         state.top_class = top_class
 
@@ -470,7 +593,9 @@ class ListenActionServer(Node):
         channels: int,
     ) -> np.ndarray:
         if sample_width != 2:
-            self.get_logger().warn("Only 16-bit PCM audio is supported")
+            self.get_logger().warn(
+                "Only 16-bit PCM audio is supported for YAMNet detection"
+            )
             return np.array([], dtype=np.float32)
 
         samples = np.frombuffer(raw, dtype=np.int16)
@@ -533,6 +658,7 @@ def main(args=None) -> None:
         pass
     finally:
         node.destroy_node()
+
         if rclpy.ok():
             rclpy.shutdown()
 
