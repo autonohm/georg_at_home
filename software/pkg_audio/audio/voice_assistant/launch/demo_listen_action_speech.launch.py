@@ -1,10 +1,18 @@
+"""Launch an action server and client demo for speech transcription.
+
+The launch arguments expose speech detection, capture-window, and Whisper
+settings. A WAV path provides reproducible input; an empty path selects the
+system microphone.
+"""
+
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 
 
-def generate_launch_description():
+def generate_launch_description() -> LaunchDescription:
+    """Build the speech-mode ``Listen`` action demonstration."""
     wav_path = LaunchConfiguration("wav_path")
     timeout_sec = LaunchConfiguration("timeout_sec")
     speech_model_size = LaunchConfiguration("speech_model_size")
@@ -24,6 +32,7 @@ def generate_launch_description():
         DeclareLaunchArgument("speech_tail_sec", default_value="1.2"),
         DeclareLaunchArgument("speech_max_segment_sec", default_value="5.0"),
 
+        # Detect a speech segment and transcribe it for each accepted goal.
         Node(
             package="voice_assistant",
             executable="listen_action_server",
@@ -41,6 +50,7 @@ def generate_launch_description():
             }],
         ),
 
+        # Submit one MODE_SPEECH goal and display feedback and the transcript.
         Node(
             package="voice_assistant",
             executable="speech_task_manager_demo",

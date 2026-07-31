@@ -1,3 +1,5 @@
+"""Classify a WAV file once and publish a doorbell event when appropriate."""
+
 import audioop
 import json
 import wave
@@ -11,7 +13,10 @@ from voice_assistant.yamnet_doorbell_classifier import YamnetDoorbellClassifier
 
 
 class DoorbellWavDetector(Node):
-    def __init__(self):
+    """One-shot ROS wrapper around :class:`YamnetDoorbellClassifier`."""
+
+    def __init__(self) -> None:
+        """Load configuration and schedule classification after startup."""
         super().__init__("doorbell_wav_detector")
 
         self.declare_parameter("wav_path", "")
@@ -27,11 +32,13 @@ class DoorbellWavDetector(Node):
         )
 
         self.has_run = False
+        # Delay work briefly so subscribers can discover the publisher first.
         self.timer = self.create_timer(1.0, self.detect_once)
 
         self.get_logger().info("[DoorbellWavDetector] Ready.")
 
-    def detect_once(self):
+    def detect_once(self) -> None:
+        """Analyse the configured file and publish at most one event."""
         if self.has_run:
             return
         self.has_run = True
@@ -61,13 +68,23 @@ class DoorbellWavDetector(Node):
         self.publisher.publish(event)
         self.get_logger().info("Published doorbell_detected event.")
 
-    def _load_wav_as_16khz_float(self, path):
+    def _load_wav_as_16khz_float(self, path: str) -> np.ndarray:
+        """Load PCM WAV audio in the mono, 16 kHz float format YAMNet expects.
+
+        Args:
+            path: Path to a WAV file containing signed 16-bit PCM audio.
+
+        Returns:
+            A one-dimensional float32 waveform nominally in ``[-1.0, 1.0]``.
+        """
         with wave.open(path, "rb") as wav_file:
             channels = wav_file.getnchannels()
             sample_width = wav_file.getsampwidth()
             sample_rate = wav_file.getframerate()
             frames = wav_file.readframes(wav_file.getnframes())
 
+        # Average the first two channels before resampling. audioop preserves
+        # the source sample width while performing both operations.
         if channels > 1:
             frames = audioop.tomono(frames, sample_width, 0.5, 0.5)
 
@@ -85,7 +102,8 @@ class DoorbellWavDetector(Node):
         return samples.astype(np.float32) / 32768.0
 
 
-def main(args=None):
+def main(args=None) -> None:
+    """Run the one-shot detector node until ROS shuts down."""
     rclpy.init(args=args)
     node = DoorbellWavDetector()
     rclpy.spin(node)

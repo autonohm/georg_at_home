@@ -1,3 +1,5 @@
+"""Exercise the ``Listen`` action server in speech-transcription mode."""
+
 import rclpy
 from datatypes.action import Listen
 from rclpy.action import ActionClient
@@ -5,6 +7,7 @@ from rclpy.node import Node
 
 
 class TerminalColor:
+    """ANSI escape sequences used to make terminal feedback scannable."""
     RESET = "\033[0m"
     GREEN = "\033[92m"
     RED = "\033[91m"
@@ -30,7 +33,10 @@ FEEDBACK_MESSAGES = {
 
 
 class SpeechTaskManagerDemo(Node):
-    def __init__(self):
+    """Submit one speech goal and print its feedback and transcript."""
+
+    def __init__(self) -> None:
+        """Read parameters and begin asynchronously waiting for the server."""
         super().__init__("speech_task_manager_demo")
 
         self.declare_parameter("action_name", "/audio/listen")
@@ -46,7 +52,8 @@ class SpeechTaskManagerDemo(Node):
 
         self.get_logger().info("[SpeechDemo] Waiting for listen action server...")
 
-    def _try_send_goal(self):
+    def _try_send_goal(self) -> None:
+        """Send a speech goal once, after the action endpoint is available."""
         if self.goal_sent:
             return
 
@@ -71,7 +78,8 @@ class SpeechTaskManagerDemo(Node):
         )
         send_goal_future.add_done_callback(self.goal_response_callback)
 
-    def goal_response_callback(self, future):
+    def goal_response_callback(self, future) -> None:
+        """React to goal acceptance and request its eventual result."""
         goal_handle = future.result()
 
         if not goal_handle.accepted:
@@ -90,7 +98,8 @@ class SpeechTaskManagerDemo(Node):
         result_future = goal_handle.get_result_async()
         result_future.add_done_callback(self.result_callback)
 
-    def feedback_callback(self, feedback_msg):
+    def feedback_callback(self, feedback_msg) -> None:
+        """Translate machine-readable action state into a colored message."""
         state = feedback_msg.feedback.state
 
         message, color = FEEDBACK_MESSAGES.get(
@@ -102,7 +111,8 @@ class SpeechTaskManagerDemo(Node):
             f"{color}[SpeechDemo] {message}{TerminalColor.RESET}"
         )
 
-    def result_callback(self, future):
+    def result_callback(self, future) -> None:
+        """Display the final transcript and end the one-shot demo."""
         result = future.result().result
 
         if result.detected:
@@ -123,7 +133,8 @@ class SpeechTaskManagerDemo(Node):
         rclpy.shutdown()
 
 
-def main(args=None):
+def main(args=None) -> None:
+    """Run the speech client with reliable cleanup on interruption."""
     rclpy.init(args=args)
     node = SpeechTaskManagerDemo()
 

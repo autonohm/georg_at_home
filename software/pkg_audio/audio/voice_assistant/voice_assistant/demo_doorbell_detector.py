@@ -1,3 +1,5 @@
+"""Publish one synthetic doorbell event for manual pipeline testing."""
+
 import json
 import rclpy
 from rclpy.node import Node
@@ -5,13 +7,21 @@ from std_msgs.msg import String
 
 
 class DemoDoorbellDetector(Node):
-    def __init__(self):
+    """ROS node that emits a deterministic JSON event after startup."""
+
+    def __init__(self) -> None:
+        """Create the publisher and the delayed one-shot timer."""
         super().__init__("demo_doorbell_detector")
         self.publisher = self.create_publisher(String, "/voice/events", 10)
         self.timer = self.create_timer(3.0, self.publish_doorbell_event)
         self.published = False
 
-    def publish_doorbell_event(self):
+    def publish_doorbell_event(self) -> None:
+        """Publish the demo event exactly once.
+
+        The timer remains registered, so ``published`` acts as the one-shot
+        guard on all subsequent callbacks.
+        """
         if self.published:
             return
 
@@ -26,7 +36,8 @@ class DemoDoorbellDetector(Node):
         self.published = True
 
 
-def main(args=None):
+def main(args=None) -> None:
+    """Initialize ROS, spin the demo node, and release ROS resources."""
     rclpy.init(args=args)
     node = DemoDoorbellDetector()
     rclpy.spin(node)

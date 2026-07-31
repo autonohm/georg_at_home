@@ -1,3 +1,17 @@
+"""Implement the ROS ``Listen`` action for doorbells and spoken commands.
+
+Each goal selects one of two modes:
+
+* ``MODE_DOORBELL`` streams chunks through YAMNet until a doorbell is found.
+* ``MODE_SPEECH`` first locates a bounded speech segment and then transcribes
+  it with Faster-Whisper.
+
+For reproducible demos and tests, ``wav_path`` replaces live microphone input.
+All classifier input is normalized to mono, 16 kHz float32 audio. Action
+feedback uses stable state identifiers so clients can localize presentation
+independently of the server's colored console messages.
+"""
+
 import time
 import wave
 from collections import deque
@@ -15,6 +29,7 @@ from voice_assistant.whisper_speech_transcriber import WhisperSpeechTranscriber
 
 
 class TerminalColor:
+    """ANSI color sequences used only for human-readable server logs."""
     RESET = "\033[0m"
     GREEN = "\033[92m"
     RED = "\033[91m"
@@ -23,6 +38,8 @@ class TerminalColor:
     CYAN = "\033[96m"
 
 
+# Feedback keys form part of the observable action protocol. The text and
+# colors are console-only decorations; clients receive just the key.
 FEEDBACK_MESSAGES = {
     "listening": ("Listening for doorbell...", TerminalColor.BLUE),
     "listening_for_speech": ("Preparing microphone for speech...", TerminalColor.BLUE),
@@ -41,6 +58,14 @@ FEEDBACK_MESSAGES = {
 
 @dataclass
 class DetectionState:
+    """Best classification evidence accumulated across processed chunks.
+
+    Attributes:
+        detected: Whether a doorbell-positive chunk has been observed.
+        confidence: Highest doorbell or speech score seen so far.
+        top_class: Top YAMNet class for the most recently processed chunk.
+        speech_score: Highest speech score seen so far.
+    """
     detected: bool = False
     confidence: float = 0.0
     top_class: str = ""
@@ -48,24 +73,33 @@ class DetectionState:
 
 
 class ListenActionServer(Node):
+    """Serve cancellable doorbell-detection and speech-transcription goals."""
+
     def __init__(self) -> None:
+        """Declare configuration, load inference models, and start the server."""
         super().__init__("voice_listen_action_server")
 
+        # Detection and action endpoint settings.
         self.declare_parameter("action_name", "/audio/listen")
         self.declare_parameter("doorbell_threshold", 0.30)
         self.declare_parameter("speech_threshold", 0.30)
         self.declare_parameter("speech_max_threshold", 0.25)
 
+        # Faster-Whisper construction settings. These are read only at startup.
         self.declare_parameter("speech_model_size", "base")
         self.declare_parameter("speech_language", "de")
         self.declare_parameter("speech_device", "cpu")
         self.declare_parameter("speech_compute_type", "int8")
 
+        # Audio-source and chunking settings. A non-empty WAV path takes
+        # precedence over microphone capture for both action modes.
         self.declare_parameter("timeout_sec", 5.0)
         self.declare_parameter("wav_path", "")
         self.declare_parameter("sample_rate", 16000)
         self.declare_parameter("chunk_size", 16000)
 
+        # Speech segmentation settings retain audio immediately before onset,
+        # stop after trailing silence, and cap unusually long utterances.
         self.declare_parameter("speech_pre_roll_sec", 0.5)
         self.declare_parameter("speech_tail_sec", 1.2)
         self.declare_parameter("speech_max_segment_sec", 6.0)
@@ -98,6 +132,7 @@ class ListenActionServer(Node):
         self.get_logger().info(f"[ListenAction] Ready on {action_name}")
 
     def goal_callback(self, goal_request: Listen.Goal) -> GoalResponse:
+        """Accept only the two modes implemented by this server."""
         if goal_request.mode not in (
             Listen.Goal.MODE_DOORBELL,
             Listen.Goal.MODE_SPEECH,
@@ -110,9 +145,16 @@ class ListenActionServer(Node):
         return GoalResponse.ACCEPT
 
     def cancel_callback(self, _goal_handle) -> CancelResponse:
+        """Accept cancellation; capture loops observe it between chunks."""
         return CancelResponse.ACCEPT
 
     def execute_callback(self, goal_handle) -> Listen.Result:
+        """Route an accepted goal to its mode and configured audio source.
+
+        A goal timeout of zero selects the node-wide default. The monotonic
+        start timestamp is shared with helpers so model/input setup counts
+        toward the same deadline.
+        """
         default_timeout = float(self.get_parameter("timeout_sec").value)
         timeout_sec = float(goal_handle.request.timeout_sec or default_timeout)
         wav_path = str(self.get_parameter("wav_path").value or "")
@@ -157,6 +199,12 @@ class ListenActionServer(Node):
         timeout_sec: float,
         started_at: float,
     ) -> Listen.Result:
+        """Detect speech in a WAV file and transcribe the original file.
+
+        Detection gates transcription to avoid running Whisper on files with
+        no meaningful speech. The result's confidence is the strongest speech
+        score observed by YAMNet.
+        """
         result = Listen.Result()
         result.detected = False
         result.confidence = 0.0
@@ -217,6 +265,7 @@ class ListenActionServer(Node):
         timeout_sec: float,
         started_at: float,
     ) -> Listen.Result:
+        """Capture one speech segment from the microphone and transcribe it."""
         result = Listen.Result()
         result.detected = False
         result.confidence = 0.0
@@ -276,6 +325,17 @@ class ListenActionServer(Node):
         goal_handle,
         started_at: float,
     ) -> tuple[np.ndarray, DetectionState]:
+        """Capture a bounded utterance while accumulating classifier evidence.
+
+        The pre-roll deque prevents the beginning of a word from being lost
+        while YAMNet establishes that speech has started. Once started,
+        capture ends after the configured amount of silence or at the maximum
+        segment duration.
+
+        Returns:
+            A tuple containing the mono 16 kHz speech segment (empty when no
+            segment was captured) and the accumulated detection state.
+        """
         state = DetectionState()
 
         try:
@@ -293,9 +353,12 @@ class ListenActionServer(Node):
             self.get_parameter("speech_max_segment_sec").value
         )
 
+        # Segmentation occurs after resampling, so buffer duration is measured
+        # against YAMNet's required 16 kHz rate.
         chunk_duration_sec = chunk_size / 16000.0
         pre_roll_chunks = max(1, int(speech_pre_roll_sec / chunk_duration_sec))
 
+        # Keep a rolling history until the first speech-positive chunk.
         pre_roll_buffer = deque(maxlen=pre_roll_chunks)
         speech_buffer: list[np.ndarray] = []
 
@@ -350,6 +413,8 @@ class ListenActionServer(Node):
                         speech_started_at = now
                         last_speech_at = now
 
+                        # Promote the retained lead-in and current chunk into
+                        # the final segment, then switch to continuous capture.
                         speech_buffer.extend(list(pre_roll_buffer))
                         pre_roll_buffer.clear()
 
@@ -368,6 +433,8 @@ class ListenActionServer(Node):
                     else 0.0
                 )
 
+                # Either natural trailing silence or the safety cap completes
+                # the segment. Both conditions are based on monotonic time.
                 silence_after_speech = (
                     last_speech_at is not None
                     and now - last_speech_at >= speech_tail_sec
@@ -408,6 +475,13 @@ class ListenActionServer(Node):
         goal_handle,
         started_at: float,
     ) -> DetectionState:
+        """Classify a WAV file chunk by chunk under the action deadline.
+
+        Playback is paced to approximately real time so file-based action
+        behavior resembles microphone capture. Processing stops at the first
+        doorbell or speech-positive chunk; the caller decides which signal is
+        relevant for its selected mode.
+        """
         state = DetectionState()
 
         try:
@@ -442,6 +516,8 @@ class ListenActionServer(Node):
                     classification = self.classifier.classify(waveform)
                     self._update_state_from_classification(state, classification)
 
+                    # Older classifier implementations exposed only
+                    # ``detected``; retain that fallback for compatibility.
                     doorbell_detected = bool(
                         classification.get(
                             "doorbell_detected",
@@ -453,6 +529,7 @@ class ListenActionServer(Node):
                         state.detected = doorbell_detected
                         return state
 
+                    # Avoid consuming a long test recording instantaneously.
                     time.sleep(frames_per_chunk / max(sample_rate, 1))
 
         except Exception as exc:
@@ -466,6 +543,7 @@ class ListenActionServer(Node):
         goal_handle,
         started_at: float,
     ) -> DetectionState:
+        """Read microphone chunks until detection, cancellation, or timeout."""
         state = DetectionState()
 
         try:
@@ -537,6 +615,7 @@ class ListenActionServer(Node):
         goal_handle,
         state: DetectionState,
     ) -> Listen.Result:
+        """Translate accumulated state into the final action result/status."""
         result = Listen.Result()
         result.detected = state.detected
         result.confidence = float(state.confidence)
@@ -565,6 +644,7 @@ class ListenActionServer(Node):
         return result
 
     def _speech_was_detected(self, state: DetectionState) -> bool:
+        """Apply the current ROS speech threshold to accumulated evidence."""
         speech_threshold = float(self.get_parameter("speech_threshold").value)
         return state.speech_score >= speech_threshold
 
@@ -573,10 +653,13 @@ class ListenActionServer(Node):
         state: DetectionState,
         classification: dict,
     ) -> None:
+        """Merge one classifier response into a goal's running state."""
         doorbell_score = float(classification["doorbell_score"])
         speech_score = float(classification["speech_score"])
         top_class = str(classification["top_class"])
 
+        # Scores retain their maxima across chunks, while top_class describes
+        # the latest chunk to aid live diagnostics.
         state.confidence = max(state.confidence, doorbell_score, speech_score)
         state.speech_score = max(state.speech_score, speech_score)
         state.top_class = top_class
@@ -594,6 +677,11 @@ class ListenActionServer(Node):
         sample_width: int,
         channels: int,
     ) -> np.ndarray:
+        """Decode signed 16-bit PCM and downmix it to normalized mono floats.
+
+        Unsupported sample widths and empty buffers produce an empty array,
+        allowing capture loops to skip the chunk without special exceptions.
+        """
         if sample_width != 2:
             self.get_logger().warn(
                 "Only 16-bit PCM audio is supported for YAMNet detection"
@@ -606,6 +694,7 @@ class ListenActionServer(Node):
             return np.array([], dtype=np.float32)
 
         if channels > 1:
+            # Interleaved channel frames become one sample via arithmetic mean.
             samples = samples.reshape(-1, channels).mean(axis=1)
 
         return samples.astype(np.float32) / 32768.0
@@ -615,6 +704,7 @@ class ListenActionServer(Node):
         waveform: np.ndarray,
         source_sample_rate: int,
     ) -> np.ndarray:
+        """Linearly resample a waveform to YAMNet's required 16 kHz rate."""
         target_sample_rate = 16000
 
         if waveform.size == 0:
@@ -629,6 +719,8 @@ class ListenActionServer(Node):
         if target_size <= 0:
             return np.array([], dtype=np.float32)
 
+        # Map old and new sample indices onto the same duration, excluding the
+        # endpoint to preserve normal sampled-signal spacing.
         old_positions = np.linspace(
             0.0,
             duration,
@@ -645,6 +737,7 @@ class ListenActionServer(Node):
         return np.interp(new_positions, old_positions, waveform).astype(np.float32)
 
     def _publish_feedback(self, goal_handle, state: str) -> None:
+        """Publish a stable state key and log its human-readable description."""
         feedback = Listen.Feedback()
         feedback.state = state
         goal_handle.publish_feedback(feedback)
@@ -660,6 +753,7 @@ class ListenActionServer(Node):
 
 
 def main(args=None) -> None:
+    """Run the action server and cleanly release ROS resources on exit."""
     rclpy.init(args=args)
     node = ListenActionServer()
 
