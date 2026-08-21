@@ -5,7 +5,8 @@ services:
       context: .
       dockerfile: ./Dockerfile
     volumes:
-      - ./launch-content:/launch-content:ro
+      - ./config:/config:ro
     privileged: true
-    command: ros2 launch /launch-content/examples.launch.py
+
+    command: ros2 launch /config/examples.launch.py
     # command: sleep 1d

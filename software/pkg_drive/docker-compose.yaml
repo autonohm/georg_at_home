@@ -6,8 +6,8 @@ services:
       dockerfile: ./Dockerfile
     volumes:
       - /dev:/dev
-      - ./launch-content:/launch-content:ro
+      - ./config:/config:ro
     privileged: true
     restart: always
-    command: ros2 launch /launch-content/drive.launch.py
+    command: ros2 launch /config/drive.launch.py
     # command: sleep 1d
