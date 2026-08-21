@@ -4,6 +4,8 @@ services:
     build:
       context: .
       dockerfile: ./Dockerfile
+    networks:
+      - pib-network
     volumes:
       - ./config:/config:ro
     privileged: true

@@ -4,6 +4,8 @@ services:
     build:
       context: .
       dockerfile: ./Dockerfile
+    networks:
+      - pib-network
     volumes:
       - /dev:/dev
       - ./config:/config:ro
