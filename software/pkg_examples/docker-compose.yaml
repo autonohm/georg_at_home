@@ -9,6 +9,10 @@ services:
     volumes:
       - ./config:/config:ro
     privileged: true
-
+    init: true
     command: ros2 launch /config/examples.launch.py
     # command: sleep 1d
+
+networks:
+  pib-network:
+    driver: bridge
