@@ -1,0 +1,4 @@
+services:
+  tutorial:
+    image: georg-ros:humble
+    command: 'ros2 topic pub /hello std_msgs/msg/String "data: hello world"'
