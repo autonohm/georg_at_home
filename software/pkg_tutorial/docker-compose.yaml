@@ -4,4 +4,4 @@ services:
     build:
       context: .
       dockerfile: ./Dockerfile
-    command: 'ros2 run examples_rclcpp_minimal_publisher publisher_member_function'
+    command: 'ros2 run py_pubsub talker'
