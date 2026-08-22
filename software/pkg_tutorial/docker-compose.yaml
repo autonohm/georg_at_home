@@ -1,4 +1,7 @@
 services:
   tutorial:
-    image: georg-ros:humble
-    command: 'ros2 topic pub /hello std_msgs/msg/String "data: hello world"'
+    image: tutorial
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    command: 'ros2 run examples_rclcpp_minimal_publisher publisher_member_function'
