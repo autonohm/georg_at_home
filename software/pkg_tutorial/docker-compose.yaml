@@ -4,4 +4,8 @@ services:
     build:
       context: .
       dockerfile: ./Dockerfile
-    command: 'ros2 run py_pubsub talker'
+    volumes:
+      - ./config:/config:ro
+    privileged: true
+    init: true
+    command: 'ros2 launch /config/pubsub.launch.py'
