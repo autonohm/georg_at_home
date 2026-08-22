@@ -9,6 +9,7 @@ WORKDIR /ws
 # Q: is there a way to add rosdep dependencies without a ros package
 RUN apt-get update && apt-get install --no-install-recommends -y \
     ros-humble-joy-linux \
+    ros-humble-diagnostic-updater \
     ros-humble-tf2 \
     ros-humble-tf2-ros \
     ros-humble-tf2-geometry-msgs \
@@ -19,11 +20,9 @@ ENV REBUILD=1
 
 # clone directly into ws folder
 RUN git clone https://github.com/EduArt-Robotik/edu_robot.git --branch hotfix/single_channel_motor_controller && \
-    git clone https://github.com/EduArt-Robotik/edu_robot_control.git && \
-    git clone https://github.com/snaens/twist_smoother.git
+    git clone https://github.com/EduArt-Robotik/edu_robot_control.git
 
-#COPY ./ros_packages/georg_interfaces ros2_ws/georg_interfaces
-# COPY . ros2_ws/drive
+COPY twist_limiter/ twist_limiter/
 
 RUN rosdep install --from-paths . --ignore-src -r -y && \
     rm -rf /var/lib/apt/lists/*

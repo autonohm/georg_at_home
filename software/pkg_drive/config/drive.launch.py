@@ -25,6 +25,7 @@ def generate_launch_description():
       parameters=[PathJoinSubstitution([cwd_path, 'edu_robot.yaml'])],
       namespace='georg',
       # prefix=['gdbserver localhost:3000'],
+      emulate_tty=True,
       output='screen',
       # arguments=[
       #   "--ros-args",
@@ -39,6 +40,7 @@ def generate_launch_description():
       parameters=[PathJoinSubstitution([cwd_path, 'twist_limiter.yaml'])],
       remappings=[('twist_limiter/in', 'teleop/cmd_vel'),
                   ('twist_limiter/out', 'cmd_vel')],
+      emulate_tty=True,
       namespace=edu_robot_namespace
     )
 
@@ -47,6 +49,7 @@ def generate_launch_description():
       executable='remote_control',
       parameters=[PathJoinSubstitution([cwd_path, 'edu_robot_control.yaml'])],
       remappings=[('cmd_vel', 'teleop/cmd_vel')],
+      emulate_tty=True,
       namespace=edu_robot_namespace
     )
 
@@ -58,6 +61,7 @@ def generate_launch_description():
         {'coalesce_interval_ms': 50},
         {'dev': '/dev/input/js0'}
       ],
+      emulate_tty=True,
       namespace=edu_robot_namespace
     )
 

@@ -11,5 +11,10 @@ services:
       - ./config:/config:ro
     privileged: true
     restart: always
+    init: true
     command: ros2 launch /config/drive.launch.py
     # command: sleep 1d
+
+networks:
+  pib-network:
+    driver: bridge
