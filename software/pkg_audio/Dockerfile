@@ -1,9 +1,9 @@
-FROM ros:humble-ros-core
+FROM georg-ros:humble
 
 SHELL ["/bin/bash", "-c"]
-WORKDIR /app
+WORKDIR /ws
 
-RUN apt-get update --fix-missing && \
+RUN apt-get update && \
     apt-get install --no-install-recommends -y \
         build-essential \
         curl \
@@ -17,6 +17,14 @@ RUN apt-get update --fix-missing && \
         ffmpeg \
     && rm -rf /var/lib/apt/lists/*
 
+COPY audio_datatypes/ audio_datatypes/
+COPY audio/ audio/
+
+RUN /bin/bash -c "\
+    source /opt/ros/humble/setup.bash && \
+    colcon build \
+    "
+
 RUN pip install --no-cache-dir --upgrade pip setuptools wheel
 
 RUN pip install --no-cache-dir \
@@ -28,24 +36,9 @@ RUN pip install --no-cache-dir \
     tensorflow \
     tensorflow-hub
 
-COPY ./pib_api/client ./client
-RUN pip install --no-cache-dir ./client
-
-COPY ./public_api_client ./public_api_client
-RUN pip install --no-cache-dir ./public_api_client/
-
-COPY ./ros_packages/datatypes ros2_ws/datatypes
-COPY ./ros_packages/voice_assistant ros2_ws/voice_assistant
-
-RUN cd ros2_ws && \
-    source /opt/ros/humble/setup.bash && \
-    colcon build
-
-COPY ./ros_packages/ros_entrypoint.sh /
-RUN chmod +x /ros_entrypoint.sh
-
 ENV PYTHONUNBUFFERED=1
 ENV PULSE_SERVER=unix:"${XDG_RUNTIME_DIR}/pulse/native"
 
 ENTRYPOINT ["/ros_entrypoint.sh"]
+
 CMD ["bash"]
