@@ -6,12 +6,11 @@
   <xacro:property name="base_length" value="0.49"/>
   <xacro:property name="base_height" value="0.09"/>
 
-  <xacro:property name="wheel_radius" value="0.055"/>
-  <xacro:property name="wheel_width" value="0.04"/>
-  <xacro:property name="wheel_zoff" value="0.08"/>
-
-  <xacro:property name="wheel_front_x" value="0.12"/>
-  <xacro:property name="wheel_rear_x" value="-0.12"/>
+  <xacro:property name="wheel_radius" value="0.05"/>
+  <xacro:property name="wheel_width" value="0.054"/>
+  <xacro:property name="wheel_zoff" value="${0.12 - base_height/2}"/>
+  <xacro:property name="wheel_xoff" value="0.212"/>
+  <xacro:property name="wheel_axial_inset" value="-0.032"/>
 
 <!-- Robot Base -->
   <link name="base_link">
@@ -35,42 +34,40 @@
   </joint>
 
 <!--  LiDAR  -->
-  <link name="laser1_frame">
-    <visual>
-      <geometry>
-        <cylinder radius="0.035" length="0.0575"/>
-      </geometry>
-      <material name="Gray">
-        <color rgba="0.2 0.2 0.2 1.0"/>
-      </material>
-    </visual>
-  </link>
+  <xacro:property name="lidar_xoff" value="-0.2"/>
+  <xacro:property name="lidar_yoff" value="0.155"/>
 
-  <joint name="laser1_joint" type="fixed">
-    <parent link="base_link"/>
-    <child link="laser1_frame"/>
-    <origin xyz="-0.2 0.155 0.115" rpy="0 0 ${pi - pi/4}"/>
-  </joint>
+  <xacro:macro name="tim571_lidar" params="mirror">
+    <xacro:property name="lidar_scan_height" value="0.06246"/>
+    <link name="laser${mirror+1}_frame">
+      <visual>
+        <origin xyz="0 0 ${-lidar_scan_height}" rpy="0 0 0"/> <!-- offset mesh -->
+        <geometry>
+          <mesh filename="file://$(cwd)/description/meshes/sick_tim571.dae"/>
+        </geometry>
+        <material name="Gray">
+          <color rgba="0.2 0.2 0.2 1.0"/>
+        </material>
+      </visual>
+    </link>
 
-  <link name="laser2_frame">
-    <visual>
-      <geometry>
-        <cylinder radius="0.035" length="0.0575"/>
-      </geometry>
-      <material name="Gray">
-        <color rgba="0.2 0.2 0.2 1.0"/>
-      </material>
-    </visual>
-  </link>
+    <joint name="laser${mirror+1}_joint" type="fixed">
+      <parent link="base_link"/>
+      <child link="laser${mirror+1}_frame"/>
+      <xacro:if value="${mirror}">
+        <origin xyz="${lidar_xoff} ${lidar_yoff} ${lidar_scan_height + base_height/2}" rpy="0 0 ${radians(135)}"/>
+      </xacro:if>
+      <xacro:unless value="${mirror}">
+        <origin xyz="${-lidar_xoff} ${-lidar_yoff} ${lidar_scan_height + base_height/2}" rpy="0 0 ${radians(315)}"/>
+        </xacro:unless>
+    </joint>
+  </xacro:macro>
 
-  <joint name="laser2_joint" type="fixed">
-    <parent link="base_link"/>
-    <child link="laser2_frame"/>
-    <origin xyz="0.2 -0.155 0.115" rpy="0 0 ${-pi/4}"/>
-  </joint>
+  <xacro:tim571_lidar mirror="False" />
+  <xacro:tim571_lidar mirror="True" />
 
 <!-- Wheel macro -->
-  <xacro:macro name="wheel" params="prefix x_pos y_reflect">
+  <xacro:macro name="wheel" params="prefix x_reflect y_reflect">
     <link name="${prefix}_link">
       <visual>
         <origin xyz="0 0 0" rpy="${pi/2} 0 0"/>
@@ -86,17 +83,17 @@
     <joint name="${prefix}_joint" type="fixed">
       <parent link="base_link"/>
       <child link="${prefix}_link"/>
-      <origin xyz="${x_pos} ${y_reflect*(base_width/2 + wheel_width/2)} ${-wheel_zoff}" rpy="0 0 0"/>
+      <origin xyz="${x_reflect * wheel_xoff} ${y_reflect*(base_width/2 - wheel_width/2 + wheel_axial_inset)} ${-wheel_zoff}" rpy="0 0 0"/>
       <axis xyz="0 1 0"/>
     </joint>
   </xacro:macro>
 
   <!-- LEFT SIDE -->
-  <xacro:wheel prefix="wheel_front_left" x_pos="${wheel_front_x}" y_reflect="1"/>
-  <xacro:wheel prefix="wheel_rear_left" x_pos="${wheel_rear_x}" y_reflect="1"/>
+  <xacro:wheel prefix="wheel_front_left" x_reflect="1" y_reflect="1"/>
+  <xacro:wheel prefix="wheel_rear_left" x_reflect="-1" y_reflect="1"/>
 
   <!-- RIGHT SIDE -->
-  <xacro:wheel prefix="wheel_front_right" x_pos="${wheel_front_x}" y_reflect="-1"/>
-  <xacro:wheel prefix="wheel_rear_right" x_pos="${wheel_rear_x}" y_reflect="-1"/>
+  <xacro:wheel prefix="wheel_front_right" x_reflect="1" y_reflect="-1"/>
+  <xacro:wheel prefix="wheel_rear_right" x_reflect="-1" y_reflect="-1"/>
 
 </robot>
