@@ -1,0 +1,20 @@
+services:
+  slam:
+    image: slam
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    networks:
+      - pib-network
+    volumes:
+      - /dev:/dev
+      - ./config:/config:ro
+    privileged: true
+#    restart: always
+    init: true
+    command: "sh -c 'cd /config && ros2 launch pkg_slam.launch.py'"
+    # command: sleep 1d
+
+networks:
+  pib-network:
+    driver: bridge

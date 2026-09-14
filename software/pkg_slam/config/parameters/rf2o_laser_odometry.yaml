@@ -1,0 +1,11 @@
+/**:
+  ros__parameters:
+    base_frame_id: base_footprint
+    freq: 6.5
+    init_pose_from_topic: ''
+    laser_scan_topic: merged_scan
+    odom_frame_id: odom
+    odom_topic: odom
+    publish_tf: true
+    start_type_description_service: true
+    use_sim_time: false
