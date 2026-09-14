@@ -20,7 +20,7 @@ def generate_launch_description():
     robot_description = IncludeLaunchDescription(
         'robot-description.launch.py',
         launch_arguments={
-            'model': 'description/georg_base.urdf.xacro',
+            'model': 'description/robot.urdf.xacro',
         }.items()
     )
 

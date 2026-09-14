@@ -12,6 +12,6 @@ def generate_launch_description():
     )
 
     return LaunchDescription([
-        DeclareLaunchArgument(name='model', default_value="description/georg_base.urdf.xacro", description='Absolute path to robot model file'),
+        DeclareLaunchArgument(name='model', default_value="description/robot.urdf.xacro", description='Absolute path to robot model file'),
         robot_state_publisher_node,
     ])
