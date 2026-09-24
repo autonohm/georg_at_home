@@ -25,17 +25,14 @@ RUN apt-get update --fix-missing && \
 # --ignore-installed: avoid conflict with system numpy (installed by ros:jazzy-ros-core)
 RUN pip install --break-system-packages --no-cache-dir --ignore-installed pyaudio numpy scipy taskgroup
 
-COPY ./pib_api/client ./client
-RUN pip install --break-system-packages --no-cache-dir ./client
-
-COPY ./ros_packages/datatypes ros2_ws/datatypes
-COPY ./ros_packages/ros_audio_io ros2_ws/ros_audio_io
+COPY ./datatypes ros2_ws/datatypes
+COPY ./ros_audio_io ros2_ws/ros_audio_io
 
 RUN cd ros2_ws && \
     source /opt/ros/jazzy/setup.bash && \
     colcon build
 
-COPY ./ros_packages/ros_entrypoint.sh /
+COPY ./ros_entrypoint.sh /
 
 RUN chmod +x /ros_entrypoint.sh
 

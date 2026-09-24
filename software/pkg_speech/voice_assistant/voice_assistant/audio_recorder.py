@@ -16,7 +16,6 @@ from rclpy.executors import MultiThreadedExecutor
 from rclpy.node import Node
 from std_msgs.msg import String, Int16MultiArray
 
-from public_api_client import public_voice_client
 from voice_assistant.stt_transcription import FasterWhisperSTTEngine
 from . import util
 

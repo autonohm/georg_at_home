@@ -18,18 +18,7 @@ def generate_launch_description():
 
     return LaunchDescription(
         [
-            Node(package="voice_assistant", executable="assistant"),
             Node(package="voice_assistant", executable="audio_player"),
-            Node(package="voice_assistant", executable="audio_recorder"),
-            Node(
-                package="voice_assistant",
-                executable="chat",
-                additional_env={
-                    "PIB_HERMES_TIMEOUT": hermes_timeout,
-                    "PIB_HERMES_BIN": hermes_bin,
-                    "PIB_HERMES_PROFILES_DIR": hermes_profiles_dir,
-                },
-            ),
-            Node(package="voice_assistant", executable="token_service"),
+            # Node(package="voice_assistant", executable="audio_recorder")
         ]
     )

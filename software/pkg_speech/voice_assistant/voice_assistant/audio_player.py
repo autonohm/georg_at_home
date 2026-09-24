@@ -18,7 +18,6 @@ from rclpy.executors import MultiThreadedExecutor
 from rclpy.node import Node
 from std_msgs.msg import String
 
-from public_api_client import public_voice_client
 from . import util
 from .tts_synthesis import SupertoneTTSEngine
 
@@ -252,16 +251,8 @@ class AudioPlayerNode(Node):
             ]
         except Exception as e:
             self.get_logger().warning(
-                f"Local Supertone TTS synthesis error, attempting public voice client: {e}"
+                f"Local Supertone TTS synthesis error{e}"
             )
-            try:
-                data = public_voice_client.text_to_speech(
-                    request.speech, request.gender, request.language, self.token
-                )
-            except Exception as e2:
-                self.get_logger().error(f"text_to_speech failed: {e2}")
-                return response
-
         data = self.adjust_data_granularity(data, BYTES_PER_CHUNK)
 
         playback_item = PlaybackItem(data, SPEECH_ENCODING, 0.2, order)
@@ -269,7 +260,7 @@ class AudioPlayerNode(Node):
 
         if request.join:
             playback_item.finished_playing.wait()
-        return response
+            return response
 
     def clear_playback_queue(
         self, _: PlayAudioFromFile.Request, response: PlayAudioFromFile.Response

@@ -1,92 +1,14 @@
-# Software setup
+# pkg_speech
 
-This script assumes:
+This package implements an offline tts-model. So Georg can talk without needing internet connection :)
 
-- that the newest Raspberry Pi OS is installed
-- the user running it is **pib**
+It is based on [the existing  voice assistent of pib_backend](https://github.com/pib-rocks/pib-backend/commit/a4d091e965e774a66e8db1c6566586bf553588ed), and stripped of everything that is not necessary for the voice_assistent and any feature that requires an internet connection.
 
-## Installing pibs software
-
-All the software pib requires can be installed by running our setup script.
-Follow these steps to run it:
-
-1. Open a terminal in Raspberry Pi OS
-
-2. Insert the following command into the terminal to download the script:
-
-        wget https://raw.githubusercontent.com/pib-rocks/pib-backend/main/setup/setup-pib.sh
-
-   (or download it manually: https://github.com/pib-rocks/pib-backend/blob/main/setup/setup-pib.sh)
-
-3. Insert this command to run the script:
-
-        bash setup-pib.sh
-
-   If you want to run the setup-script in legacy mode (for Raspberry Pi 4), insert:
-               
-         bash setup-pib.sh -l
-
-The setup then adds Cerebra and it's dependencies, including ROS2, Tinkerforge,...
-Once the installation is complete, please restart the system to apply all the changes.
-
-# Updating the Software
-
-This script assumes that the setup script was executed successfully
-
-1. Open a terminal
-2. Enter this command: `update-pib`
-
-This script will update your docker containers (Front- and Backend)
-
-## Webots
-
-Starting the webots simulation:
-
-1. Complete all steps of the "Installing pibs software"-section of this readme document
-2. Webots GUI is intended to run **natively on the host Wayland session** (not inside Docker).
-3. Install Webots on the host OS and then run the simulator launch on the host:
-   - `ros2 launch pibsim_webots pib_launch.py`
-4. Ensure ROS networking between host and Docker works (same `ROS_DOMAIN_ID`, multicast not blocked).
-
-Webots may throw error messages saying it crashed (especially on VM). This can usually be ignored by clicking on "wait".
-
-## Clustering pibs
-
-To synchronize communication between pibs on default ROS_DOMAIN_ID=0:
-
-1. Open a Terminal:
-2. Run the following command:  
-   `gedit ~/.bashrc`  
-   OR for users connected through terminal:  
-   `vim ~/.bashrc`
-3. Within .bashrc  
-   delete: export ROS_LOCALHOST_ONLY=1  
-   or replace it with: ROS_LOCALHOST_ONLY=0
-4. Restart pib
-
-To add pib to a distinct logical network:
-
-1. Open a Terminal
-2. Run the following command:  
-   `gedit ~/.bashrc`  
-   OR for users connected through terminal:  
-   `vim ~/.bashrc`
-3. Delete: "export ROS_LOCALHOST_ONLY=1"
-4. Append: "export ROS_DOMAIN_ID=YOUR_DOMAIN_ID"
-5. Restart pib
-
-For a range of available ROS_DOMAIN_IDs please check the official documentation at:  
-https://docs.ros.org/en/dashing/Concepts/About-Domain-ID.html
 
 ### Docker
 
-The backend can be started via `docker compose`. Since the software requires to interface with the OS hardware (USB,
-sound and GPIO) Docker for Windows and Mac is not supported.
-Running `docker compose up` will start the Flask API, rosbridge and the blockly node server. To run the full backend,
-including camera, motors, programs and the voice assistant, profiles can be used:
-
 ```bash
-docker compose --profile all up
+docker compose --profile voice_assistant up -d --build
 ```
 
 `password.env` required to run the voice assistant:
@@ -95,17 +17,34 @@ docker compose --profile all up
 TRYB_URL_PREFIX=<BASE_URL_Tryb>
 ```
 
-### Contributing to pib
 
-For the development process, external developers are requested to refer to the following explanation: https://pib-rocks.atlassian.net/wiki/spaces/kb/pages/435486721/Contributing+to+pib
+### REDE
+Run the following command in the container to test out the tts:
 
-## Custom backend extensions (PR-1461)
+```
+ros2 service call /play_audio_from_speech datatypes/srv/PlayAudioFromSpeech \
+  "{speech: 'Hallo, ich bin Geeorg. Aber du darfst mich auch Schorsch nennen.', gender: 'M1', language: 'de', join: true}"
+```
 
-This branch integrates custom features previously maintained in a separate repository:
+This model cannot pronounce "Georg" correctly, however "Geeorg" works great. This fix will work for now.
 
-- Vendored `pib-blockly` sources with button, audio, object detection, and display blocks
-- `ros_packages/button_service` for TinkerForge RGB button control
-- Facial expressions and display text support in the ROS display service
-- Face tracking and vision prompt integration in the camera stack
 
-Cerebra UI updates may be required for new Blockly block categories to appear in the editor.
+### Known issue
+If you want to run this on your laptop, and not on the pib itsself, change the environment configurations in 'docker-compose.yaml':
+
+```
+ros-voice-assistant:
+    image: ros_voice_assistant
+
+    # ...
+
+    environment:
+      # - ALSA_CARD=ArrayUAC10 #  <-- remove this line
+      - PULSE_SERVER=unix:${XDG_RUNTIME_DIR:-/run/user/1000}/pulse/native
+      - # ...
+    volumes:
+      - ${XDG_RUNTIME_DIR:-/run/user/1000}/pulse/native:${XDG_RUNTIME_DIR:-/run/user/1000}/pulse/native
+      - # ...
+```
+
+Otherwise the connection to your speakers will not work.
