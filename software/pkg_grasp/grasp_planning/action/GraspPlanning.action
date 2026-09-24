@@ -1,0 +1,10 @@
+string goal_content
+string script_path
+string object_name
+geometry_msgs/Point object_coordinates
+float32 object_distance
+string which_hand
+---
+string result_content
+---
+string feedback_content
