@@ -87,7 +87,7 @@ check_packages() {
 
 build_base_image() {
     log_state "build georg-ros image"
-    docker build -t georg-ros:humble software/docker_base_image/
+    docker build -t georg-ros:jazzy software/docker_base_image/
 }
 
 docker_cmd() {
