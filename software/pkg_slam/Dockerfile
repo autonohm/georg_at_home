@@ -1,16 +1,12 @@
-FROM georg-ros:humble
+FROM georg-ros:jazzy
 
 SHELL ["/bin/bash", "-c"]
 
 WORKDIR /ws
 
 
-# todo make this work over rosdep
-# Q: is there a way to add rosdep dependencies without a ros package
 RUN apt-get update && apt-get install --no-install-recommends -y \
-    ros-humble-xacro \
-    ros-humble-robot-state-publisher \
-    ros-humble-slam-toolbox
+    ros-jazzy-slam-toolbox
 
 # change this variable to trick docker cache into rebuilding
 ENV REBUILD=1
@@ -24,7 +20,7 @@ RUN rosdep install --from-paths . --ignore-src -r -y && \
     rm -rf /var/lib/apt/lists/*
 
 RUN /bin/bash -c "\
-    source /opt/ros/humble/setup.bash && \
+    source /ws/install/setup.bash && \
     colcon build --symlink-install \
     "
 
