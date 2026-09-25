@@ -1,0 +1,18 @@
+services:
+  robot-description:
+    image: robot-description
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    networks:
+      - pib-network
+    privileged: true
+    restart: on-failure
+    init: true
+    working_dir: "/georg_urdf"
+    command: "ros2 launch georg_description publish_urdf.launch.py"
+#    command: sleep 1d
+
+networks:
+  pib-network:
+    driver: bridge
