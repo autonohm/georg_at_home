@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=70", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pib-gestures"
+version = "1.0.0"
+description = "Pointing and greeting functions for pib"
+readme = "README.md"
+requires-python = ">=3.9"
+license = {file = "LICENSE"}
+
+authors = [
+  {name = "pib.rocks", email = "team@pib.rocks"}
+]
+
+dependencies = [
+  "pib-sdk"
+]
+
+classifiers = [
+  "Programming Language :: Python :: 3"
+]
+
+[tool.setuptools]               
+package-dir = {"" = "src"}       # root of importable 
+license-files = []  
+
+[tool.setuptools.packages.find] 
+where = ["src"]                  # scan “src/” for packages
