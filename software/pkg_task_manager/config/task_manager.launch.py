@@ -6,14 +6,17 @@ from launch.substitutions import LaunchConfiguration
 
 from launch_ros.actions import Node
 
+from launch.actions import GroupAction
+from launch_ros.actions import PushRosNamespace
+
 
 def generate_launch_description():
 
 
     # robot namespace
-    edu_robot_namespace = LaunchConfiguration('edu_robot_namespace')
-    edu_robot_namespace_arg = DeclareLaunchArgument(
-        'edu_robot_namespace', default_value=os.getenv('EDU_ROBOT_NAMESPACE', default='georg')
+    robot_namespace = LaunchConfiguration('robot_namespace')
+    robot_namespace_arg = DeclareLaunchArgument(
+        'robot_namespace', default_value=os.getenv('EDU_ROBOT_NAMESPACE', default='georg')
     )
 
 
@@ -24,7 +27,7 @@ def generate_launch_description():
         executable="navigate_action_server",
         name="nav_room_server",
         arguments=["--node-name", "nav_room_server",
-                    "--action-name", "/nav/navigate_room_x"],
+                    "--action-name", "nav/navigate_room_x"],
         output="screen",
     )
 
@@ -33,7 +36,7 @@ def generate_launch_description():
         executable="navigate_action_server",
         name="nav_object_server",
         arguments=["--node-name", "nav_object_server",
-                    "--action-name", "/nav/navigate_object_x"],
+                    "--action-name", "nav/navigate_object_x"],
         output="screen",
     )
 
@@ -81,11 +84,16 @@ def generate_launch_description():
     )
 
     return LaunchDescription([
-      edu_robot_namespace_arg,
-      nav_room_module,
-      nav_obj_module,
-      drive_route_module,
-      gesture_module,
-      voice_module ,
-      task_manager_module 
+        robot_namespace_arg,
+        GroupAction(
+            actions=[
+                PushRosNamespace(robot_namespace),
+                nav_room_module,
+                nav_obj_module,
+                drive_route_module,
+                gesture_module,
+                #voice_module,
+                task_manager_module
+            ]
+        )
     ])

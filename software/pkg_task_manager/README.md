@@ -31,7 +31,7 @@ source install/setup.bash
 
 ros2 run navigate_server navigate_action_server \
 --node-name nav_room_server \
---action-name /nav/navigate_room_x
+--action-name nav/navigate_room_x
 
 ## Terminal 2 (for Navigation_Object_Action_Server):
 
@@ -39,7 +39,7 @@ source install/setup.bash
 
 ros2 run navigate_server navigate_action_server \
 --node-name nav_object_server \
---action-name /nav/navigate_object_x
+--action-name nav/navigate_object_x
 
 ## Terminal 3 (for Drive Tasks):  
 source install/setup.bash
