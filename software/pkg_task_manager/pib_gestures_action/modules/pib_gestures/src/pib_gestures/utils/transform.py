@@ -11,8 +11,8 @@ from ..config import param, gestures
 from ..utils import logic
 
 import numpy as np
-import logging
-logger = logging.getLogger(__name__)
+#import logging
+#logger = logging.getLogger(__name__)
 
 np.set_printoptions(formatter = {'float_kind': lambda value: f"{value:6.2f}"})
 
@@ -31,14 +31,14 @@ def calculate_object_vector_center(vector_x, vector_y, vector_z):
         "vector from camera to object",
         (vector_x, vector_y, vector_z)
     )
-    logger.debug(camera_vector)
+    # logger.debug(camera_vector)
     
     print("camera_vector ", camera_vector)
     
     # get head joint angles    
     angle_yaw_joint, angle_pitch_joint = get_head_joint_angles_in_radians()
-    logger.debug("angle yaw joint in radians: " + str(angle_yaw_joint))
-    logger.debug("angle pitch joint in radians: " + str(angle_pitch_joint))
+    # logger.debug("angle yaw joint in radians: " + str(angle_yaw_joint))
+    # logger.debug("angle pitch joint in radians: " + str(angle_pitch_joint))
     
     # create DH matrices
     matrix_CAN = DH_Matrix("DH matrix shoulder vertical to neck point", 0.0, param.DH_param['H_Base'], -param.DH_param['L_Neck'], 0.0)
@@ -49,13 +49,13 @@ def calculate_object_vector_center(vector_x, vector_y, vector_z):
     
     # final transformation matrix from camera vector to center vector
     matrix_center = matrix_CAN * matrix_NAY * matrix_YAC
-    logger.debug("matrix_center, " + str(matrix_center))
+    # logger.debug("matrix_center, " + str(matrix_center))
     
     # transformation from camera vector to center vector
     object_vector_center = matrix_center.create_vector_from_multiplication(
         "vector from center to object", camera_vector
     )
-    logger.debug(object_vector_center)
+    # logger.debug(object_vector_center)
     
     return object_vector_center
     
@@ -72,8 +72,8 @@ def calculate_head_vector(object_vector_center):
         "none", "look"
     )   
     
-    logger.debug("matrix_head, " + str(matrix_head))
-    logger.debug(object_vector_head)
+    # logger.debug("matrix_head, " + str(matrix_head))
+    # logger.debug(object_vector_head)
     
     return object_vector_head
     
@@ -126,9 +126,9 @@ def calculate_arm_vector(object_vector_center, pib_side, pib_gesture):
          pib_side, pib_gesture
     )
     
-    logger.debug("matrix_side, " + str(matrix_side))
-    logger.debug("matrix_arm, " + str(matrix_arm))
-    logger.debug(object_vector_arm)
+    # logger.debug("matrix_side, " + str(matrix_side))
+    # logger.debug("matrix_arm, " + str(matrix_arm))
+    # logger.debug(object_vector_arm)
     
     return object_vector_arm
       
@@ -168,8 +168,8 @@ def calculate_joint_angles_for_arm_vector(vector, pib_hand):
         q_deg_arm[2] = np.degrees(q_upper_arm_rotation)
         q_deg_arm[3] += np.degrees(q_elbow)
         
-    logger.debug("arm joint angles:  " + str(q_deg_arm))
-    logger.debug("hand joint angles: " + str(q_deg_hand))
+    # logger.debug("arm joint angles:  " + str(q_deg_arm))
+    # logger.debug("hand joint angles: " + str(q_deg_hand))
     
     return q_deg_arm, q_deg_hand  
 
@@ -180,7 +180,7 @@ def calculate_joint_angles_for_head_vector(vector):
     q_tilt_head = np.arctan2(vector.z, np.sqrt(vector.x * vector.x + vector.y * vector.y))
     q_deg_head = np.degrees(np.array([q_turn_head, q_tilt_head]))
     
-    logger.debug("head joint angles: " + str(q_deg_head))
+    # logger.debug("head joint angles: " + str(q_deg_head))
     
     return q_deg_head  
 
@@ -196,10 +196,10 @@ def check_arm_angle_and_distance_limits(vector, q_gesture_arm):
     
     distance_ok = vector.length > param.arm_length_with_reserve[vector.gesture]
             
-    logger.debug("upper arm joint limits for " + vector.gesture + ": " + str(param.joint_limits[vector.gesture]['upper']))
-    logger.debug("using arm joint angles for " + vector.gesture + ": " + str(q_gesture_arm))
-    logger.debug("lower arm joint limits for " + vector.gesture + ": " + str(param.joint_limits[vector.gesture]['lower']))
-    logger.debug("distance okay: " + str(distance_ok) + ", limits okay: " + str(limits_ok))
+    # logger.debug("upper arm joint limits for " + vector.gesture + ": " + str(param.joint_limits[vector.gesture]['upper']))
+    # logger.debug("using arm joint angles for " + vector.gesture + ": " + str(q_gesture_arm))
+    # logger.debug("lower arm joint limits for " + vector.gesture + ": " + str(param.joint_limits[vector.gesture]['lower']))
+    # logger.debug("distance okay: " + str(distance_ok) + ", limits okay: " + str(limits_ok))
     
     return limits_ok and distance_ok 
 
