@@ -20,16 +20,14 @@ def get_mission():
     print("[MISSION] Bar started")
 
     return [
-
-        
-        Listening("DOORBELL", 5.0, CRITICAL),
+        #Listening("DOORBELL", 5.0, CRITICAL),
         Gesture("look_at", -1000.0, 0.0, 100.0),
         #Gesture("point_to", -2000.0, 0.0, 100.0),
-        #NavigateObject("Seat", "/home/giu/georg_maps/Nav_Test.yaml"),
+        NavigateObject("Seat", "/root/georg_maps/Nav_Test.yaml"),
         #Listening("SPEECH"),
         #Gesture("look_at", -1000.0, 0.0, 100.0),
         #Gesture("greet_person", -1000.0, 0.0, 100.0),
-        NavigateObject("Door", "/home/giu/georg_maps/Nav_Test.yaml"),
+        #NavigateObject("Door", "/home/giu/georg_maps/Nav_Test.yaml"),
         ReturnToIdle()
 
     ]
