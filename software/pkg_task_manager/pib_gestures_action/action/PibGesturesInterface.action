@@ -1,0 +1,10 @@
+string gesture
+geometry_msgs/Vector3 camera_vector
+string pib_side
+string pib_gesture
+string pib_hand
+---
+int8 success
+string message
+---
+string status
