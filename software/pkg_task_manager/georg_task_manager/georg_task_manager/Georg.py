@@ -20,7 +20,7 @@ class Georg:
         self.taskmanager_current_task_pub = (
             node.create_publisher(
                 String,
-                "/task/current_task",
+                "task/current_task",
                 10
             )
         )
@@ -30,7 +30,7 @@ class Georg:
         self.listen_action_client = ActionClient(
             node,
             Listen,
-            "/audio/listen"
+            "audio/listen"
         )
 
         self.greet_action_client = ActionClient(
@@ -44,13 +44,13 @@ class Georg:
         self.navigate_room_action_client = ActionClient(
             node,
             Navigate,
-            "/nav/navigate_room_x"
+            "nav/navigate_room_x"
         )
 
         self.navigate_object_action_client = ActionClient(
             node,
             Navigate,
-            "/nav/navigate_object_x"
+            "nav/navigate_object_x"
         )
 
         # Drive 
@@ -58,7 +58,7 @@ class Georg:
         self.drive_route_action_client = ActionClient(
             node,
             DriveRoute,
-            "/nav/drive_route"
+            "nav/drive_route"
         )
 
         # # Vision (Placeholder)
@@ -66,7 +66,7 @@ class Georg:
         # self.search_guest_pub = (
         #     node.create_publisher(
         #         Bool,
-        #         "/vision/search_guest",
+        #         "vision/search_guest",
         #         10
         #     )
         # )
@@ -74,14 +74,14 @@ class Georg:
         # self.search_seat_pub = (
         #     node.create_publisher(
         #         Bool,
-        #         "/vision/search_seat",
+        #         "vision/search_seat",
         #         10
         #     )
         # )
 
         self.odom_sub = node.create_subscription(
             Odometry,
-            '/odom',
+            'odom',
             self.odom_callback,
             10
         )
@@ -91,7 +91,7 @@ class Georg:
 
         self.audio_say_pub = node.create_publisher(
             StringMsg,
-            "/audio/say",
+            "audio/say",
             10
         )
 
