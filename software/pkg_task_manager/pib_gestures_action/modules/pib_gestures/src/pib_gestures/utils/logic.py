@@ -14,8 +14,8 @@ pro version:    function identifies the optimal pointing gesture (pib_side, pib_
 from ..classes.vectors import Object_Vector
 from ..config import gestures
 
-import logging
-logger = logging.getLogger(__name__)
+# import logging
+# logger = logging.getLogger(__name__)
 
 def pointing_gesture_logic(
     object_vector_center,
@@ -34,7 +34,7 @@ def pointing_gesture_logic(
     if pib_hand == gestures.pib_hand['none']:
         pib_hand = gestures.pib_hand['open_hand']
         
-    logger.debug("Gesture set: " + str(pib_side) + " " + str(pib_gesture) + " " + str(pib_hand))
+    # logger.debug("Gesture set: " + str(pib_side) + " " + str(pib_gesture) + " " + str(pib_hand))
 
     return pib_side, pib_gesture, pib_hand
 
@@ -70,6 +70,6 @@ def greeting_gesture_logic(
     # greeting always with open hand
     pib_hand = gestures.pib_hand['open_hand']
     
-    logger.debug("Gesture set: " + str(pib_side) + " " + str(pib_gesture) + " " + str(pib_hand))
+    # logger.debug("Gesture set: " + str(pib_side) + " " + str(pib_gesture) + " " + str(pib_hand))
 
     return pib_side, pib_gesture, pib_hand
