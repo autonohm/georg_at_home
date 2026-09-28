@@ -132,7 +132,7 @@ docker_logs() {
           log_warn "selection $sel is not a package"
       fi
     done
-    docker logs --color --names --follow "${containers[@]%%/*}"
+    docker logs --follow "${containers[@]%%/*}"
 }
 
 install_completion() {
