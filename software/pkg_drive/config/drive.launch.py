@@ -59,7 +59,7 @@ def generate_launch_description():
       parameters=[
         {'autorepeat_rate': 20.0},
         {'coalesce_interval_ms': 50},
-        {'dev': '/dev/input/js0'}
+        {'dev': '/dev/georg_controller'}
       ],
       emulate_tty=True,
       namespace=edu_robot_namespace
