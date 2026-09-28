@@ -2,17 +2,19 @@ import os
 import pathlib
 
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
+from launch_ros.substitutions import FindPackageShare
 
-from launch_ros.actions import Node
+from launch.actions import GroupAction
+from launch_ros.actions import PushRosNamespace, Node
 
 
 def generate_launch_description():
     # robot namespace
-    edu_robot_namespace = LaunchConfiguration('edu_robot_namespace')
-    edu_robot_namespace_arg = DeclareLaunchArgument(
-        'edu_robot_namespace', default_value=os.getenv('EDU_ROBOT_NAMESPACE', default='georg')
+    robot_namespace = LaunchConfiguration('robot_namespace')
+    robot_namespace_arg = DeclareLaunchArgument(
+        'robot_namespace', default_value=os.getenv('EDU_ROBOT_NAMESPACE', default='georg')
     )
     cwd_path = pathlib.Path(__file__).parent.resolve()
 
@@ -27,7 +29,6 @@ def generate_launch_description():
       # prefix=['gdbserver localhost:3000'],
       emulate_tty=True,
       output='screen',
-      namespace='georg',
       # arguments=[
       #   "--ros-args",
       #   "--log-level",
@@ -39,10 +40,9 @@ def generate_launch_description():
       package='twist_limiter',
       executable='twist_limiter_node',
       parameters=[PathJoinSubstitution([cwd_path, 'twist_limiter.yaml'])],
-      remappings=[('twist_limiter/in', 'teleop/cmd_vel'),
+      remappings=[('twist_limiter/in', 'limiter/cmd_vel'),
                   ('twist_limiter/out', 'cmd_vel')],
       emulate_tty=True,
-      namespace=edu_robot_namespace
     )
 
     remote_control_node = Node(
@@ -51,7 +51,6 @@ def generate_launch_description():
       parameters=[PathJoinSubstitution([cwd_path, 'edu_robot_control.yaml'])],
       remappings=[('cmd_vel', 'teleop/cmd_vel')],
       emulate_tty=True,
-      namespace=edu_robot_namespace
     )
 
     joy_node = Node(
@@ -63,13 +62,30 @@ def generate_launch_description():
         {'dev': '/dev/georg_controller'}
       ],
       emulate_tty=True,
-      namespace=edu_robot_namespace
     )
 
+    twist_mux = IncludeLaunchDescription(
+        PathJoinSubstitution([FindPackageShare('twist_mux'), 'launch', 'twist_mux_launch.py']),
+        launch_arguments={
+            'config_locks': '/config/twist_mux/twist_mux_locks.yaml',
+            'config_topics': '/config/twist_mux/twist_mux_topics.yaml',
+            'config_joy': '/config/twist_mux/joystick.yaml',
+            'cmd_vel_out': 'limiter/cmd_vel',
+            'use_sim_time': 'False',
+        }.items()
+    )
+
+
     return LaunchDescription([
-      edu_robot_namespace_arg,
-      twist_limiter,
-      remote_control_node,
-      joy_node,
-      drive_node
+        robot_namespace_arg,
+        GroupAction(
+            actions=[
+                PushRosNamespace(robot_namespace),
+                twist_limiter,
+                remote_control_node,
+                joy_node,
+                twist_mux,
+                drive_node,
+            ]
+        ),
     ])
