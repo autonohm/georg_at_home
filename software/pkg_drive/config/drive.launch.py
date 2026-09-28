@@ -65,7 +65,7 @@ def generate_launch_description():
     )
 
     twist_mux = IncludeLaunchDescription(
-        PathJoinSubstitution([FindPackageShare('twist_mux'), 'launch', 'twist_mux_launch.py']),
+        PathJoinSubstitution([cwd_path, 'twist_mux', 'twist_mux_launch.py']),
         launch_arguments={
             'config_locks': '/config/twist_mux/twist_mux_locks.yaml',
             'config_topics': '/config/twist_mux/twist_mux_topics.yaml',
