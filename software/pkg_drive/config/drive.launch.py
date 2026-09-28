@@ -23,10 +23,11 @@ def generate_launch_description():
       executable='thn-georg-bot',
       name='thn_georg_bot',
       parameters=[PathJoinSubstitution([cwd_path, 'edu_robot.yaml'])],
-      namespace='georg',
+      remappings=[('odometry', 'odom')],
       # prefix=['gdbserver localhost:3000'],
       emulate_tty=True,
       output='screen',
+      namespace='georg',
       # arguments=[
       #   "--ros-args",
       #   "--log-level",
