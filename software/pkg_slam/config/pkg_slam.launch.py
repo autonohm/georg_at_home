@@ -17,13 +17,6 @@ def generate_launch_description():
         'slam.launch.py',
     )
 
-    robot_description = IncludeLaunchDescription(
-        'robot-description.launch.py',
-        launch_arguments={
-            'model': 'description/robot.urdf.xacro',
-        }.items()
-    )
-
     lidars = IncludeLaunchDescription(
         'lidars.launch.py',
     )
@@ -38,7 +31,6 @@ def generate_launch_description():
             actions=[
                 # PushRosNamespace(robot_namespace),  => namespace disabled as of now
                 slam,
-                robot_description,
                 lidars,
             ]
         )
