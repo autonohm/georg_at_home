@@ -13,7 +13,8 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
     ros-jazzy-tf2 \
     ros-jazzy-tf2-ros \
     ros-jazzy-tf2-geometry-msgs \
-    ros-jazzy-tf2-sensor-msgs
+    ros-jazzy-tf2-sensor-msgs \
+    ros-jazzy-twist-mux
 
 # change this variable to trick docker cache into rebuilding
 ENV REBUILD=1
