@@ -1,0 +1,6 @@
+# PS3 Controller werden auf /dev/georg_controller erwartet
+KERNEL=="js?", ATTRS{idVendor}=="054c", ATTRS{idProduct}=="0268", SYMLINK+="georg_controller", MODE="0666"
+
+# Gaming Maus am PC, die als Joystick+Maus enumeriert
+SUBSYSTEM=="input", ATTRS{idVendor}=="1017", ATTRS{idProduct}=="9015", ENV{ID_INPUT_JOYSTICK}=="?*", ENV{ID_INPUT_JOYSTICK}=""
+SUBSYSTEM=="input", ATTRS{idVendor}=="1017", ATTRS{idProduct}=="9015", KERNEL=="js[0-9]*", RUN+="/bin/rm %E{DEVNAME}", ENV{ID_INPUT_JOYSTICK}=""
