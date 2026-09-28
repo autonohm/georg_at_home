@@ -1,6 +1,6 @@
 services:
-  robot-description:
-    image: robot-description
+  urdf:
+    image: urdf
     build:
       context: .
       dockerfile: ./Dockerfile
