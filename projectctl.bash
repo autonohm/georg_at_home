@@ -6,8 +6,8 @@ PROJECT_NAME="georg"
 PACKAGES_DIR="software"
 
 # Space-separated package names to skip, for example:
-#SKIP_PACKAGES=("drive" "examples")
-SKIP_PACKAGES=( )
+#SKIP_PACKAGES=("examples" "speech" "task_manager")
+SKIP_PACKAGES=("speech" "examples" "task_manager")
 
 # --------------------------------------------------
 
