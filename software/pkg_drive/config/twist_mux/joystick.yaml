@@ -1,4 +1,4 @@
-joystick_relay:
+/**:
   ros__parameters:
     priority: True
     turbo:
