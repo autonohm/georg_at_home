@@ -1,0 +1,27 @@
+services:
+  viz:
+    image: viz
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    networks:
+      - pib-network
+    volumes:
+      - /dev:/dev # hwaccel hopefully
+      - /tmp/.X11-unix/:/tmp/.X11-unix/
+      - $XAUTHORITY:/root/.Xauthority
+      - ./config/:/root/config:ro
+      - ./config/qt5ct/:/root/.config/qt5ct/:ro
+    environment:
+      - DISPLAY=$DISPLAY
+      - QT_QPA_PLATFORMTHEME=qt5ct
+    working_dir: /root
+    privileged: true
+    restart: no
+    init: true
+    command: "ros2 launch ./config/operator.launch.py"
+#    command: sleep 1d
+
+networks:
+  pib-network:
+    driver: bridge
