@@ -29,7 +29,7 @@ def generate_launch_description():
         ),
         GroupAction(
             actions=[
-                # PushRosNamespace(robot_namespace),  => namespace disabled as of now
+                PushRosNamespace(robot_namespace),
                 slam,
                 lidars,
             ]
