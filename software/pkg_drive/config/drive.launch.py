@@ -25,7 +25,6 @@ def generate_launch_description():
       executable='thn-georg-bot',
       name='thn_georg_bot',
       parameters=[PathJoinSubstitution([cwd_path, 'edu_robot.yaml'])],
-      namespace='georg',
       # prefix=['gdbserver localhost:3000'],
       emulate_tty=True,
       output='screen',
