@@ -1,6 +1,6 @@
 services:
   build-image:
-    image: georg-ros:humble
+    image: georg-ros:jazzy
     build:
       context: .
       platforms:
