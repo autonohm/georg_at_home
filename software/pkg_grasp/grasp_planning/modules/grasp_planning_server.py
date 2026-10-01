@@ -59,7 +59,7 @@ class GraspPlannerServer(Node):
         start_time = time.time()
         hand_override = f"dataset.robot_names=['{goal.which_hand}']"
         object_override = f"dataset.debug_object_names=['contactdb+{goal.object_name}']"
-        handoff_path = os.path.join(DRO_GYM_DIR, 'grasp_candidates_latest.json')
+        handoff_path = os.path.join(DRO_GYM_DIR, 'grasp_candidates.json')
         parser_script = os.path.join(DRO_GYM_DIR, 'grasp_output_parser.py')
 
         shell_cmd = (
@@ -73,6 +73,16 @@ class GraspPlannerServer(Node):
             f'--since {start_time}'
         )
         cmd = ['bash', '-c', shell_cmd]
+
+        self.get_logger().info(f'Running: {shell_cmd}')
+        log_file = open('/tmp/dro_run.log', 'w')
+        ...
+        for line in dro_process.stdout:
+            log_file.write(line); log_file.flush()
+            ...
+        dro_process.wait()
+        log_file.close()
+        self.get_logger().info(f'exit code: {dro_process.returncode}')
 
         dro_process = subprocess.Popen(
             cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,

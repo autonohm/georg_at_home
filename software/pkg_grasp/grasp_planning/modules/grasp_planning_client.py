@@ -60,8 +60,8 @@ class GraspPlanner(Node):
             self.get_logger().info('Object is to the left - using left hand to grasp. Will return since the left hand isn`t included in the grasp model yet.')
             return
         elif self.object_coordinates.y >= 0:
-            #self.which_hand = 'pib_r'
-            self.which_hand = 'shadowhand'
+            self.which_hand = 'pib_r'
+            #self.which_hand = 'shadowhand'
             self.get_logger().info('Object is to the right - using right hand for grasp.')
         self.send_goal('goal_content', self.object_name, self.object_coordinates, self.object_distance, self.which_hand)
 

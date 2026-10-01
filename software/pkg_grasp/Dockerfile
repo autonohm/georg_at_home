@@ -6,7 +6,9 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
     ros-${ROS_DISTRO}-diagnostics
 
 # clone directly into ws folder, src folder is optional
-RUN git clone https://github.com/autonohm/georg_interfaces
+#RUN git clone https://github.com/autonohm/georg_interfaces
+   COPY input_grasp_planning /ws/src/input_grasp_planning
+   COPY grasp_planning /ws/src/grasp_planning
 
 RUN rosdep install --from-paths . --ignore-src -r -y && \
     rm -rf /var/lib/apt/lists/*
