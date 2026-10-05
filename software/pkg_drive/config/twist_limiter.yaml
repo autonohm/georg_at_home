@@ -1,6 +1,6 @@
 /**:
   ros__parameters:
-    acceleration_limit_mps2: 0.6
+    acceleration_limit_linear: 0.2   # m/s²
     publisher_hz: 20
     maximum.linear.x: 0.47
     maximum.linear.y: 0.47
