@@ -16,6 +16,8 @@ public:
         this->declare_parameter("acceleration_limit_angular", 1.5);
         this->declare_parameter("publisher_hz", 20.0);
 
+        this->declare_parameter("pause_after_publishing_zero", false);
+
         this->declare_parameter("maximum.linear.x", 1.0);
         this->declare_parameter("maximum.linear.y", 1.0);
         this->declare_parameter("maximum.linear.z", 1.0);
@@ -44,14 +46,19 @@ private:
         this->last_sub_msg = std::chrono::system_clock::now();
     }
 
-    bool is_twist_zeroed(const geometry_msgs::msg::Twist msg) {
+    bool is_twist_zeroed(const geometry_msgs::msg::Twist &msg) {
         return !(msg.linear.x || msg.linear.y || msg.linear.z || msg.angular.x || msg.angular.y || msg.angular.z);
     }
 
     void timer_callback() {
+        if (this->get_parameter("pause_after_publishing_zero").as_bool())
+            if (is_twist_zeroed(in_value) && is_twist_zeroed(out_value))
+                return;
+
         if ((this->last_sub_msg + 2s) < std::chrono::system_clock::now() && !is_twist_zeroed(in_value)) {
             // timeout detected + values aren't 0 (previous zeroing or controller untouched)
             RCLCPP_WARN(this->get_logger(), "Last message was 2s ago - Lag detected! Zeroing output.");
+            // zero input: this preserves the deceleration limit, to not crash the robot
             this->in_value.linear.x = this->in_value.linear.y = this->in_value.linear.z = this->in_value.angular.x = this->in_value.angular.y = this->in_value.angular.z = 0.0;
         }
 
