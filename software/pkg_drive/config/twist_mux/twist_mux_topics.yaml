@@ -9,11 +9,11 @@
   ros__parameters:
     topics:
       navigation:
-        topic   : nav/cmd_vel
+        topic   : cmd_vel/nav
         timeout : 0.5
         priority: 10
       joystick:
-        topic   : teleop/cmd_vel
+        topic   : cmd_vel/teleop
         timeout : 0.5
         priority: 100
 #      keyboard:

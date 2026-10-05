@@ -12,7 +12,7 @@
   ros__parameters:
     locks:
       pause:
-        topic   : pause_navigation
+        topic   : vel_locks/pause_navigation
         timeout : 0.0
         # Same priority as joystick control, so it'll not block it.
         priority: 100
@@ -21,6 +21,6 @@
 #        timeout : 0.0
 #        priority: 200
       joystick :
-        topic   : joy_priority
+        topic   : vel_locks/joy_priority
         timeout : 0.0
         priority: 100

@@ -74,13 +74,13 @@ def generate_launch_description():
                 'frame_id': 'base_link',
                 'scale': 1.0,
                 'vertical_position': 2.0}]),
-        Node(
-            package='twist_mux',
-            executable='joystick_relay.py',
-            output='screen',
-            remappings={('joy_vel_in', 'input_joy/cmd_vel'),
-                        ('joy_vel_out', 'joy_vel')},
-            parameters=[
-                {'use_sim_time': LaunchConfiguration('use_sim_time')},
-                LaunchConfiguration('config_joy')])
+#        Node(
+#            package='twist_mux',
+#            executable='joystick_relay.py',
+#            output='screen',
+#            remappings={('joy_vel_in', 'cmd_vel/joy_raw'),
+#                        ('joy_vel_out', 'cmd_vel/joy_out')},
+#            parameters=[
+#                {'use_sim_time': LaunchConfiguration('use_sim_time')},
+#                LaunchConfiguration('config_joy')])
     ])
