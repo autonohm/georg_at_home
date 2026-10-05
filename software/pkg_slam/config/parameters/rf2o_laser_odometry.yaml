@@ -1,11 +1,17 @@
 /**:
   ros__parameters:
-    base_frame_id: base_footprint
-    freq: 6.5
-    init_pose_from_topic: ''
+    # data sources
     laser_scan_topic: merged_scan
-    odom_frame_id: odom
-    odom_topic: odom
+    init_pose_from_topic: ''
+
+    # odometry publisher
+    odom_topic: odom/lidar
+    freq: 14.5
+
+    # TF Publisher:  odom_frame_id->base_frame_id
     publish_tf: true
+    odom_frame_id: odom
+    base_frame_id: base_footprint
+
     start_type_description_service: true
     use_sim_time: false
