@@ -36,13 +36,13 @@ amcl:
     z_max: 0.05
     z_rand: 0.5
     z_short: 0.05
-    scan_topic: merged_scan
+    scan_topic: scan
 
 bt_navigator:
   ros__parameters:
     global_frame: map
     robot_base_frame: base_link
-    odom_topic: /georg/odom
+    odom_topic: /odom
     bt_loop_duration: 10
     default_server_timeout: 20
     wait_for_service_timeout: 1000
@@ -213,7 +213,7 @@ local_costmap:
         mark_threshold: 0
         observation_sources: scan
         scan:
-          topic: /merged_scan
+          topic: /scan
           max_obstacle_height: 2.0
           clearing: True
           marking: True
@@ -243,7 +243,7 @@ global_costmap:
         enabled: True
         observation_sources: scan
         scan:
-          topic: /merged_scan
+          topic: /scan
           max_obstacle_height: 2.0
           clearing: True
           marking: True
@@ -397,7 +397,7 @@ collision_monitor:
     observation_sources: ["scan"]
     scan:
       type: "scan"
-      topic: "/merged_scan"
+      topic: "scan"
       min_height: 0.15
       max_height: 2.0
       enabled: True
@@ -460,7 +460,7 @@ loopback_simulator:
     base_frame_id: "base_footprint"
     odom_frame_id: "odom"
     map_frame_id: "map"
-    scan_frame_id: "base_link"  # tb4_loopback_simulator.launch.py remaps to 'rplidar_link'
+    scan_frame_id: "base_scan"  # tb4_loopback_simulator.launch.py remaps to 'rplidar_link'
     update_duration: 0.02
     scan_range_min: 0.05
     scan_range_max: 30.0
