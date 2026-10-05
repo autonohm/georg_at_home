@@ -4,16 +4,14 @@ services:
     build:
       context: .
       dockerfile: ./Dockerfile
-#    networks:
-#      - pib-network
-    network_mode: host
-    ipc: host
+    networks:
+      - pib-network
     volumes:
       - ./config:/config:ro
     privileged: true
 #    restart: always
     init: true
-    command: ros2 launch nav2_bringup navigation_launch.py namespace:=georg params_file:=/config/parameters/nav2_params.yaml
+    command: "ros2 launch nav2_bringup bringup_launch.py params_file:=/config/parameters/nav2_params.yaml"
 #    command: sleep 1d
 
 networks:
