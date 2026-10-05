@@ -13,7 +13,7 @@ class TwistLimiter : public rclcpp::Node {
 
 public:
     TwistLimiter() : Node("twist_limiter") {
-        this->declare_parameter("acceleration_limit_mps2", 1.5);
+        this->declare_parameter("acceleration_limit_linear", 1.5);
         this->declare_parameter("publisher_hz", 20);
 
         this->declare_parameter("maximum.linear.x", 1.0);
@@ -55,7 +55,7 @@ private:
             this->in_value.linear.x = this->in_value.linear.y = this->in_value.linear.z = this->in_value.angular.x = this->in_value.angular.y = this->in_value.angular.z = 0.0;
         }
 
-        const double max_velocity = this->get_parameter("acceleration_limit_mps2").as_double() / static_cast<double>(this->get_parameter("publisher_hz").as_int()); // m/s^2 / 1/s = m/s
+        const double max_velocity = this->get_parameter("acceleration_limit_linear").as_double() / static_cast<double>(this->get_parameter("publisher_hz").as_int()); // m/s^2 / 1/s = m/s
 
         auto controller = [max_velocity](double *out, const double in, const double limit) -> void {
             double increment = std::max(-max_velocity, std::min(max_velocity, in - (*out))); // limit max accel, min/max
