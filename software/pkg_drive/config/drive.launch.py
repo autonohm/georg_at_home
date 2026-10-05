@@ -39,7 +39,7 @@ def generate_launch_description():
       package='twist_limiter',
       executable='twist_limiter_node',
       parameters=[PathJoinSubstitution([cwd_path, 'twist_limiter.yaml'])],
-      remappings=[('twist_limiter/in', 'limiter/cmd_vel'),
+      remappings=[('twist_limiter/in', 'cmd_vel/limiter'),
                   ('twist_limiter/out', 'cmd_vel')],
       emulate_tty=True,
     )
@@ -48,7 +48,7 @@ def generate_launch_description():
       package='edu_robot_control',
       executable='remote_control',
       parameters=[PathJoinSubstitution([cwd_path, 'edu_robot_control.yaml'])],
-      remappings=[('cmd_vel', 'teleop/cmd_vel')],
+      remappings=[('cmd_vel', 'cmd_vel/teleop')],
       emulate_tty=True,
     )
 
@@ -69,7 +69,7 @@ def generate_launch_description():
             'config_locks': '/config/twist_mux/twist_mux_locks.yaml',
             'config_topics': '/config/twist_mux/twist_mux_topics.yaml',
             'config_joy': '/config/twist_mux/joystick.yaml',
-            'cmd_vel_out': 'limiter/cmd_vel',
+            'cmd_vel_out': 'cmd_vel/limiter',
             'use_sim_time': 'False',
         }.items()
     )
