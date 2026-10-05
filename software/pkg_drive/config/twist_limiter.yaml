@@ -4,6 +4,11 @@
     acceleration_limit_angular: 0.2  # rad/s²
     publisher_hz: 20.0
 
+    # Triggers after input and output Twists reach 0.0 .
+    # Prevents us repeatedly publishing zeroes until we receive some Twist data again
+    # (useful when muxing twist messages)
+    pause_after_publishing_zero: true
+
     maximum.linear.x: 0.47
     maximum.linear.y: 0.47
     maximum.linear.z: 0.0
