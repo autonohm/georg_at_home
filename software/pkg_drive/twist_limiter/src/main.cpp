@@ -14,7 +14,7 @@ public:
     TwistLimiter() : Node("twist_limiter") {
         this->declare_parameter("acceleration_limit_linear", 1.5);
         this->declare_parameter("acceleration_limit_angular", 1.5);
-        this->declare_parameter("publisher_hz", 20);
+        this->declare_parameter("publisher_hz", 20.0);
 
         this->declare_parameter("maximum.linear.x", 1.0);
         this->declare_parameter("maximum.linear.y", 1.0);
@@ -32,7 +32,7 @@ public:
             "twist_limiter/in", qos, std::bind(&TwistLimiter::topic_callback, this, std::placeholders::_1), this->sub_options_);
         publisher_ = this->create_publisher<geometry_msgs::msg::Twist>("twist_limiter/out", qos, this->pub_options_);
         timer_ = this->create_wall_timer(
-            std::chrono::milliseconds(static_cast<int>(1000.0 / static_cast<double>(this->get_parameter("publisher_hz").as_int()))), std::bind(&TwistLimiter::timer_callback, this)
+            std::chrono::milliseconds(static_cast<int>(1000.0 / this->get_parameter("publisher_hz").as_double())), std::bind(&TwistLimiter::timer_callback, this)
         );
 
         RCLCPP_INFO(this->get_logger(), "twist limiter online!");
@@ -65,12 +65,12 @@ private:
                 (*out) += increment;
         };
         // linear
-        const double max_vel_linear = this->get_parameter("acceleration_limit_linear").as_double() / static_cast<double>(this->get_parameter("publisher_hz").as_int()); // m/s² / 1/s = m/s
+        const double max_vel_linear = this->get_parameter("acceleration_limit_linear").as_double() / this->get_parameter("publisher_hz").as_double(); // m/s² / 1/s = m/s
         controller(&this->out_value.linear.x, this->in_value.linear.x, this->get_parameter("maximum.linear.x").as_double(), max_vel_linear);
         controller(&this->out_value.linear.y, this->in_value.linear.y, this->get_parameter("maximum.linear.y").as_double(), max_vel_linear);
         controller(&this->out_value.linear.z, this->in_value.linear.z, this->get_parameter("maximum.linear.z").as_double(), max_vel_linear);
         // angular
-        const double max_vel_angular = this->get_parameter("acceleration_limit_angular").as_double() / static_cast<double>(this->get_parameter("publisher_hz").as_int()); // rad/s² / 1/s = rad/s
+        const double max_vel_angular = this->get_parameter("acceleration_limit_angular").as_double() / this->get_parameter("publisher_hz").as_double(); // rad/s² / 1/s = rad/s
         controller(&this->out_value.angular.x, this->in_value.angular.x, this->get_parameter("maximum.angular.x").as_double(), max_vel_angular);
         controller(&this->out_value.angular.y, this->in_value.angular.y, this->get_parameter("maximum.angular.y").as_double(), max_vel_angular);
         controller(&this->out_value.angular.z, this->in_value.angular.z, this->get_parameter("maximum.angular.z").as_double(), max_vel_angular);
