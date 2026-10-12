@@ -23,7 +23,7 @@ RUN apt-get update && apt-get upgrade -y && apt-get install -y \
 ENV REBUILD=1
 
 # clone directly into ws folder
-RUN git clone https://github.com/snaens/georg_description.git
+RUN git clone https://github.com/autonohm/georg_description.git
 
 RUN rosdep install --from-paths . --ignore-src -r -y && \
     rm -rf /var/lib/apt/lists/*
