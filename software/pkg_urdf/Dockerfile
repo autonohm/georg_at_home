@@ -13,7 +13,7 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
 # change this variable to trick docker cache into rebuilding
 ENV REBUILD=1
 
-RUN git clone https://github.com/snaens/georg_description.git
+RUN git clone https://github.com/autonohm/georg_description.git
 
 RUN /bin/bash -c "\
     source /ws/install/setup.bash && \
