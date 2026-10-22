@@ -12,7 +12,10 @@ services:
       - $XAUTHORITY:/root/.Xauthority
       - ./config/:/root/config:ro
       - ./config/qt5ct/:/root/.config/qt5ct/:ro
+    # hardware acceleration
+    runtime: nvidia
     environment:
+      - NVIDIA_VISIBLE_DEVICES=all
       - DISPLAY=$DISPLAY
       - QT_QPA_PLATFORMTHEME=qt5ct
     working_dir: /root
