@@ -32,6 +32,9 @@ class GraspPlannerServer(Node):
         )
         self._goal_running = False
 
+        # terminal message for successful start
+        self.get_logger().info(f'grasp_planning_server is running - waiting for information from client')
+
     def goal_callback(self, goal_request):
         if not goal_request.goal_content == 'goal_content':
             return GoalResponse.REJECT
@@ -47,11 +50,11 @@ class GraspPlannerServer(Node):
         self.get_logger().info('Executing goal...')
         self._goal_running = True
 
-        feedback_msg = GraspPlanning.Feedback()
-        feedback_msg.feedback_content = 'feedback_content'
-        goal_handle.publish_feedback(feedback_msg)
-
         goal = goal_handle.request
+
+        feedback_msg = GraspPlanning.Feedback()
+        feedback_msg.feedback_content = f'Starting grasp planning with hand "{goal.which_hand}" and object "{goal.object_name}"'
+        goal_handle.publish_feedback(feedback_msg)
 
         DRO_GYM_DIR = '/home/athome/DRO-Gym'
         CONDA_SH = '/home/athome/miniconda3/etc/profile.d/conda.sh'
@@ -59,7 +62,7 @@ class GraspPlannerServer(Node):
         start_time = time.time()
         hand_override = f"dataset.robot_names=['{goal.which_hand}']"
         object_override = f"dataset.debug_object_names=['contactdb+{goal.object_name}']"
-        handoff_path = os.path.join(DRO_GYM_DIR, 'grasp_candidates.json')
+        handoff_path = os.path.join(DRO_GYM_DIR, 'grasp_candidates_latest.json')
         parser_script = os.path.join(DRO_GYM_DIR, 'grasp_output_parser.py')
 
         shell_cmd = (
@@ -73,16 +76,6 @@ class GraspPlannerServer(Node):
             f'--since {start_time}'
         )
         cmd = ['bash', '-c', shell_cmd]
-
-        self.get_logger().info(f'Running: {shell_cmd}')
-        log_file = open('/tmp/dro_run.log', 'w')
-        ...
-        for line in dro_process.stdout:
-            log_file.write(line); log_file.flush()
-            ...
-        dro_process.wait()
-        log_file.close()
-        self.get_logger().info(f'exit code: {dro_process.returncode}')
 
         dro_process = subprocess.Popen(
             cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
@@ -106,12 +99,46 @@ class GraspPlannerServer(Node):
                 goal_handle.canceled()
                 return result
 
-            feedback_msg.feedback_content = line.strip()
-            goal_handle.publish_feedback(feedback_msg)
+            for line in dro_process.stdout:
+                if goal_handle.is_cancel_requested:
+                    os.killpg(os.getpgid(dro_process.pid), signal.SIGTERM)
+                    try:
+                        dro_process.wait(timeout=5)
+                    except subprocess.TimeoutExpired:
+                        os.killpg(os.getpgid(dro_process.pid), signal.SIGKILL)
+                        dro_process.wait()
+                    self._goal_running = False
+                    result = GraspPlanning.Result()
+                    result.result_content = 'cancelled'
+                    goal_handle.canceled()
+                    return result
+
+                text = line.strip()
+                if not text:
+                    continue
+
+                feedback_msg = GraspPlanning.Feedback()
+                feedback_msg.dro_feedback = text
+                goal_handle.publish_feedback(feedback_msg)
 
         dro_process.wait()
         self._goal_running = False
         result = GraspPlanning.Result()
+
+        # D(R,O) Grasp successful
+        if dro_process.returncode == 0:
+            with open(handoff_path) as f:
+                grasp_data = json.load(f)
+            result.result_content = (
+                f"success: {grasp_data['num_candidates']} grasp candidates "
+                f"written to {handoff_path}"
+            )
+            goal_handle.succeed()
+        else:
+            result.result_content = f'script exited with code {dro_process.returncode}'
+            goal_handle.abort()
+        
+        return result
 
         #cuRobo starten
         # VENV_PATH = 'home/athome/curobo/.venv/bin/python'
@@ -162,8 +189,8 @@ class GraspPlannerServer(Node):
         # else:
         #     result.result_content = f'script exited with code {process.returncode}'
         #     goal_handle.abort()
-
-        return result
+        
+        #return result
 
 
 def main(args=None):

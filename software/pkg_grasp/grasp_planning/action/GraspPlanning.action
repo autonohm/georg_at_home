@@ -8,3 +8,5 @@ string which_hand
 string result_content
 ---
 string feedback_content
+string dro_feedback
+string cuRobo_feedback

@@ -33,6 +33,9 @@ class GraspPlanner(Node):
         self.object_coordinates_subscriber = self.create_subscription(Point, 'object_coordinates', self.object_coordinates_callback, 10)
         self.object_distance_subscriber = self.create_subscription(Float32, 'object_distance', self.object_distance_callback, 10)
 
+        # terminal message for successful start
+        self.get_logger().info(f'grasp_planning_client is running - waiting for object information from task management')
+
     def object_name_callback(self, msg):
         self.object_name = msg.data
         self.get_logger().info(f'Received object_name: {self.object_name}')
@@ -57,8 +60,9 @@ class GraspPlanner(Node):
             return
         if self.object_coordinates.y < 0:
             self.which_hand = 'pib_l'
-            self.get_logger().info('Object is to the left - using left hand to grasp. Will return since the left hand isn`t included in the grasp model yet.')
-            return
+            self.get_logger().info('Object is to the left - using left hand for grasp.')
+            #self.get_logger().info('Object is to the left - using left hand to grasp. Will return since the left hand isn`t included in the grasp model yet.')
+            #return
         elif self.object_coordinates.y >= 0:
             self.which_hand = 'pib_r'
             #self.which_hand = 'shadowhand'
@@ -109,7 +113,17 @@ class GraspPlanner(Node):
     # feedback response function, get feedback from action server
     def feedback_callback(self, feedback_msg):
         feedback = feedback_msg.feedback
-        self.get_logger().info('Received feedback: {0}'.format(feedback.feedback_content))
+        if feedback.feedback_content:
+            self.get_logger().info('Received feedback: {0}'.format(feedback.feedback_content))
+
+        if feedback.dro_feedback:
+            self.get_logger().info('Received D(R,O) feedback: {0}'.format(feedback.dro_feedback))
+
+        if feedback.cuRobo_feedback:
+            self.get_logger().info('Received cuRobo feedback: {0}'.format(feedback.cuRobo_feedback))
+            
+
+
         
 
     # result response function, get result from action server
