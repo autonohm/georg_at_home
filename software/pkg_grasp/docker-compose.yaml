@@ -1,0 +1,21 @@
+services:
+  grasp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: grasp
+    networks:
+    - pib-network
+   # network_mode: host # nur zu Testzwecken
+   # ipc: host
+    privileged: true
+    #restart: always
+    init: true
+    volumes:
+      - /tmp/grasp_candidates_latest.json:/tmp/grasp_candidates_latest.json
+    command: "ros2 run grasp_planning grasp_planning_server.py"
+    # command: sleep 1d
+
+# networks:
+#   pib-network:
+#     driver: bridge
