@@ -56,6 +56,12 @@ classDef bugged opacity:0.9,fill:#933,stroke:#800,stroke-width:2px,color:#fff
 
 ```
 
+## TODO
+
+- [ ] sensor fusion: Fuse IMU + Wheel + LiDAR odometry into one topic
+- [ ] optimize slam_toolbox parameters
+- [ ] Maybe find a better LiDAR odometry source? ACML maybe?
+- [ ] tune LiDARS (weird noise at certain angles) - I think trimming a few deg off of either side of the LiDAR's scan range will help
 
 > [!TIP]
 > Visualize slam with `rviz2 -d georg_slam.rviz`
