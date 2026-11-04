@@ -5,6 +5,7 @@ import time
 import json
 import signal
 import subprocess
+from math import pi
 
 import rclpy
 from rclpy.action import ActionServer, GoalResponse, CancelResponse
@@ -62,10 +63,11 @@ class GraspPlannerServer(Node):
         start_time = time.time()
         hand_override = f"dataset.robot_names=['{goal.which_hand}']"
         object_override = f"dataset.debug_object_names=['contactdb+{goal.object_name}']"
-        handoff_path = os.path.join(DRO_GYM_DIR, 'grasp_candidates_latest.json')
-        parser_script = os.path.join(DRO_GYM_DIR, 'grasp_output_parser.py')
+        handoff_path = os.path.join(DRO_GYM_DIR, 'grasp_postprocessing/grasp_candidates_latest.json')
+        parser_script = os.path.join(DRO_GYM_DIR, 'grasp_postprocessing/grasp_output_parser.py')
+        convert_script = os.path.join(DRO_GYM_DIR, 'grasp_postprocessing/convert_grasp.py')
 
-        shell_cmd = (
+        shell_cmd_1 = (
             f'source {CONDA_SH} && conda activate dro && '
             f'export LD_LIBRARY_PATH="/home/athome/miniconda3/envs/dro/lib:$LD_LIBRARY_PATH" && '
             f'python {goal.script_path} {hand_override} {object_override} && '
@@ -75,12 +77,49 @@ class GraspPlannerServer(Node):
             f'--output {handoff_path} '
             f'--since {start_time}'
         )
-        cmd = ['bash', '-c', shell_cmd]
+        cmd = ['bash', '-c', shell_cmd_1]
 
+        shell_cmd_2 = (
+            f'python{convert_script} {handoff_path}'
+        )
+        cmd = ['bash', '-c', shell_cmd_2]
+
+        # if os.path.getmtime(handoff_path) > start_time:
+        #     # convert grasp candidates
+        #     JOINT_MIN, JOINT_MAX = 0.0, pi / 2        # replace with your URDF limits if different
+        #     WRIST_MIN, WRIST_MAX = -pi / 2, pi / 2    # wrist has its own range
+        #     FINGERS = ["thumb", "index", "middle", "ring", "pinky"]
+
+        #     def pct(v, lo, hi):
+        #         return max(0.0, min(100.0, (v - lo) / (hi - lo) * 100))
+
+        #     def grasp_scores(ja):
+        #         row = {}
+        #         for f in FINGERS:
+        #             # flexion joints only; the thumb rotator is opposition, so it is reported separately
+        #             joints = [v for k, v in ja.items() if k.startswith(f + "_") and "rotator" not in k]
+        #             row[f] = round(sum(pct(v, JOINT_MIN, JOINT_MAX) for v in joints) / len(joints), 1)
+        #         row["thumb_rotator"] = round(pct(ja["thumb_left_rotator"], JOINT_MIN, JOINT_MAX), 1)
+        #         row["wrist"] = round(pct(ja["wrist_left"], WRIST_MIN, WRIST_MAX), 1)
+        #         return row
+
+        #     data = json.load(open(handoff_path))
+        #     rows = []
+        #     for i, c in enumerate(data["candidates"]):
+        #         rows.append({"grasp": i, "object": c["object_name"], **grasp_scores(c["joint_angles"])})
+
+        #     # JSON
+        #     json.dump(rows, open("DRO-Gym/grasp_postprocessing/grasp_scores.json", "w"), indent=2)
+
+        #     #print(f"{len(rows)} grasps written")
+        #     #for r in rows[:3]:
+        #     #    print(r)
+
+        #
         dro_process = subprocess.Popen(
             cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
             text=True, bufsize=1, cwd=DRO_GYM_DIR,
-            start_new_session=True,  # own process group, so we can kill the whole tree
+            start_new_session=True,  # own process group, kills the whole tree
         )
 
 
@@ -99,6 +138,15 @@ class GraspPlannerServer(Node):
                 goal_handle.canceled()
                 return result
 
+        #   for line in dro_process.stdout:
+        #       if goal_handle.is_cancel_requested:
+        #           feedback_msg.dro_feedback = line.strip()
+        #           goal_handle.publish_feedback(feedback_msg)
+        #       
+        #       text = line.strip()
+
+        #       if not text:
+        #           continue
             for line in dro_process.stdout:
                 if goal_handle.is_cancel_requested:
                     os.killpg(os.getpgid(dro_process.pid), signal.SIGTERM)
