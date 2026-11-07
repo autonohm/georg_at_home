@@ -1,0 +1,22 @@
+services:
+  examples:
+    image: examples
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    networks:
+      - pib-network
+
+    volumes:
+      - ./config:/config:ro
+      - /dev/bus/usb:/dev/bus/usb
+
+    privileged: true
+    init: true
+
+    command: ros2 launch /config/examples.launch.py
+
+networks:
+  pib-network:
+    driver: bridge

@@ -1,0 +1,34 @@
+FROM georg-ros:jazzy
+
+SHELL ["/bin/bash", "-c"]
+
+WORKDIR /ws
+
+# Change this variable to trick Docker cache into rebuilding
+ENV REBUILD=1
+
+# Copy ROS templates
+COPY ./pib_action_template /ws/pib_action_template
+COPY ./pib_topic_template /ws/pib_topic_template
+
+# Copy Luxonis OAK examples
+COPY ./oak-examples /ws/oak-examples
+
+# Install ROS dependencies
+RUN rosdep install --from-paths . --ignore-src -r -y && \
+    rm -rf /var/lib/apt/lists/*
+
+# Set up Python virtual environment and install dependencies
+WORKDIR /ws/oak-examples/neural-networks/generic-example
+
+RUN python3 -m pip install --no-cache-dir -r requirements.txt
+
+# Return to workspace
+WORKDIR /ws
+
+# Build ROS workspace
+RUN source /ws/install/setup.bash && \
+    colcon build --symlink-install
+
+ENTRYPOINT ["/ros_entrypoint.sh"]
+CMD ["bash"]
