@@ -1,7 +1,7 @@
-"""
-drive_route_action_server.py
-"""
+# drive_route_action_server.py
 
+
+import os
 import time
 import math
 import rclpy
@@ -36,7 +36,8 @@ ODOM_WAIT_TIMEOUT_S = 5.0
 
 SCAN_TOPIC = "scan"
 
-MAP_FILE = "/home/giu/georg_maps/Nav_Test_V3.yaml"
+MAP_DIR = os.environ.get("GEORG_MAP_DIR", os.path.expanduser("~/georg_maps"))
+MAP_FILE = os.path.join(MAP_DIR, "Nav_Test_V3.yaml")
 
 # Obstacle Detection Parameters
 
@@ -55,7 +56,8 @@ OBSTACLE_POINT_GRID_M = 0.1
 OBSTACLE_MAX_POINTS = 150
 KNOWN_OBSTACLE_MARGIN_M = 0.35
 
-# Parameters for rotation to next waypoint 
+# Parameters for rotation to next waypoint
+# WIP: needs to be tested with real robot
 
 FACE_TRAVEL_DIRECTION = False
 TURN_CLEARANCE_M = 0.45
@@ -148,7 +150,7 @@ class DriveRouteActionServer(Node):
             final_heading_tolerance_rad=self.get_parameter("final_heading_tolerance_rad").value,
         )
         self._map_offset = _load_map_start(MAP_FILE)
-        self.get_logger().info(f"Odom->Karte Offset: {self._map_offset}")
+        self.get_logger().info(f"Odom -> map offset: {self._map_offset}")
         self._latest_pose: Pose2D | None = None
 
         odom_qos = QoSProfile(
@@ -289,9 +291,9 @@ class DriveRouteActionServer(Node):
 
         nearest = sorted(cells.values())[:OBSTACLE_MAX_POINTS]
         return [Point(x=x, y=y, z=0.0) for _, x, y in nearest]
+
     
     # Goal / cancel acceptance
-
 
     def goal_callback(self, goal_request):
         self.get_logger().info(
@@ -306,10 +308,10 @@ class DriveRouteActionServer(Node):
         self.get_logger().info("DriveRoute cancel requested")
         return CancelResponse.ACCEPT
 
+
     
     # Execute
     
-
     def execute_callback(self, goal_handle):
         request = goal_handle.request
         result = DriveRoute.Result()
@@ -437,8 +439,8 @@ class DriveRouteActionServer(Node):
                     self._publish_stop()
                     self._last_obstacle_time = time.monotonic()
                     self.get_logger().warn(
-                        f"Obstacle at {dist:.2f} m, stopping | Fahrtrichtung={math.degrees(direction):.0f} Grad, "
-                        f"Treffer={math.degrees(bearing):.0f} Grad, yaw={math.degrees(current_pose.yaw):.0f} Grad, "
+                        f"Obstacle at {dist:.2f} m, stopping | Direction={math.degrees(direction):.0f} Degree, "
+                        f"Hits={math.degrees(bearing):.0f} Degree, yaw={math.degrees(current_pose.yaw):.0f} Degree, "
                         f"vx={vel.vx:.2f} vy={vel.vy:.2f}"
                     )
                     result.result_code = DriveRoute.Result.RESULT_OBSTACLE_DETECTED
@@ -467,6 +469,9 @@ class DriveRouteActionServer(Node):
             if sleep_time > 0:
                 time.sleep(sleep_time)
 
+
+        # Robot facing the travel direction needs to be tested with real robot
+
         if FACE_TRAVEL_DIRECTION and request.use_final_yaw:
             self._rotate_to(request.final_yaw + FRONT_YAW_OFFSET_RAD, gains)
 
@@ -493,9 +498,9 @@ class DriveRouteActionServer(Node):
             time.sleep(period_s)
         self._publish_stop()
 
+
     
     # cmd_vel publishing
-    
 
     def _publish_velocity(self, vel):
         msg = Twist()
@@ -503,6 +508,7 @@ class DriveRouteActionServer(Node):
         msg.linear.y = vel.vy
         msg.angular.z = vel.omega
         self._cmd_vel_pub.publish(msg)
+
 
     def _publish_stop(self):
         self._cmd_vel_pub.publish(Twist())

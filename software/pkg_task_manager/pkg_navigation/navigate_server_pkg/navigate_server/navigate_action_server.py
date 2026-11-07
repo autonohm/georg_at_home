@@ -1,7 +1,5 @@
-"""
-navigate_action_server.py
+#navigate_action_server.py
 
-"""
 
 import os
 import threading
@@ -27,9 +25,6 @@ DEFAULT_EXTRA_OBSTACLE_RADIUS_M = 0.25
 
 class NavigateActionServer(Node):
     #Planning-only Navigate.action server.
-
-
-    
 
     def __init__(self, node_name: str = DEFAULT_NODE_NAME, action_name: str = DEFAULT_ACTION_NAME):
         super().__init__(node_name)
@@ -66,8 +61,8 @@ class NavigateActionServer(Node):
         )
 
 
-    # Goal / cancel acceptance
 
+    # Goal / cancel acceptance
 
     def goal_callback(self, goal_request):
         self.get_logger().info(
@@ -77,19 +72,21 @@ class NavigateActionServer(Node):
         )
         return GoalResponse.ACCEPT
 
+
     def cancel_callback(self, goal_handle):
         self.get_logger().info("Navigate cancel requested")
         return CancelResponse.ACCEPT
 
 
-    # Map loading
 
+    # Map loading
 
     def _resolve_map_path(self, map_name: str) -> str:
         name = map_name or self._default_map_name
         if os.path.isabs(name):
             return name
         return os.path.join(self._map_dir, name)
+
 
     def _get_grid(self, map_name: str):
         path = self._resolve_map_path(map_name)
@@ -110,8 +107,8 @@ class NavigateActionServer(Node):
         return grid
 
 
-    # Execute
 
+    # Execute
 
     def execute_callback(self, goal_handle):
         request = goal_handle.request
