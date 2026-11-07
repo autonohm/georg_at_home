@@ -49,6 +49,7 @@ sleep 1
 
 log_state "udev rules"
 install_thingy 644 root root "/etc/udev/rules.d/51-autonohm-joystick.rules"
+install_thingy 644 root root "/etc/udev/rules.d/99-pib-motors.rules"
 sudo udevadm control --reload
 sudo udevadm trigger
 
