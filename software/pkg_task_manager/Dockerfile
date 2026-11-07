@@ -19,7 +19,9 @@ RUN python3 -m pip install --no-cache-dir --break-system-packages \
     tensorflow-hub==0.16.1 \
     tf_keras==2.16.0 \
     PyAudio==0.2.14 \
-    faster-whisper==1.2.1
+    faster-whisper==1.2.1 \
+    py-trees==2.6.0 \
+    py-trees-ros==2.6.0
 
 # change this variable to trick docker cache into rebuilding
 ENV REBUILD=1

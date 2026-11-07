@@ -10,7 +10,7 @@ services:
       - ./config:/config:ro
       - ./maps:/maps:ro
     environment:
-      - GEORG_MAP_DIR=/maps
+      - GEORG_MAP_DIR=/georg_maps
       - GEORG_DEFAULT_MAP=Nav_Test.yaml
       - MISSION_ID=2
 
