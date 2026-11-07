@@ -1,7 +1,6 @@
-"""
-grid_rasterizer.py
+# grid_rasterizer.py
 
-"""
+
 
 from __future__ import annotations
 
@@ -14,6 +13,7 @@ import yaml
 DEFAULT_CELL_SIZE_M = 0.05
 DEFAULT_INFLATION_M = 0.25
 
+# cell status
 FREE = 0
 OCCUPIED = 1
 
@@ -28,23 +28,28 @@ class Grid:
     origin_y: float
     cells: list = field(repr=False)  
 
+
     def world_to_cell(self, x: float, y: float) -> tuple[int, int]:
         col = int((x - self.origin_x) / self.cell_size_m)
         row = int((y - self.origin_y) / self.cell_size_m)
         return col, row
+
 
     def cell_to_world(self, col: int, row: int) -> tuple[float, float]:
         x = self.origin_x + (col + 0.5) * self.cell_size_m
         y = self.origin_y + (row + 0.5) * self.cell_size_m
         return x, y
 
+
     def in_bounds(self, col: int, row: int) -> bool:
         return 0 <= col < self.width_cells and 0 <= row < self.height_cells
+
 
     def is_free(self, col: int, row: int) -> bool:
         if not self.in_bounds(col, row):
             return False
         return self.cells[row][col] == FREE
+
 
     def set_occupied(self, col: int, row: int) -> None:
         if self.in_bounds(col, row):
@@ -61,6 +66,7 @@ def clone_grid(grid: Grid) -> Grid:
         origin_y=grid.origin_y,
         cells=[row[:] for row in grid.cells],
     )    
+
 
 def mark_extra_obstacles(grid: Grid, points, radius_m: float,
                          keep_free=None, keep_free_radius_m: float = 0.0) -> None:
@@ -94,7 +100,6 @@ def inflate_grid(grid: Grid, radius_m: float) -> None:
             for dc in range(-r_cells, r_cells + 1):
                 if dc * dc + dr * dr <= r_cells * r_cells:
                     grid.set_occupied(c0 + dc, r0 + dr)
-
 
 
 def _bbox_of_points(points_lists):
@@ -154,7 +159,6 @@ def _resolve_map_extent(data: dict) -> tuple[float, float, float, float]:
 
 
 # Rasterization
-
 
 def _rasterize_polygon_edges(grid: Grid, points: list[tuple[float, float]], thickness_cells: int = 1):
 
@@ -264,6 +268,7 @@ def load_named_object_position(yaml_path: str, name: str) -> tuple[float, float]
         return None
     pos = obj["position"]
     return float(pos[0]), float(pos[1])
+
 
 def load_map_start(yaml_path: str) -> tuple[float, float] | None:
     with open(yaml_path, "r") as f:

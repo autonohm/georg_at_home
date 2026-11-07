@@ -1,6 +1,5 @@
-"""
-drive_route_client.py
-"""
+#drive_route_client.py
+
 
 import sys
 import time
@@ -18,6 +17,7 @@ class DriveRouteClient(Node):
         super().__init__("drive_route_client")
         self._client = ActionClient(self, DriveRoute, action_name)
         self._action_name = action_name
+
 
     def send_route_and_wait(
         self,
@@ -85,6 +85,7 @@ def _cli_main():
     rclpy.init()
     client = DriveRouteClient(action_name=action_name)
 
+
     def on_feedback(feedback):
         print(
             f"  feedback: waypoint {feedback.current_waypoint_index}, "
@@ -92,8 +93,10 @@ def _cli_main():
             f"{feedback.current_position.y:.2f})"
         )
 
+
     print(f"Sending {len(waypoints)} waypoints to '{action_name}'...")
     result = client.send_route_and_wait(waypoints, feedback_callback=on_feedback)
+
 
     if result is None:
         print("FAILED: goal rejected or server unavailable")

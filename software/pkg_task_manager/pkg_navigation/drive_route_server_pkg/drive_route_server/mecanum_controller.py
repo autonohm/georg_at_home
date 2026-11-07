@@ -1,7 +1,5 @@
-"""
-mecanum_controller.py
+#mecanum_controller.py
 
-"""
 
 from __future__ import annotations
 
@@ -52,6 +50,8 @@ class ControllerGains:
 
     # smaller waypoint tolerance for last waypoint
     final_position_tolerance_m: float = 0.1
+
+    # needs to be tested with real robot
     final_heading_tolerance_rad: float = 0.15
 
 
@@ -74,6 +74,9 @@ def compute_velocity_command(
     if reached and not is_final_waypoint:
 
         return Velocity2D(0.0, 0.0, 0.0), True
+
+
+    # not working as intended in simulation
 
     # #Desired direction of travel for the robot face
     # if distance > 1e-3:

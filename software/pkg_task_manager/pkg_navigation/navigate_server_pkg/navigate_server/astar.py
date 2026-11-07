@@ -1,8 +1,5 @@
-"""
-astar.py
+# astar.py
 
-8-directional A* path planner for a mecanum drive base
-"""
 
 
 from __future__ import annotations
@@ -31,7 +28,7 @@ class _PQItem:
 
 
 def _heuristic(a: tuple[int, int], b: tuple[int, int]) -> float:
-    #Octile distance -- the admissible heuristic for 8-directional grids
+    # Octile distance -- the admissible heuristic for 8-directional grids
 
     dx = abs(a[0] - b[0])
     dy = abs(a[1] - b[1])
@@ -39,9 +36,9 @@ def _heuristic(a: tuple[int, int], b: tuple[int, int]) -> float:
 
 
 def _no_corner_cutting(grid, col, row, dcol, drow) -> bool:
-    #For diagonal moves, both orthogonal cells adjacent to the move must
-    #also be free -- otherwise the path would cut through the corner of a
-    #blocked cell
+    # For diagonal moves, both orthogonal cells adjacent to the move must
+    # also be free, otherwise the path would cut through the corner of a
+    # blocked cell
 
     if dcol != 0 and drow != 0:
         if not grid.is_free(col + dcol, row):
@@ -59,7 +56,7 @@ def find_path(
     feedback_callback: Optional[Callable[[int], None]] = None,
     feedback_every_n: int = 200,
 ) -> Optional[list[tuple[int, int]]]:
-    #A* over an 8-connected grid.
+    # A* over an 8-connected grid.
 
     #Returns a list of (col, row) cells from start to goal inclusive, or
 
