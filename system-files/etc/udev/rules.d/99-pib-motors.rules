@@ -1,0 +1,11 @@
+# Motor controller 0
+SUBSYSTEM=="tty", ATTRS{isVendor}=="1a86", ATTRS{idProduct}=="55d3", ATTRS{serial}=="5A7C122308", SYMLINK+="ttyMotor0"
+
+# Motor controller 1
+SUBSYSTEM=="tty", ATTRS{isVendor}=="1a86", ATTRS{idProduct}=="55d3", ATTRS{serial}=="5AE6083257", SYMLINK+="ttyMotor1"
+
+# Motor controller 2
+SUBSYSTEM=="tty", ATTRS{isVendor}=="1a86", ATTRS{idProduct}=="55d3", ATTRS{serial}=="58CD176727", SYMLINK+="ttyMotor2"
+
+# Motor controller 3
+SUBSYSTEM=="tty", ATTRS{isVendor}=="1a86", ATTRS{idProduct}=="55d3", ATTRS{serial}=="5A7C121913", SYMLINK+="ttyMotor3"
