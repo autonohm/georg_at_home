@@ -1,4 +1,7 @@
-# pkg_speech
+# OBSOLETE
+
+# this package has no reason to be here.
+# voice-assistant/speech functionality will bedevelopes where it belongs: pib-backend fork
 
 This package implements an offline tts-model. So Georg can talk without needing internet connection :)
 
