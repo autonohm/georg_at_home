@@ -26,6 +26,7 @@ def generate_launch_description():
       name='thn_georg_bot',
       parameters=[PathJoinSubstitution([cwd_path, 'edu_robot.yaml'])],
       # prefix=['gdbserver localhost:3000'],
+      remappings=[('odometry', 'odom/wheel')],
       emulate_tty=True,
       output='screen',
       # arguments=[
