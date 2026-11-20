@@ -1,0 +1,71 @@
+# ROS 2 Jazzy on macOS (Apple Silicon) via RoboStack, for development without Docker.
+# The robot and CI use the Docker images; this is only a convenience for Macs.
+#
+# The repo path contains a space ("Pib George"); ROS setup scripts and make break on that.
+# So the environment and the colcon workspace live outside the repo:
+#   ~/.pixi/bin/pixi config set --local detached-environments "$HOME/.pixi-envs"   (once)
+#   workspace: ~/.cache/georg-ros-ws/{build,install,log}
+#
+#   ~/.pixi/bin/pixi install --manifest-path dev/macos/pixi.toml
+#   ~/.pixi/bin/pixi run --manifest-path dev/macos/pixi.toml build
+#   ~/.pixi/bin/pixi shell --manifest-path dev/macos/pixi.toml   # shell with ROS sourced
+[workspace]
+name = "georg-ros-macos"
+channels = ["robostack-jazzy", "conda-forge"]
+platforms = ["osx-arm64"]
+
+[dependencies]
+python = "3.12.*"
+ros-jazzy-ros-base = "*"
+ros-jazzy-rosidl-default-generators = "*"
+ros-jazzy-geometry-msgs = "*"
+ros-jazzy-nav-msgs = "*"
+ros-jazzy-action-msgs = "*"
+ros-jazzy-launch-ros = "*"
+colcon-common-extensions = "*"
+compilers = "*"
+cmake = "*"
+pkg-config = "*"
+make = "*"
+ninja = "*"
+pyyaml = "*"
+pytest = "*"
+flake8 = "*"
+
+[pypi-dependencies]
+apache-burr = { version = "==0.43.0", extras = ["tracking-client"] }
+
+[activation]
+scripts = ["activate.sh"]
+
+[activation.env]
+ROS_DISTRO = "jazzy"
+ROS_VERSION = "2"
+ROS_PYTHON_VERSION = "3"
+# local only: no DDS traffic to the robot network from a laptop
+ROS_AUTOMATIC_DISCOVERY_RANGE = "LOCALHOST"
+GEORG_WS = "$HOME/.cache/georg-ros-ws"
+
+[tasks]
+# macOS strips DYLD_LIBRARY_PATH when bash starts (SIP), so every task re-sources the workspace.
+# builds every ROS package in packages/ (the audio package builds, but its TensorFlow deps are not installed)
+build = { cmd = "colcon --log-base $GEORG_WS/log build --build-base $GEORG_WS/build --install-base $GEORG_WS/install --symlink-install --cmake-args -G Ninja --base-paths ../../packages", cwd = "." }
+test = { cmd = "bash -c 'source $GEORG_WS/install/setup.bash && export PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 && cd ../../packages/pkg_task_manager/georg_task_manager && python -m pytest -q test/test_burr_app.py test/test_validator.py && cd ../../pkg_command_gate/command_gate && python -m pytest -q test'", cwd = "." }
+# runs the task manager node; mission via MISSION_ID, e.g. MISSION_ID=1
+task_manager = { cmd = "bash -c 'source $GEORG_WS/install/setup.bash && ros2 run georg_task_manager task_manager'", cwd = "." }
+demo = { cmd = "bash -c 'source $GEORG_WS/install/setup.bash && cd ../../packages/pkg_task_manager/georg_task_manager && python demo_burr.py'", cwd = "." }
+# shell with ROS and the workspace loaded
+ros = { cmd = "bash --rcfile $GEORG_WS/install/setup.bash -i", cwd = "." }
+
+# Burr UI in its own small environment (its server deps clash with the ROS packages)
+[feature.ui.dependencies]
+python = "3.12.*"
+
+[feature.ui.pypi-dependencies]
+apache-burr = { version = "==0.43.0", extras = ["tracking"] }
+
+[feature.ui.tasks]
+burr_ui = "burr_path=$HOME/.burr python -m uvicorn burr.tracking.server.run:app --host 127.0.0.1 --port 7241"
+
+[environments]
+ui = { features = ["ui"], no-default-feature = true }

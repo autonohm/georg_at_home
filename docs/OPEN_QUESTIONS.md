@@ -29,7 +29,7 @@ Nebenbei entfernt: 13 eingecheckte `.pyc`-Dateien in der Navigation (Kompilate, 
 
 **Q10 – Maps.** Liegen jetzt in `pkg_slam/maps` und werden in Navigation und Task Manager unter `/root/georg_maps` eingebunden. Feste Pfade in den Missionen unverändert. BT-Missionen und `drive_route_server` erwarten `Nav_Test_V3.yaml`, die es nicht gibt.
 
-**Q11 – Bauen.** Nicht verifiziert. Auf dem Mac fehlen colcon und ROS, der Docker-Daemon antwortete nicht, und es sind nur 5,9 GB frei. Allein der Task-Manager-Container zieht TensorFlow und faster-whisper, das reicht nicht. Optionen: Windows-Remote-PC mit Docker Desktop (WSL2), oder Jetson. Auf dem Jetson darf nur bis `build` gegangen werden, `up real` erst nach P7.
+**Q11 – Bauen. TEILWEISE ERLEDIGT (2026-11-20).** Auf dem Mac läuft ROS 2 Jazzy jetzt über RoboStack und pixi (`dev/macos/`). Damit sind geprüft: `colcon build` aller 13 ROS-Pakete in `packages/` ohne Fehler, 99 Task-Manager-Tests und 4 Gate-Tests mit echtem ROS, ein Probelauf des Befehls-Gates (verwirft in `sim`) und ein Probelauf des echten Task-Manager-Nodes mit Burr. Noch offen: der Build der Docker-Images und `./projectctl.bash up mock`. Das geht erst auf einem Rechner mit laufendem Docker (Windows-PC oder Jetson, auf dem Jetson nur `build`, kein `up real`).
 
 ## Neu gefunden (bestehende Fehler, nicht behoben)
 
@@ -73,3 +73,5 @@ Verworfen:
 - **Phoenix:** Reserve, falls der Stern im LLM-Betrieb nicht reicht.
 
 Der Code für den Stern liegt im Commit `6c3f685` und wird in P6 wieder eingebaut.
+
+**Q21 – Mission gilt als erfolgreich, obwohl kein Task geklappt hat.** Probelauf auf dem Mac ohne Paket-Server: Alle Tasks scheitern, trotzdem endet die Digital-Festival-Mission mit „succeeded“. Grund sind die bestehenden Prioritätsregeln: Low und High werden nach dem Scheitern verworfen, und die Mission läuft weiter. Nur Critical bricht ab. Sollen wichtige Tasks wie die Klingel Critical werden, oder soll eine Mission mit verworfenen Tasks einen eigenen Ausgang bekommen, etwa „teilweise“?
