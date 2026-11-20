@@ -25,7 +25,7 @@ class MissionResult:
     reason: str = ""
     burr_app_id: str = ""
     executed: List[str] = field(default_factory=list)
-    # Burr nodes in the order they ran, e.g. start_mission, next, listen, next, ...
+    # Burr nodes in the order they ran, e.g. start_mission, 1_listen, 2_gesture, ...
     steps: List[str] = field(default_factory=list)
     message: str = ""
 
@@ -86,7 +86,7 @@ class TaskManagerService:
             on_current_task=self._on_current_task,
             log=self._log,
         )
-        app = build_mission_app(ctx, mission_id, self._catalog,
+        app = build_mission_app(ctx, mission_id,
                                 app_id=self.current_app_id, tracker=self._tracker)
         self.state = a.RUNNING
         final = None
