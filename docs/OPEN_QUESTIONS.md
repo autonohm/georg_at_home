@@ -53,16 +53,23 @@ Nebenbei entfernt: 13 eingecheckte `.pyc`-Dateien in der Navigation (Kompilate, 
 
 **Q20 – Noch nicht im Container gelaufen.** 93 Tests laufen lokal ohne ROS grün (Python 3.9, Burr 0.43.0). Die Burr-UI hat einen lokalen Lauf angezeigt. Im Container (Python 3.12, echtes rclpy) ist das noch ungeprüft, genauso wie der Build aus P0.
 
-# Vorschlag für P6 – LLM und Burr-Graph (Stand 2026-11-20)
+# Entscheidung – Darstellung in Burr (2026-11-20)
 
-**Ziel:** In der Burr-UI soll auch im LLM-Betrieb auf einen Blick sichtbar sein, welcher Task nach welchem lief.
+**Entschieden: Mischung aus Kette (A) und Stern (B).** Burr bleibt die Ausführung.
 
-**Vorschlag: Abschnittsplanung, eine Kette pro Abschnitt.**
-1. Das LLM liefert einen kurzen Abschnitt aus Tasks und Missionsblöcken. Der Validator prüft ihn.
-2. Der bestehende Builder (`burr_app/builder.py`) macht daraus eine Kette `start_mission -> 1_... -> 2_... -> finish`, wie bei festen Missionen.
-3. Nach jedem Task bekommt das LLM das Ergebnis und antwortet mit weiter, umplanen oder abbrechen. Die Antwort steht im Zustand des Task-Knotens.
-4. Bei „umplanen“ endet der Lauf mit dem Ergebnis `replanned`. Der neue Abschnitt startet als neuer Burr-Lauf, verknüpft über `with_spawning_parent` mit dem vorherigen.
+| Betrieb | Graph | Was man sieht |
+| --- | --- | --- |
+| Feste Mission, Missionsblock | **Kette (A):** ein Knoten pro Missionsschritt, beim Start gebaut | Plan, Abbruchstelle und Rest auf einen Blick |
+| LLM-Betrieb (P6) | **Stern (B):** `next` plus ein Knoten pro Katalog-Task und pro Missionsblock | Reihenfolge in der Schrittliste; `next` zeigt Entscheidung und Absicht des LLM |
+| Block im LLM-Betrieb | Block-Knoten startet einen Unter-Lauf mit Kette (A) | Block als aufklappbare Kette unter dem Schritt |
 
-**Verworfen:** Ein-Schritt-Loop mit `decide_next_task` und `execute_task`. Im Graphen wäre nur eine Schleife zwischen zwei Knoten zu sehen.
+Begründung: Burr baut den Graphen vor dem Lauf. Eine Kette geht nur, wenn der Plan vorher feststeht (Mission, Block). Das LLM entscheidet unterwegs, dafür ist der Stern das Burr-Standardmuster. Der Stern wächst mit dem Katalog, nicht mit der Laufzeit (erwartet 10 bis 20 Knoten).
 
-**Offen:** Wie gut die Burr-UI viele kurze, verknüpfte Läufe anzeigt. Das gilt besonders, wenn das LLM oft nur einen Task plant und gleich umplant. Das muss in P6 ausprobiert werden. Der Prompt sollte eher Abschnitte als Einzelschritte anfordern.
+Verworfen:
+- **C, ein Unter-Lauf pro LLM-Abschnitt:** Bei häufigem Umplanen entsteht fast pro Schritt ein Lauf, der Durchlauf ist auf viele Teile verteilt.
+- **D, Graph während des Laufs nachzeichnen:** Wird von Burr nicht unterstützt.
+- **F, versteckte Pfad-Hervorhebung der Burr-UI einschalten:** Sonderlösung in fremdem Code.
+- **Langfuse:** sechs Container, etwa 16 GB RAM.
+- **Phoenix:** Reserve, falls der Stern im LLM-Betrieb nicht reicht.
+
+Der Code für den Stern liegt im Commit `6c3f685` und wird in P6 wieder eingebaut.
