@@ -20,6 +20,7 @@ setup(
     entry_points={
         'console_scripts': [
             'sim2d = georg_sim.sim2d_node:main',
+            'simmj = georg_sim.simmj_node:main',
         ],
     },
 )

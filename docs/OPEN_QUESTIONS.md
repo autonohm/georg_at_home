@@ -113,3 +113,7 @@ Auf dem Mac (RoboStack) umgesetzt und geprüft, Stufe 1 (2D-Simulator `georg_sim
 - **Simulator-Radius 0,2 m:** Der Planer hält 0,25 m Abstand zu Wänden. Ist Georg breiter als 0,5 m, ist dieser Abstand zu klein (Hinweis an die Navigation).
 
 **Q25 – Engstellen in `Nav_Test.yaml`.** Der Weg zum Sitzplatz führt durch Lücken von etwa 0,55 m (zwischen `Wall2` und `Wall3`). Für einen echten Roboter mit 0,5 m Durchmesser ist das sehr knapp.
+
+**P3 Stufe 2 – MuJoCo (2026-11-20).** `georg_sim/simmj`: dieselben Topics wie `sim2d`, Physik und Laser aus MuJoCo 3.16. Das Modell wird aus der Karten-YAML gebaut (`mjcf.py`): Wände als Quader, Basis als Zylinder mit Geschwindigkeits-Aktoren für x, y und Gier. Die komplette P3-Abnahme läuft auch mit MuJoCo grün (`pixi run test_sim_mj`).
+- **Abweichung vom Plan:** `mujoco_ros2_control` gibt es für macOS nicht (RoboStack, Stand 2026-11-20). Die Node spricht deshalb direkt mit MuJoCo. Auf Linux kann das Modell später über `mujoco_ros2_control` laufen, die Topics bleiben gleich.
+- **Offen (Q26):** Das echte Robotermodell aus `pkg_urdf` (externes Repo `georg_description`) ist noch nicht übernommen. Die Basis ist ein Zylinder mit 0,2 m Radius. Die DeepMind-Skills wurden nicht eingesetzt; sie brauchen teils einen Gemini-API-Schlüssel und Antigravity.

@@ -7,7 +7,7 @@ WORKDIR /ws
 # MuJoCo (stage 2) from pip; stage 1 (sim2d) needs nothing extra
 RUN apt-get update && apt-get install -y --no-install-recommends python3-pip \
     && rm -rf /var/lib/apt/lists/* \
-    && python3 -m pip install --no-cache-dir --break-system-packages mujoco==3.3.7
+    && python3 -m pip install --no-cache-dir --break-system-packages mujoco==3.16.0
 
 # change this variable to trick docker cache into rebuilding
 ENV REBUILD=1

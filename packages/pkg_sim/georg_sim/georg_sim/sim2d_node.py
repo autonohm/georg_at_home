@@ -57,6 +57,7 @@ class Sim2D(Node):
         self.cmd = Twist()
         self.cmd_time = 0.0
         self.collisions = 0
+        self._setup()
 
         self.create_subscription(Twist, 'cmd_vel', self._on_cmd, 10)
         self.odom_pub = self.create_publisher(Odometry, 'odom', 10)
@@ -73,6 +74,13 @@ class Sim2D(Node):
             f'georg_sim ready: map={self.map_file}, start=({self.x:.2f}, {self.y:.2f}), '
             f'{len(self.world.segments)} wall segments')
 
+    def _setup(self):
+        """Prepare the simulation backend (hook for the MuJoCo simulator)."""
+
+    def _command(self, now: float) -> Twist:
+        """Return the current command, or zero if it is older than ``cmd_timeout_s``."""
+        return self.cmd if now - self.cmd_time <= self.cmd_timeout else Twist()
+
     def _on_cmd(self, msg: Twist):
         self.cmd = msg
         self.cmd_time = time.monotonic()
@@ -80,7 +88,7 @@ class Sim2D(Node):
     def _step(self):
         now = time.monotonic()
         dt, self.last_step = now - self.last_step, now
-        cmd = self.cmd if now - self.cmd_time <= self.cmd_timeout else Twist()
+        cmd = self._command(now)
         vx, vy, wz = cmd.linear.x, cmd.linear.y, cmd.angular.z
         c, s = math.cos(self.yaw), math.sin(self.yaw)
         nx = self.x + (vx * c - vy * s) * dt
@@ -132,10 +140,12 @@ class Sim2D(Node):
         msg.angle_max = msg.angle_min + msg.angle_increment * (self.beams - 1)
         msg.range_min, msg.range_max = 0.1, float(self.max_range)
         msg.scan_time = 0.1
-        ranges = self.world.scan(self.x, self.y, self.yaw, self.beams, self.max_range)
-        msg.ranges = [float(r) for r in ranges]
+        msg.ranges = [float(r) for r in self._ranges()]
         for pub in self.scan_pubs:
             pub.publish(msg)
+
+    def _ranges(self):
+        return self.world.scan(self.x, self.y, self.yaw, self.beams, self.max_range)
 
 
 def main(args=None):
