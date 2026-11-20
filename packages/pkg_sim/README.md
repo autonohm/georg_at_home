@@ -38,9 +38,9 @@ Missions for the simulator: `sim_seat` (drive to the seat), `sim_door` (drive to
 
 - `georg_sim/test/test_world.py`: walls, raycast, free space (pytest, no ROS)
 - `georg_sim/test/test_mjcf.py`: MuJoCo model: drives, stopped by walls, laser matches the 2D laser
+- `pkg_task_manager/georg_task_manager/test/test_sim_integration.py`: acceptance criteria of P3
+  over real ROS (`pixi run test_sim`)
 - `pixi run test_sim_mj`: the P3 acceptance tests with MuJoCo instead of sim2d
 
 `mujoco_ros2_control` is not available for macOS, so `simmj` talks to MuJoCo directly.
 The base is a cylinder (radius 0.2 m); the real model from `pkg_urdf` can replace it later.
-- `pkg_task_manager/georg_task_manager/test/test_sim_integration.py`: acceptance criteria of P3
-  over real ROS (`pixi run test_sim`)
