@@ -163,6 +163,8 @@ def _apply_decision(state: State, ctx: MissionContext, current: int,
         state["queue"], state["attempts"], current, last_result,
         [ctx.priority(i) for i in range(len(ctx.tasks))], ctx.abort_requested())
 
+    if current >= 0 and not last_result:
+        ctx.log(f"[TASK FAILED] {task_name(ctx.tasks[current])}: {notes[0].split(', ', 1)[-1]}")
     if outcome == RUNNING:
         task = ctx.tasks[nxt]
         go_to = ctx.node(nxt)
