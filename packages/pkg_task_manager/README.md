@@ -72,6 +72,30 @@ In compose profile `mock` they run as service `mock_packages`
 `test/test_ros_integration.py` runs all mandatory scenarios automatically
 (`GEORG_ROS_TESTS=1`, needs ROS; on a Mac `pixi run test_ros`, see `dev/macos/`).
 
+### LLM planner (P6)
+
+After the start the task manager is always in mode `mission`. The operator can switch to
+`llm` or `llm_approval` (Lichtblick panel or `task_manager/set_mode`); then an instruction
+(`task_manager/instruct`) starts an LLM run:
+
+```
+start_llm -> next -> <task or block> -> next -> ... -> finish -> idle      (star graph)
+```
+
+- `next` asks the planner (`georg_task_manager/planner/`) after every task: new plan,
+  continue, done or abort. The planner talks to a local LLM over HTTP (`GEORG_LLM_URL`,
+  OpenAI-compatible, see `packages/pkg_llm`).
+- Guard rails: JSON schema from the catalog (constrained decoding), then the validator
+  (catalog names, arguments, mode, preconditions, places of the map, max. 8 steps).
+  Invalid answers go back to the LLM with the error text; after 3 attempts the run ends
+  (`FAILED`, Idle). More than 30 tasks in one run: stop.
+- Mission blocks (`blocks:` in `catalog.yaml`) run as their own linked Burr run (chain).
+- `llm_approval`: every new plan waits for `task_manager/approve_plan` (Lichtblick button).
+- Every decision is logged (prompt version, model, input, answers, plan, result) to
+  `GEORG_DECISION_LOG_DIR` and can be replayed: `tests/decision_replay/replay.py --decisions <log>`.
+- The current plan is on `task_manager/plan` (`std_msgs/String`, JSON) for Lichtblick.
+- Profile `real`: LLM modes are refused unless `GEORG_LLM_REAL_APPROVED=1`.
+
 ### Add a new task
 
 1. Write the class in `georg_task_manager/tasks/`, derived from `BaseTask`, with

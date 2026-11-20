@@ -57,7 +57,7 @@ GEORG_WS = "$HOME/.cache/georg-ros-ws"
 # macOS strips DYLD_LIBRARY_PATH when bash starts (SIP), so every task re-sources the workspace.
 # builds every ROS package in packages/ (the audio package builds, but its TensorFlow deps are not installed)
 build = { cmd = "colcon --log-base $GEORG_WS/log build --build-base $GEORG_WS/build --install-base $GEORG_WS/install --symlink-install --cmake-args -G Ninja --base-paths ../../packages", cwd = "." }
-test = { cmd = "bash -c 'source $GEORG_WS/install/setup.bash && export PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 && cd ../../packages/pkg_task_manager/georg_task_manager && python -m pytest -q test/test_burr_app.py test/test_validator.py && cd ../../pkg_command_gate/command_gate && python -m pytest -q test && cd ../../pkg_sim/georg_sim && python -m pytest -q test'", cwd = "." }
+test = { cmd = "bash -c 'source $GEORG_WS/install/setup.bash && export PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 && cd ../../packages/pkg_task_manager/georg_task_manager && python -m pytest -q test/test_burr_app.py test/test_validator.py test/test_planner.py && cd ../../pkg_command_gate/command_gate && python -m pytest -q test && cd ../../pkg_sim/georg_sim && python -m pytest -q test'", cwd = "." }
 # P2: task manager node + mock packages over real ROS (all mandatory scenarios, ~1 min)
 test_ros = { cmd = "bash -c 'source $GEORG_WS/install/setup.bash && export PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 GEORG_ROS_TESTS=1 && cd ../../packages/pkg_task_manager/georg_task_manager && python -m pytest -v test/test_ros_integration.py'", cwd = "." }
 # P3: whole profile sim in one command (simulator, SLAM, navigation, task manager, mocks, gate)
@@ -74,6 +74,10 @@ test_mcap = { cmd = "bash -c 'source $GEORG_WS/install/setup.bash && export PYTE
 replay = { cmd = "bash -c 'source $GEORG_WS/install/setup.bash && python ../../tests/decision_replay/replay.py \"$@\"' replay", cwd = "." }
 # continuous recording of /georg/task_manager/* like the compose service recorder
 record = { cmd = "bash -c 'source $GEORG_WS/install/setup.bash && mkdir -p ../../recordings && ros2 bag record -s mcap --max-bag-duration 3600 -o ../../recordings/task_manager_$(date +%Y%m%d_%H%M%S) --regex \"/georg/task_manager/.*|/georg/task/current_task\"'", cwd = "." }
+# P6: operating modes + LLM planner over ROS with a scripted LLM (~1 min)
+test_llm = { cmd = "bash -c 'source $GEORG_WS/install/setup.bash && export PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 GEORG_ROS_TESTS=1 && cd ../../packages/pkg_task_manager/georg_task_manager && python -m pytest -v test/test_llm_integration.py'", cwd = "." }
+# P6 with a real local LLM (start it first: pixi run -e llm llm_server)
+test_llm_real = { cmd = "bash -c 'source $GEORG_WS/install/setup.bash && export PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 GEORG_ROS_TESTS=1 GEORG_LLM_REAL=1 && cd ../../packages/pkg_task_manager/georg_task_manager && python -m pytest -v -s test/test_llm_real.py'", cwd = "." }
 # runs the task manager node (Idle, start missions via the services)
 task_manager = { cmd = "bash -c 'source $GEORG_WS/install/setup.bash && ros2 run georg_task_manager task_manager --ros-args -r __ns:=/georg'", cwd = "." }
 # mock packages; scenario via GEORG_MOCK_SCENARIO (all_ok, one_fails, timeout, abort, unreachable, retry_then_ok)
@@ -92,5 +96,16 @@ apache-burr = { version = "==0.43.0", extras = ["tracking"] }
 [feature.ui.tasks]
 burr_ui = "burr_path=$HOME/.burr python -m uvicorn burr.tracking.server.run:app --host 127.0.0.1 --port 7241"
 
+# local LLM for the planner (P6): llama.cpp server with an OpenAI-compatible endpoint
+[feature.llm.dependencies]
+"llama.cpp" = "*"
+
+[feature.llm.tasks]
+# downloads the model once (~1 GB) to ~/.cache/georg-llm
+llm_model = "mkdir -p $HOME/.cache/georg-llm && test -f $HOME/.cache/georg-llm/qwen2.5-1.5b-instruct-q4_k_m.gguf || curl -sSL --fail -o $HOME/.cache/georg-llm/qwen2.5-1.5b-instruct-q4_k_m.gguf https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct-GGUF/resolve/main/qwen2.5-1.5b-instruct-q4_k_m.gguf"
+# http://localhost:8080/v1/chat/completions (GEORG_LLM_URL default)
+llm_server = "llama-server -m $HOME/.cache/georg-llm/qwen2.5-1.5b-instruct-q4_k_m.gguf --host 127.0.0.1 --port 8080 --ctx-size 8192 -ngl 99"
+
 [environments]
 ui = { features = ["ui"], no-default-feature = true }
+llm = { features = ["llm"], no-default-feature = true }

@@ -113,5 +113,43 @@ class TaskManagerService:
             message=final['message'],
         )
 
+    async def run_llm(self, goal: str, planner, app_id: Optional[str] = None,
+                      approve=None, feedback=None, robot=None, places=None,
+                      on_plan=None) -> MissionResult:
+        """LLM mode: the planner chooses tasks and blocks step by step (plan P6)."""
+        from georg_task_manager.burr_app.builder import build_llm_app
+        from georg_task_manager.burr_app.llm_actions import LLMContext
+
+        with self._lock:
+            if self._running:
+                return MissionResult(
+                    False, reason=f"mission '{self.current_app_id}' is still running")
+            self._running = True
+            self._abort.clear()
+            self.current_app_id = app_id or str(uuid.uuid4())
+
+        ctx = LLMContext(
+            planner=planner, catalog=self._catalog, run_task=self._run_task,
+            abort_requested=self._abort.is_set, on_current_task=self._on_current_task,
+            log=self._log, approve=approve, feedback=feedback or (lambda: ''),
+            robot=robot or (lambda: {}), places=list(places or []),
+            on_plan=on_plan or (lambda plan: None), tracker=self._tracker)
+        app = build_llm_app(ctx, 'llm', app_id=self.current_app_id, tracker=self._tracker)
+        self.state = a.RUNNING
+        final, steps = None, []
+        try:
+            async for act, _result, state in app.aiterate(halt_after=['idle'],
+                                                          inputs={'goal': goal}):
+                final = state
+                steps.append(act.name)
+                self._on_step(act.name, state.get_all())
+        finally:
+            with self._lock:
+                self._running = False
+                self.state = IDLE
+        return MissionResult(True, outcome=final['outcome'], burr_app_id=self.current_app_id,
+                             executed=list(final['executed']), steps=steps,
+                             message=final['message'])
+
     def run_mission_blocking(self, mission_id: str, tasks: List[object]) -> MissionResult:
         return asyncio.run(self.run_mission(mission_id, tasks))

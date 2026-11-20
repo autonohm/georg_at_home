@@ -11,6 +11,10 @@ function serviceNames(namespace) {
     cancel: `${ns}/task_manager/cancel`,
     list: `${ns}/task_manager/list_missions`,
     status: `${ns}/task_manager/status`,
+    setMode: `${ns}/task_manager/set_mode`,
+    instruct: `${ns}/task_manager/instruct`,
+    approve: `${ns}/task_manager/approve_plan`,
+    plan: `${ns}/task_manager/plan`,
   };
 }
 
@@ -77,6 +81,41 @@ function describeResponse(kind, response) {
   return `${kind}: rejected – ${response.reason || "no reason given"}`;
 }
 
+const MODES = ["mission", "llm", "llm_approval"];
+const MODE_LABELS = { mission: "Mission", llm: "LLM", llm_approval: "LLM + approval" };
+
+// std_msgs/String with JSON on <ns>/task_manager/plan -> what the panel shows
+function describePlan(msg) {
+  let plan = {};
+  try {
+    plan = JSON.parse(msg?.data ?? "{}");
+  } catch {
+    return { mode: "", waiting: false, lines: ["plan: unreadable"] };
+  }
+  const lines = [];
+  if (plan.goal) lines.push(`goal: ${plan.goal}`);
+  if (plan.current) lines.push(`now: ${plan.current}`);
+  if (plan.remaining?.length) lines.push(`next: ${plan.remaining.join(" → ")}`);
+  if (plan.reason) lines.push(`LLM: ${plan.reason}`);
+  if (plan.outcome) lines.push(`result: ${plan.outcome}`);
+  for (const h of (plan.history ?? []).slice(-5)) {
+    lines.push(`  ${h.result === "ok" ? "✓" : "✗"} ${h.step}`);
+  }
+  return { mode: plan.mode ?? "", waiting: Boolean(plan.waiting_for_approval), lines };
+}
+
+function setModeRequest(mode) {
+  return { mode: String(mode ?? "") };
+}
+
+function instructRequest(text) {
+  return { text: String(text ?? "").trim() };
+}
+
+function approveRequest(ok) {
+  return { approve: Boolean(ok) };
+}
+
 // link to the run in the Burr UI
 function burrUrl(baseUrl, missionId, appId) {
   if (!appId) {
@@ -88,6 +127,12 @@ function burrUrl(baseUrl, missionId, appId) {
 
 module.exports = {
   STATE_NAMES,
+  MODES,
+  MODE_LABELS,
+  describePlan,
+  setModeRequest,
+  instructRequest,
+  approveRequest,
   serviceNames,
   normalizeNamespace,
   stateName,

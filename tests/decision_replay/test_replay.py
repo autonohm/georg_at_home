@@ -76,3 +76,19 @@ def test_changed_rules_are_reported(recorded):
         return tasks[:-1]                                      # ReturnToIdle removed
     deviations = rp.replay(recorded, runs=1, mission_factory=other_mission)
     assert any('step' in d for d in deviations)
+
+
+def test_llm_decisions_replay_and_report_changes(tmp_path):
+    from georg_task_manager.catalog import load_catalog
+    from georg_task_manager.planner.planner import Planner
+
+    answer = json.dumps({'decision': 'plan', 'steps': [{'block': 'greet_guest'}], 'reason': 'x'})
+    log_dir = tmp_path / 'decisions'
+    p = Planner(lambda m, schema=None: answer, load_catalog(), 'mock', 'scripted',
+                log_dir=str(log_dir))
+    p.decide(p.context('greet', [], [], places=['Door']))
+    log = str(next(log_dir.iterdir()))
+    assert rp.replay_decisions(log, lambda m, schema=None: answer, runs=2) == []
+    other = json.dumps({'decision': 'abort', 'steps': [], 'reason': 'changed model'})
+    deviations = rp.replay_decisions(log, lambda m, schema=None: other, runs=1)
+    assert deviations and 'abort' in deviations[0]

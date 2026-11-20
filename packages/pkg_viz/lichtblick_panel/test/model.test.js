@@ -9,6 +9,10 @@ test("service names follow the robot namespace", () => {
     cancel: "/georg/task_manager/cancel",
     list: "/georg/task_manager/list_missions",
     status: "/georg/task_manager/status",
+    setMode: "/georg/task_manager/set_mode",
+    instruct: "/georg/task_manager/instruct",
+    approve: "/georg/task_manager/approve_plan",
+    plan: "/georg/task_manager/plan",
   });
   assert.equal(m.serviceNames("/georg/").start, "/georg/task_manager/start");
   assert.equal(m.serviceNames("").start, "/task_manager/start");
@@ -58,4 +62,16 @@ test("burr link points at the run", () => {
     "http://localhost:7241/project/georg_task_manager/mock_test/id1");
   assert.equal(m.burrUrl("http://x:1/", "", "id1"), "http://x:1/project/georg_task_manager/null/id1");
   assert.equal(m.burrUrl("", "m", ""), "");
+});
+
+
+test("plan topic is described for the panel", () => {
+  const d = m.describePlan({ data: JSON.stringify({ mode: "llm", goal: "g", current: "gesture(mode=look_at)",
+    remaining: ["block greet_guest"], history: [{ step: "listen", result: "failed" }] }) });
+  assert.equal(d.mode, "llm");
+  assert.equal(d.waiting, false);
+  assert.deepEqual(d.lines, ["goal: g", "now: gesture(mode=look_at)", "next: block greet_guest", "  ✗ listen"]);
+  assert.deepEqual(m.describePlan({ data: "{" }).lines, ["plan: unreadable"]);
+  assert.deepEqual(m.instructRequest("  hi "), { text: "hi" });
+  assert.deepEqual(m.approveRequest(0), { approve: false });
 });

@@ -104,3 +104,38 @@ def test_name_arg_must_be_an_argument(tmp_path):
                    '    timeout_s: 1\n    modes: [mock]\n    name_arg: m\n')
     with pytest.raises(CatalogError, match='name_arg'):
         load_catalog(str(bad))
+
+
+def test_blocks_are_loaded_and_validated(catalog):
+    assert {'greet_guest', 'wait_for_guest'} <= set(catalog.blocks)
+    assert all(spec.description for spec in catalog.tasks.values())
+    plan = [{'block': 'wait_for_guest'}, {'block': 'greet_guest'},
+            {'task': 'navigate_object', 'args': {'object_name': 'Seat'}}]
+    result = validate_plan(plan, catalog, mode='mock')
+    assert result.ok, result.errors
+    assert result.items[0] == {'block': 'wait_for_guest'}
+    assert result.items[2] == {'task': 'navigate_object', 'args': {'object_name': 'Seat'}}
+
+
+@pytest.mark.parametrize('plan, expected', [
+    ([{'block': 'dance'}], "unknown block 'dance'"),
+    ([{'block': 'greet_guest', 'args': {'loud': True}}], 'takes no arguments'),
+    ([{'block': 'greet_guest', 'why': 1}], 'unknown keys'),
+])
+def test_invalid_blocks_are_rejected(catalog, plan, expected):
+    result = validate_plan(plan, catalog, mode='mock')
+    assert not result.ok and any(expected in e for e in result.errors), result.errors
+
+
+def test_block_tasks_are_built(catalog):
+    from georg_task_manager.validator import block_tasks
+    tasks = block_tasks('greet_guest', catalog)
+    assert [t.mode for t in tasks] == ['look_at', 'point_to', 'greet_person']
+
+
+def test_integer_numbers_become_floats_for_ros(catalog):
+    # the LLM writes 60, the ROS message needs 60.0 (float32 field)
+    tasks = instantiate([('listen', {'sound': 'DOORBELL', 'timeout_sec': 60}),
+                         ('gesture', {'mode': 'look_at', 'vx': 0, 'vy': 1, 'vz': 2})], catalog)
+    assert isinstance(tasks[0].timeout_sec, float) and tasks[0].timeout_sec == 60.0
+    assert all(isinstance(v, float) for v in (tasks[1].vx, tasks[1].vy, tasks[1].vz))

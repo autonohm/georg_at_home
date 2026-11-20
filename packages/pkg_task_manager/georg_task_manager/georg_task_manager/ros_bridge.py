@@ -31,9 +31,13 @@ from georg_task_manager.burr_app.service import TaskManagerService
 from georg_task_manager.catalog import load_catalog
 from georg_task_manager.Georg import Georg
 from georg_task_manager.mission_selector import ALIASES, get_mission, MISSIONS
+from georg_task_manager.planner.llm_client import LLMClient
+from georg_task_manager.planner.planner import Planner
+from georg_task_manager.tasks.base import default_map_path
 from georg_task_manager.validator import check_mission
 from georg_task_manager_msgs.msg import MissionStatus
-from georg_task_manager_msgs.srv import CancelMission, ListMissions, StartMission
+from georg_task_manager_msgs.srv import ApprovePlan, CancelMission, Instruct, ListMissions
+from georg_task_manager_msgs.srv import SetMode, StartMission
 import rclpy
 from rclpy.action import ActionClient
 from rclpy.callback_groups import ReentrantCallbackGroup
@@ -41,6 +45,9 @@ from rclpy.executors import MultiThreadedExecutor
 from rclpy.node import Node
 from rclpy.qos import DurabilityPolicy, QoSProfile, ReliabilityPolicy
 from std_msgs.msg import String
+
+MODES = ('mission', 'llm', 'llm_approval')
+APPROVAL_TIMEOUT_S = 300.0
 
 OUTCOME_TO_STATE = {
     'succeeded': MissionStatus.SUCCEEDED,
@@ -73,6 +80,22 @@ class TaskManagerBridge(Node):
                             callback_group=self._cb)
         self.create_service(ListMissions, 'task_manager/list_missions', self._on_list,
                             callback_group=self._cb)
+        # P6: operating modes and the LLM planner
+        self.create_service(SetMode, 'task_manager/set_mode', self._on_set_mode,
+                            callback_group=self._cb)
+        self.create_service(Instruct, 'task_manager/instruct', self._on_instruct,
+                            callback_group=self._cb)
+        self.create_service(ApprovePlan, 'task_manager/approve_plan', self._on_approve,
+                            callback_group=self._cb)
+        plan_qos = QoSProfile(depth=10, durability=DurabilityPolicy.TRANSIENT_LOCAL,
+                              reliability=ReliabilityPolicy.RELIABLE)
+        self._plan_pub = self.create_publisher(String, 'task_manager/plan', plan_qos)
+        # after the start always mission mode; the LLM only acts after the operator
+        # switched to an LLM mode (plan: hard rules)
+        self._mode = 'mission'
+        self._feedback = ''
+        self._approval = None
+        self.llm = LLMClient()
 
         self.service = TaskManagerService(
             run_task=self._run_task,
@@ -90,6 +113,7 @@ class TaskManagerBridge(Node):
         threading.Thread(target=self._loop.run_forever, name='burr-loop', daemon=True).start()
 
         self._publish(MissionStatus.IDLE, message='ready')
+        self._publish_plan({'mode': self._mode})
         self.get_logger().info(
             f"task manager ready (Idle), profile='{self._profile or '-'}', "
             f"missions: {', '.join(MISSIONS)}")
@@ -187,6 +211,116 @@ class TaskManagerBridge(Node):
         response.display_names = [name for name, _ in MISSIONS.values()]
         return response
 
+    def _on_set_mode(self, request, response):
+        response.accepted, response.reason, response.mode = False, '', self._mode
+        mode = request.mode.strip()
+        if mode not in MODES:
+            response.reason = f"unknown mode '{mode}' (available: {', '.join(MODES)})"
+            return response
+        if self.service.running:
+            response.reason = 'not while a mission is running'
+            return response
+        if mode != 'mission' and self._profile == 'real' \
+                and os.environ.get('GEORG_LLM_REAL_APPROVED') != '1':
+            response.reason = ('LLM modes on the real robot only after passing the replay and '
+                               'simulation tests (GEORG_LLM_REAL_APPROVED=1)')
+            return response
+        self._mode = mode
+        self.get_logger().info(f'operating mode: {mode}')
+        self._publish_plan({'mode': mode})
+        response.accepted, response.mode = True, mode
+        return response
+
+    def _on_instruct(self, request, response):
+        response.accepted, response.reason, response.burr_app_id = False, '', ''
+        text = request.text.strip()
+        if self._mode == 'mission':
+            response.reason = 'switch to an LLM mode first (task_manager/set_mode)'
+            return response
+        if not text:
+            response.reason = 'empty instruction'
+            return response
+        with self._lock:
+            busy = self._busy
+            if not busy:
+                self._busy = True
+        if busy:
+            if self._mission_id != 'llm':
+                response.reason = f"mission '{self._mission_id}' is running"
+                return response
+            self._feedback = text            # goes into the next decision of the planner
+            response.accepted, response.burr_app_id = True, self._app_id
+            return response
+        if not self.llm.available():
+            with self._lock:
+                self._busy = False
+            response.reason = f'LLM endpoint {self.llm.config.url} not reachable'
+            return response
+
+        planner = Planner(self.llm.chat, self.catalog, mode=self._profile or 'mock',
+                          model=self.llm.model)
+        app_id = str(uuid.uuid4())
+        self._mission_id, self._app_id, self._feedback = 'llm', app_id, ''
+        self.state.abort_requested = False
+        self.state.mission_running = True
+        approve = self._wait_for_approval if self._mode == 'llm_approval' else None
+        future = asyncio.run_coroutine_threadsafe(
+            self.service.run_llm(text, planner, app_id=app_id, approve=approve,
+                                 feedback=self._take_feedback, robot=self._robot_summary,
+                                 places=self._places(), on_plan=self._publish_plan),
+            self._loop)
+        future.add_done_callback(self._on_mission_done)
+        self._publish(MissionStatus.RUNNING, message=f'LLM: {text}')
+        self.get_logger().info(f"LLM run started: '{text}', burr_app_id={app_id}")
+        response.accepted, response.burr_app_id = True, app_id
+        return response
+
+    def _on_approve(self, request, response):
+        response.accepted, response.reason = False, ''
+        pending = self._approval
+        if pending is None or pending.done():
+            response.reason = 'no plan waiting for approval'
+            return response
+        self._loop.call_soon_threadsafe(
+            lambda: None if pending.done() else pending.set_result(bool(request.approve)))
+        response.accepted = True
+        return response
+
+    async def _wait_for_approval(self, items, reason) -> bool:
+        self._approval = self._loop.create_future()
+        self._publish(MissionStatus.RUNNING, message='waiting for approval: ' + reason)
+        try:
+            end = self._loop.time() + APPROVAL_TIMEOUT_S
+            while not self._approval.done():
+                if self.service.abort_requested or self._loop.time() > end:
+                    return False
+                await asyncio.sleep(0.05)
+            return self._approval.result()
+        finally:
+            self._approval = None
+
+    def _take_feedback(self) -> str:
+        text, self._feedback = self._feedback, ''
+        return text
+
+    def _robot_summary(self) -> dict:
+        pos = self.state.current_position
+        return {'position': [round(pos[0], 2), round(pos[1], 2)] if pos else None,
+                'mode': self._profile}
+
+    def _places(self):
+        try:
+            import yaml
+            with open(default_map_path(), encoding='utf-8') as f:
+                return sorted((yaml.safe_load(f) or {}).get('objects', {}) or {})
+        except OSError:
+            return []
+
+    def _publish_plan(self, plan: dict) -> None:
+        msg = String()
+        msg.data = json.dumps(dict(plan, mode=self._mode), ensure_ascii=False)
+        self._plan_pub.publish(msg)
+
     # --- mission execution ----------------------------------------------------
 
     async def _run_task(self, task) -> bool:
@@ -200,6 +334,14 @@ class TaskManagerBridge(Node):
 
     def _on_step(self, action: str, state: dict) -> None:
         if action in ('finish', 'idle'):
+            return
+        if 'goal' in state:                 # LLM run
+            current = state.get('current') or {}
+            name = current.get('block') or current.get('task') or ''
+            history = state.get('history', [])
+            self._publish(MissionStatus.RUNNING, current_task=name, step=len(history),
+                          total_steps=len(history) + len(state.get('remaining', [])) + 1,
+                          message=state.get('message', ''))
             return
         self._publish(
             MissionStatus.RUNNING,

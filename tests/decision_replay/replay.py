@@ -132,13 +132,56 @@ def replay(app_dir: str, runs: int = 3, mission_factory=None) -> List[str]:
     return deviations
 
 
+def replay_decisions(log_file: str, chat, runs: int = 3, catalog=None) -> List[str]:
+    """Replay every logged LLM decision (P6) ``runs`` times with the same input.
+
+    Compares the structured decision (decision + steps), not the text of the answer.
+    ``chat``: the LLM to ask (same model, temperature 0), e.g. LLMClient().chat.
+    """
+    _import_task_manager()
+    from georg_task_manager.catalog import load_catalog
+    from georg_task_manager.planner.planner import Planner
+    from georg_task_manager.planner.prompts import PROMPT_VERSION
+
+    catalog = catalog or load_catalog()
+    deviations = []
+    with open(log_file, encoding='utf-8') as f:
+        records = [json.loads(line) for line in f if line.strip()]
+    for i, rec in enumerate(records):
+        if rec.get('prompt_version') != PROMPT_VERSION:
+            deviations.append(f"decision {i}: recorded with prompt {rec.get('prompt_version')}, "
+                              f'current is {PROMPT_VERSION}')
+            continue
+        planner = Planner(chat, catalog, mode=rec.get('mode', 'mock'),
+                          model=rec.get('model', ''), log_dir='')
+        expected = (rec['decision'], rec.get('steps', []))
+        for run in range(runs):
+            got = planner.decide(rec['input'])
+            if (got.decision, got.items) != expected:
+                deviations.append(f'decision {i} run {run + 1}: recorded {expected}, '
+                                  f'replay {(got.decision, got.items)}')
+    return deviations
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument('app_id', help='Burr app id (burr_app_id in /task_manager/status)')
+    parser.add_argument('app_id', nargs='?',
+                        help='Burr app id (burr_app_id in /task_manager/status)')
+    parser.add_argument('--decisions', help='LLM decision log (JSONL) to replay against the '
+                        'LLM at GEORG_LLM_URL instead of a Burr run')
     parser.add_argument('--storage', default=os.environ.get('GEORG_BURR_STORAGE_DIR', '~/.burr'))
     parser.add_argument('--runs', type=int, default=3)
     args = parser.parse_args(argv)
+    if args.decisions:
+        _import_task_manager()
+        from georg_task_manager.planner.llm_client import LLMClient
+        deviations = replay_decisions(args.decisions, LLMClient().chat, args.runs)
+        print('\n'.join(deviations) if deviations else
+              f'{args.decisions}: {args.runs} replays per decision, no deviations')
+        return 1 if deviations else 0
+    if not args.app_id:
+        parser.error('app_id or --decisions is required')
     app_dir = os.path.join(os.path.expanduser(args.storage), PROJECT, args.app_id)
     deviations = replay(app_dir, args.runs)
     if deviations:

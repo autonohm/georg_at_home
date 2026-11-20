@@ -38,6 +38,7 @@ function initPanel(context) {
   };
   let names = model.serviceNames(settings.namespace);
   let lastStatus;
+  let lastPlan;
 
   const style = el("style", { text: CSS });
   const missionSelect = el("select", { title: "mission" });
@@ -48,12 +49,25 @@ function initPanel(context) {
   const lines = el("div", { class: "gtm-lines" });
   const link = el("a", { target: "_blank", rel: "noreferrer" });
   const feedback = el("div", { class: "gtm-feedback" });
+  // P6: operating mode, instruction for the LLM, approval, current plan
+  const modeSelect = el("select", { title: "operating mode" });
+  modeSelect.replaceChildren(...model.MODES.map((m) => el("option", { value: m, text: model.MODE_LABELS[m] })));
+  const modeBtn = el("button", { text: "Set mode" });
+  const instruction = el("input", { type: "text", placeholder: "instruction for the LLM" });
+  const sendBtn = el("button", { text: "Send" });
+  const approveBtn = el("button", { text: "Approve plan" });
+  const rejectBtn = el("button", { text: "Reject plan" });
+  const modeBox = el("span", { class: "gtm-mode", text: "mode: ?" });
+  const planLines = el("div", { class: "gtm-lines" });
   const root = el("div", { class: "gtm" }, [
     style,
     el("div", { class: "gtm-row" }, [missionSelect, refreshBtn, startBtn, abortBtn]),
     el("div", {}, [stateBox]),
     lines,
     link,
+    el("div", { class: "gtm-row" }, [modeSelect, modeBtn, modeBox]),
+    el("div", { class: "gtm-row" }, [instruction, sendBtn, approveBtn, rejectBtn]),
+    planLines,
     feedback,
   ]);
   context.panelElement.appendChild(root);
@@ -75,6 +89,12 @@ function initPanel(context) {
       link.removeAttribute("href");
     }
     abortBtn.disabled = !d.running;
+    const p = model.describePlan(lastPlan);
+    modeBox.textContent = `mode: ${model.MODE_LABELS[p.mode] ?? (p.mode || "?")}`;
+    planLines.textContent = p.lines.join("\n");
+    approveBtn.disabled = !p.waiting;
+    rejectBtn.disabled = !p.waiting;
+    sendBtn.disabled = p.mode === "mission";
   }
 
   async function call(service, request) {
@@ -113,11 +133,35 @@ function initPanel(context) {
     }
   };
   refreshBtn.onclick = loadMissions;
+  modeBtn.onclick = async () => {
+    try {
+      say(model.describeResponse("mode", await call(names.setMode, model.setModeRequest(modeSelect.value))));
+    } catch (err) {
+      say(`mode: ${err.message ?? err}`);
+    }
+  };
+  sendBtn.onclick = async () => {
+    try {
+      say(model.describeResponse("instruction", await call(names.instruct, model.instructRequest(instruction.value))));
+      instruction.value = "";
+    } catch (err) {
+      say(`instruction: ${err.message ?? err}`);
+    }
+  };
+  const decide = (ok) => async () => {
+    try {
+      say(model.describeResponse(ok ? "approve" : "reject", await call(names.approve, model.approveRequest(ok))));
+    } catch (err) {
+      say(`approval: ${err.message ?? err}`);
+    }
+  };
+  approveBtn.onclick = decide(true);
+  rejectBtn.onclick = decide(false);
 
   function applySettings() {
     names = model.serviceNames(settings.namespace);
     context.saveState({ ...settings });
-    context.subscribe([{ topic: names.status }]);
+    context.subscribe([{ topic: names.status }, { topic: names.plan }]);
     context.updatePanelSettingsEditor({
       actionHandler: (action) => {
         if (action.action === "update") {
@@ -144,6 +188,8 @@ function initPanel(context) {
     for (const event of frame) {
       if (event.topic === names.status) {
         lastStatus = event.message; // MissionStatus, updated on every Burr step
+      } else if (event.topic === names.plan) {
+        lastPlan = event.message; // std_msgs/String with JSON (mode, goal, plan, history)
       }
     }
     render();
