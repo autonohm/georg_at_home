@@ -12,7 +12,9 @@ services:
     privileged: true
     restart: always
     init: true
-    command: ros2 launch /config/drive.launch.py
+    working_dir: /config
+    command: ros2 launch drive.launch.py
+#    command: ros2 launch drive.launch.py robot_namespace:=georg
     # command: sleep 1d
 
 networks:

@@ -12,7 +12,9 @@ services:
     privileged: true
 #    restart: always
     init: true
-    command: "sh -c 'cd /config && ros2 launch pkg_slam.launch.py'"
+    working_dir: /config
+    command: ros2 launch pkg_slam.launch.py
+#    command: ros2 launch pkg_slam.launch.py robot_namespace:=georg
     # command: sleep 1d
 
 networks:

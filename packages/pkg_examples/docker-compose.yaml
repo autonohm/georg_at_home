@@ -11,6 +11,7 @@ services:
     privileged: true
     init: true
     command: ros2 launch /config/examples.launch.py
+#    command: ros2 launch /config/examples.launch.py robot_namespace:=georg
     # command: sleep 1d
 
 networks:

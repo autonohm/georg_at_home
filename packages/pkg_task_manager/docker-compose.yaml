@@ -16,8 +16,10 @@ services:
 
     privileged: true
     init: true
-    command: ros2 launch /config/task_manager.launch.py
-    # command: sleep 1d
+    working_dir: /config
+    command: ros2 launch task_manager.launch.py
+#    command: ros2 launch task_manager.launch.py robot_namespace:=georg
+#    command: sleep 1d
 
 networks:
   pib-network:

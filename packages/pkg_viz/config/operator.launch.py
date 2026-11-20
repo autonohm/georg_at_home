@@ -37,7 +37,7 @@ def generate_launch_description():
     return LaunchDescription([
         DeclareLaunchArgument(
             'robot_namespace',
-            default_value='georg',
+            default_value='',
             description='set namespace for robot nodes'
         ),
         GroupAction(

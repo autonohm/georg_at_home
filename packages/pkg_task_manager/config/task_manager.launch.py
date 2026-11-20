@@ -16,7 +16,7 @@ def generate_launch_description():
     # robot namespace
     robot_namespace = LaunchConfiguration('robot_namespace')
     robot_namespace_arg = DeclareLaunchArgument(
-        'robot_namespace', default_value=os.getenv('EDU_ROBOT_NAMESPACE', default='georg')
+        'robot_namespace', default_value=os.getenv('EDU_ROBOT_NAMESPACE', default='')
     )
 
 

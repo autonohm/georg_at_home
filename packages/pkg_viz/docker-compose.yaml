@@ -18,11 +18,12 @@ services:
       - NVIDIA_VISIBLE_DEVICES=all
       - DISPLAY=$DISPLAY
       - QT_QPA_PLATFORMTHEME=qt5ct
-    working_dir: /root
+    working_dir: /root/config
     privileged: true
     restart: no
     init: true
-    command: "ros2 launch ./config/operator.launch.py"
+    command: ros2 launch ./operator.launch.py
+#    command: ros2 launch ./operator.launch.py robot_namespace:=georg
 #    command: sleep 1d
 
 networks:
