@@ -27,11 +27,14 @@ RUN python3 -m pip install --no-cache-dir --break-system-packages \
 # change this variable to trick docker cache into rebuilding
 ENV REBUILD=1
 
+# Interfaces (georg_nav_msgs, georg_gesture_msgs, georg_task_manager_msgs)
+# come from the base image (packages/pkg_interfaces).
 COPY ./georg_task_manager /ws/georg_task_manager
-COPY ./pib_gestures_action /ws/pib_gestures_action
 COPY ./pib-audio /ws/pib-audio
-COPY ./pkg_navigation /ws/pkg_navigation
-COPY ./maps /root/georg_maps
+# NavigateObject/NavigateRoom import navigate_server.grid_rasterizer directly.
+# Until that is resolved in P1 (OPEN_QUESTIONS Q4b) the package is built here too.
+COPY --from=navigation ./navigate_server_pkg /ws/navigate_server_pkg
+# Maps are mounted from packages/pkg_slam/maps at runtime (docker-compose.yaml).
 
 #RUN git clone https://github.com/Giusaurus/pkg_navigation.git
 
@@ -39,11 +42,9 @@ RUN rosdep install --from-paths . --ignore-src -r -y && \
     rm -rf /var/lib/apt/lists/*
 
 RUN /bin/bash -c "\
-    source /opt/ros/jazzy/setup.bash && \
+    source /ws/install/setup.bash && \
     colcon build --symlink-install \
     "
-
-RUN chmod +x /ws/install/pib_gestures_action/lib/pib_gestures_action/pib_gestures_*
 
 ENTRYPOINT ["/ros_entrypoint.sh"]
 CMD ["bash"]

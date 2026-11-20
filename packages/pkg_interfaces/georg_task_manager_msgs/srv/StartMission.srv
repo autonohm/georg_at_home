@@ -1,0 +1,6 @@
+string mission_id
+string params_json
+---
+bool accepted
+string reason        # z. B. "Navigationsserver nicht erreichbar"
+string burr_app_id

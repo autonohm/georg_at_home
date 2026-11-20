@@ -3,7 +3,7 @@ from .base import BaseTask
 from .timeout_watcher import wait_for_action_result
 from .priority import TaskPriority
 from geometry_msgs.msg import Vector3
-from pib_gestures_action.action import PibGesturesInterface
+from georg_gesture_msgs.action import PibGesturesInterface
 
 
 class Gesture(BaseTask):

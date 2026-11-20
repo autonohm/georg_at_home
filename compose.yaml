@@ -1,0 +1,23 @@
+# Root compose file: includes every package and selects the mode via profile.
+#
+#   ./projectctl.bash up mock|sim|real|mcap
+#
+# | profile | data source              | actuators   | driver container |
+# | mock    | none, packages mocked    | none        | no               |
+# | sim     | 2D simulator, later MuJoCo | simulator | no               |
+# | real    | real sensors             | pkg_drive   | yes, Jetson only |
+# | mcap    | MCAP playback            | none        | no               |
+#
+# Optional extras: --profile viz (RViz), --profile examples.
+name: georg
+
+include:
+  - packages/pkg_task_manager/docker-compose.yaml
+  - packages/pkg_command_gate/docker-compose.yaml
+  - packages/pkg_navigation/docker-compose.yaml
+  - packages/pkg_gestures/docker-compose.yaml
+  - packages/pkg_slam/docker-compose.yaml
+  - packages/pkg_urdf/docker-compose.yaml
+  - packages/pkg_drive/docker-compose.yaml
+  - packages/pkg_viz/docker-compose.yaml
+  - packages/pkg_examples/docker-compose.yaml

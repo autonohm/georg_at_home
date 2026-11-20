@@ -1,6 +1,7 @@
 services:
   drive:
     image: drive
+    profiles: [real]
     build:
       context: .
       dockerfile: ./Dockerfile

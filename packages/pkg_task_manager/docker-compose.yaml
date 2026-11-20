@@ -1,21 +1,25 @@
 services:
   task_manager:
     image: task_manager
+    profiles: [mock, sim, real, mcap]
     build:
       context: .
       dockerfile: ./Dockerfile
+      additional_contexts:
+        navigation: ../pkg_navigation
     networks:
       - pib-network
     volumes:
       - ./config:/config:ro
-      - ./maps:/maps:ro
+      - ../pkg_slam/maps:/root/georg_maps:ro
     environment:
-      - GEORG_MAP_DIR=/georg_maps
+      - GEORG_MAP_DIR=/root/georg_maps
       - GEORG_DEFAULT_MAP=Nav_Test.yaml
       - MISSION_ID=2
 
     privileged: true
     init: true
+    restart: unless-stopped
     command: ros2 launch /config/task_manager.launch.py
     # command: sleep 1d
 

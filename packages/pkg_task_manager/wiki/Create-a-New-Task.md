@@ -103,7 +103,7 @@ For the rest of this walkthrough we use **gestures**, which are easy to see on t
 
 > **Note:** The gesture client in `Georg.py` is named `greet_action_client`, but it sends every gesture (`look_at`, `point_to`, `greet_person`). Use it for gestures and do not be confused by the name.
 
-If the action you need does not exist yet, see the README of the package that owns the action (e.g. `pib_gestures_action/README.md`).
+If the action you need does not exist yet, see the README of the package that owns the action (e.g. `packages/pkg_gestures/pib_gestures_action/README.md`). Action definitions live in `packages/pkg_interfaces/`.
 
 ---
 
@@ -129,7 +129,7 @@ from .base import BaseTask
 from .timeout_watcher import wait_for_action_result
 from .priority import TaskPriority
 from geometry_msgs.msg import Vector3
-from pib_gestures_action.action import PibGesturesInterface
+from georg_gesture_msgs.action import PibGesturesInterface
 
 
 class PointToSeat(BaseTask):
@@ -349,7 +349,7 @@ Expected output in the log:
 
 Give the task a target the robot cannot reach, e.g. a point very close to the robot. Ideally the gesture server returns a non-zero result, so your task prints `FAILED`, and with `MID` priority the task manager retries it once after the next task.
 
-> **Known issue:** At the moment the gesture server reports out-of-range targets as success (`result.success` is overwritten with `0`). In that case your task prints `finished` even though the robot did not move. Check the gesture server log for the out-of-range message. See the Known issues section of `pib_gestures_action/README.md`. Until this is fixed, the failure path cannot be tested this way.
+> **Known issue:** At the moment the gesture server reports out-of-range targets as success (`result.success` is overwritten with `0`). In that case your task prints `finished` even though the robot did not move. Check the gesture server log for the out-of-range message. See the Known issues section of `packages/pkg_gestures/pib_gestures_action/README.md`. Until this is fixed, the failure path cannot be tested this way.
 
 ### 8.6 Test the logic without a robot
 
@@ -382,7 +382,7 @@ ok = asyncio.run(PointToSeat(-2000.0, 0.0, 100.0).run(FakeRobot(), RobotState())
 print("success:", ok)
 ```
 
-This needs the ROS message packages (`geometry_msgs`, `pib_gestures_action`) on the Python path. Use the ROS 2 environment or stub them. Note that this checks your logic, not the robot's movement. Always run on the robot before a demo.
+This needs the ROS message packages (`geometry_msgs`, `georg_gesture_msgs`) on the Python path. Use the ROS 2 environment or stub them. Note that this checks your logic, not the robot's movement. Always run on the robot before a demo.
 
 ---
 
@@ -447,7 +447,7 @@ Before you open a pull request, check each point:
 
 ## Where to go next
 
-- `pib_gestures_action/README.md`: add a new gesture to the server
-- `pkg_navigation/README.md`: navigation and driving actions
+- `packages/pkg_gestures/pib_gestures_action/README.md`: add a new gesture to the server
+- `packages/pkg_navigation/README.md`: navigation and driving actions
 - `pib-audio/README.md`: listening actions
-- `maps/README.md`: map files and named objects
+- `packages/pkg_slam/maps/README.md`: map files and named objects

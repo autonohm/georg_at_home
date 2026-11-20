@@ -1,6 +1,7 @@
 services:
   urdf:
     image: urdf
+    profiles: [sim, real, mcap]
     build:
       context: .
       dockerfile: ./Dockerfile

@@ -8,6 +8,9 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
 # clone directly into ws folder, src folder is optional
 RUN git clone https://github.com/autonohm/georg_interfaces
 
+# shared interfaces of this repo (packages/pkg_interfaces), passed in as build context "interfaces"
+COPY --from=interfaces . /ws/pkg_interfaces
+
 RUN rosdep install --from-paths . --ignore-src -r -y && \
     rm -rf /var/lib/apt/lists/*
 

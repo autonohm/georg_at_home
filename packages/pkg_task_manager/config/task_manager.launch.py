@@ -12,48 +12,17 @@ from launch_ros.actions import PushRosNamespace
 
 def generate_launch_description():
 
-
     # robot namespace
     robot_namespace = LaunchConfiguration('robot_namespace')
     robot_namespace_arg = DeclareLaunchArgument(
         'robot_namespace', default_value=os.getenv('EDU_ROBOT_NAMESPACE', default='georg')
     )
 
-
-    # Navigation
-
-    nav_module = Node(
-        package="navigate_server",
-        executable="navigate_action_server",
-        name="nav_server",
-        arguments=["--node-name", "nav_server",
-                    "--action-name", "/nav/navigate"],
-        output="screen",
-    )
-
-    drive_route_module = Node(
-        package="drive_route_server",
-        executable="drive_route_action_server",
-        name="drive_route_action_server",
-        output="screen",
-    )
-
-
-
-    # Gestures
-
-    gesture_module = Node(
-        package="pib_gestures_action",
-        executable="pib_gestures_server.py",
-        name="pib_gestures_server",
-        output="screen",
-    )
-
-
-
+    # Navigation -> packages/pkg_navigation/config/navigation.launch.py
+    # Gestures   -> packages/pkg_gestures/config/gestures.launch.py
 
     # Listening / Speech
-
+    # stays here until the state of pkg_speech is clear (OPEN_QUESTIONS Q1)
 
     voice_module = Node(
         package="voice_assistant",
@@ -62,10 +31,10 @@ def generate_launch_description():
         output="screen",
     )
 
-
-
-
     # Task Manager
+    # Only the sequential task manager is started (decision 2026-11-20, variant A).
+    # The py_trees variant (executable task_manager_bt) stays in the code until
+    # P1 replaces py_trees with Burr.
 
     task_manager_module = Node(
         package="georg_task_manager",
@@ -74,24 +43,13 @@ def generate_launch_description():
         output="screen",
     )
 
-    task_manager_bt_module = Node(
-        package="georg_task_manager",
-        executable="task_manager_bt",
-        name="task_manager_bt",
-        output="screen",
-    )
-
     return LaunchDescription([
         robot_namespace_arg,
         GroupAction(
             actions=[
                 PushRosNamespace(robot_namespace),
-                nav_module,
-                drive_route_module,
-                gesture_module,
-                voice_module ,
+                voice_module,
                 task_manager_module,
-                task_manager_bt_module
             ]
         )
     ])

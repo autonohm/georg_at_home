@@ -1,0 +1,23 @@
+services:
+  navigation:
+    image: navigation
+    profiles: [sim, real]
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    networks:
+      - pib-network
+    volumes:
+      - ./config:/config:ro
+      # maps live in pkg_slam (debug fallback, the map is built by SLAM)
+      - ../pkg_slam/maps:/root/georg_maps:ro
+    environment:
+      - GEORG_MAP_DIR=/root/georg_maps
+      - GEORG_DEFAULT_MAP=Nav_Test.yaml
+    init: true
+    restart: unless-stopped
+    command: ros2 launch /config/navigation.launch.py
+
+networks:
+  pib-network:
+    driver: bridge
