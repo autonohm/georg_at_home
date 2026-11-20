@@ -5,7 +5,7 @@ Simulator of Georg for compose profile `sim` (plan P3). Headless; look at it in 
 | Stage | Executable | What it is |
 | --- | --- | --- |
 | 1 | `sim2d` | 2D simulator without physics engine. Fast, no dependencies. |
-| 2 | `simmj` | MuJoCo: the same interface, physics from MuJoCo (see below). |
+| 2 | `simmj` | MuJoCo 3.16: same interface, contacts and laser from MuJoCo. Model built from the map (`mjcf.py`). |
 
 Both provide the topics of the real robot, so SLAM, navigation and the task manager run unchanged:
 
@@ -37,5 +37,10 @@ Missions for the simulator: `sim_seat` (drive to the seat), `sim_door` (drive to
 ## Tests
 
 - `georg_sim/test/test_world.py`: walls, raycast, free space (pytest, no ROS)
+- `georg_sim/test/test_mjcf.py`: MuJoCo model: drives, stopped by walls, laser matches the 2D laser
+- `pixi run test_sim_mj`: the P3 acceptance tests with MuJoCo instead of sim2d
+
+`mujoco_ros2_control` is not available for macOS, so `simmj` talks to MuJoCo directly.
+The base is a cylinder (radius 0.2 m); the real model from `pkg_urdf` can replace it later.
 - `pkg_task_manager/georg_task_manager/test/test_sim_integration.py`: acceptance criteria of P3
   over real ROS (`pixi run test_sim`)

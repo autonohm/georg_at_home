@@ -29,6 +29,8 @@ from nav_msgs.msg import OccupancyGrid, Odometry  # noqa: E402
 from rclpy.qos import DurabilityPolicy, QoSProfile, ReliabilityPolicy  # noqa: E402
 from ros_helpers import _spawn, _stop, NS, REPO  # noqa: E402
 
+# sim2d (stage 1) or simmj (MuJoCo, stage 2)
+SIMULATOR = os.environ.get('GEORG_SIMULATOR', 'sim2d')
 SEAT = (6.134, 0.093)
 DOOR = (0.264, 0.105)
 
@@ -43,7 +45,7 @@ def sim_stack(env, bridge):
     """Start simulator, SLAM and the real navigation servers once for the module."""
     maps = env['GEORG_MAP_DIR']
     procs = [
-        _spawn(['ros2', 'run', 'georg_sim', 'sim2d', '--ros-args', '-r', f'__ns:={NS}',
+        _spawn(['ros2', 'run', 'georg_sim', SIMULATOR, '--ros-args', '-r', f'__ns:={NS}',
                 '-p', f'map_file:={os.path.join(maps, "Nav_Test.yaml")}'],
                os.path.join(env['TMP'], 'sim.log'), env),
         _spawn(['ros2', 'launch', 'slam_sim.launch.py'], os.path.join(env['TMP'], 'slam.log'),
