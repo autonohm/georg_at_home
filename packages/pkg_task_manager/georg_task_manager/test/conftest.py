@@ -10,6 +10,8 @@ import sys
 import types
 from unittest.mock import MagicMock
 
+import pytest
+
 PKG_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if PKG_ROOT not in sys.path:
     sys.path.insert(0, PKG_ROOT)
@@ -48,3 +50,43 @@ for _name in ROS_MODULES:
 if 'rclpy' in STUBBED:
     sys.modules['rclpy'].ok = lambda: False
     sys.modules['rclpy._rclpy_pybind11'].RCLError = RuntimeError
+
+
+# --- fixtures of the ROS integration tests --------------------------------------
+# ros_helpers imports rclpy, so it is only imported when one of these fixtures is used
+# (the integration test modules skip themselves without ROS).
+
+@pytest.fixture(scope='module')
+def ros_profile():
+    """Compose profile the processes under test run in; modules may override it."""
+    return 'mock'
+
+
+@pytest.fixture(scope='module')
+def env(ros_profile):
+    import ros_helpers
+    return ros_helpers.make_env(ros_profile)
+
+
+@pytest.fixture(scope='module')
+def bridge(env):
+    import ros_helpers
+    proc = ros_helpers.start_bridge(env)
+    yield proc
+    ros_helpers._stop(proc)
+
+
+@pytest.fixture(scope='module')
+def client(bridge):
+    import ros_helpers
+    c = ros_helpers.start_client()
+    yield c
+    ros_helpers.stop_client(c)
+
+
+@pytest.fixture(scope='module')
+def mocks(env):
+    import ros_helpers
+    m = ros_helpers.Mocks(env)
+    yield m
+    m.stop()

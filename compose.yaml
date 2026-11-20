@@ -17,6 +17,7 @@ include:
   - packages/pkg_navigation/docker-compose.yaml
   - packages/pkg_gestures/docker-compose.yaml
   - packages/pkg_slam/docker-compose.yaml
+  - packages/pkg_sim/docker-compose.yaml
   - packages/pkg_urdf/docker-compose.yaml
   - packages/pkg_drive/docker-compose.yaml
   - packages/pkg_viz/docker-compose.yaml

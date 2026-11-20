@@ -92,3 +92,24 @@ Auf dem Mac (RoboStack) umgesetzt und geprüft:
 **Q23 – `MISSION_ID` entfernt.** Der Node `task_manager` ist jetzt die Brücke und startet nach dem Booten nichts. Die alte Variante mit `MISSION_ID` heißt `task_manager_cli`. Im Compose ist `MISSION_ID` entfernt.
 
 **Q24 – Paket-Vertrag noch nicht umgesetzt.** Die echten Actions haben noch nicht das vereinbarte Ergebnis (`success`, `error_code`, `message`) und Feedback (`phase`, `progress`). Die Mocks bilden die heutigen Actions nach. Die Anpassung betrifft die Pakete selbst, siehe Q14.
+
+# P3 – Stand (2026-11-20)
+
+Auf dem Mac (RoboStack) umgesetzt und geprüft, Stufe 1 (2D-Simulator `georg_sim/sim2d`):
+
+| Abnahmekriterium P3 | Stand |
+| --- | --- |
+| `up sim` startet auf dem Mac mit einem Befehl | ohne Docker: `pixi run sim` startet alles; `./projectctl.bash up sim` ungeprüft (Docker) |
+| SLAM baut im Simulator eine Karte | erfüllt (`/map`) |
+| Mission mit echter Navigations-Action läuft durch | erfüllt (`sim_seat`, Roboter erreicht den Sitzplatz) |
+| Abbruch stoppt die Fahrt | erfüllt (Roboter steht nach Abbruch still) |
+| `command_gate` lässt in `sim` nichts durch | erfüllt |
+
+**Entscheidungen (ohne Rückfrage, Auftrag vom 2026-11-20):**
+- **Q12 erledigt:** Navigation startet zwei Planungsserver unter `nav/navigate_object_x` und `nav/navigate_room_x` (Namen aus `Georg.py`).
+- **Kartenname beim Fahren:** `NavigateObject` und `NavigateRoom` geben die Karte jetzt an den Fahrserver weiter (`drive_goal.map_name`). Ohne das hielt er jede bekannte Wand für ein Hindernis, weil seine Ersatzkarte `Nav_Test_V3.yaml` fehlt. `Navigate.py` machte es schon so.
+- **Mock-Odometrie abschaltbar:** Szenario `odom: false`, sonst stören zwei Odometrie-Quellen die Navigation.
+- **SLAM-Karte liegt auf `/map`** (slam_toolbox veröffentlicht absolut, nicht im Namespace).
+- **Simulator-Radius 0,2 m:** Der Planer hält 0,25 m Abstand zu Wänden. Ist Georg breiter als 0,5 m, ist dieser Abstand zu klein (Hinweis an die Navigation).
+
+**Q25 – Engstellen in `Nav_Test.yaml`.** Der Weg zum Sitzplatz führt durch Lücken von etwa 0,55 m (zwischen `Wall2` und `Wall3`). Für einen echten Roboter mit 0,5 m Durchmesser ist das sehr knapp.

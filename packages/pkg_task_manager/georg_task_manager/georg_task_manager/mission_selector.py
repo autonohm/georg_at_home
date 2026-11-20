@@ -2,6 +2,8 @@ import os
 
 from georg_task_manager.missions.DigitalFestival import get_mission as DigitalFestival
 from georg_task_manager.missions.Mock_Test import get_mission as MockTest
+from georg_task_manager.missions.Sim_Test import get_mission as SimSeat
+from georg_task_manager.missions.Sim_Test import get_mission_door as SimDoor
 from georg_task_manager.missions.Test_Mapping import get_mission as TestMapping
 
 
@@ -12,6 +14,8 @@ MISSIONS = {
     'digital_festival': ('Digital Festival', DigitalFestival),
     'test_mapping': ('Mapping Test', TestMapping),
     'mock_test': ('Mock Test (nur mit Mock-Paketen)', MockTest),
+    'sim_seat': ('Simulation: zum Sitzplatz fahren', SimSeat),
+    'sim_door': ('Simulation: zur Tür fahren', SimDoor),
 }
 
 # old menu numbers, still accepted as mission id
