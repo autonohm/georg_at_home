@@ -223,7 +223,7 @@ def test_each_run_is_tracked_for_the_burr_ui(tmp_path, monkeypatch):
     assert "start_mission" in log and "idle" in log
 
 
-# --- one Burr node per task type: the UI shows the real sequence -------------
+# --- one Burr node per mission step: the UI shows the sequence at a glance ---
 
 def _festival_service(results):
     """Digital Festival with scripted results per task name (True when used up)."""
@@ -236,19 +236,40 @@ def _festival_service(results):
     return service(run_task=scripted, catalog=load_catalog())
 
 
-def test_burr_steps_show_each_task_as_its_own_node():
+def test_burr_steps_show_each_mission_step_as_its_own_node():
     result = run(_festival_service({}), DigitalFestival.get_mission(), "digital_festival")
     assert result.steps == [
         "start_mission",
-        "next", "listen", "next", "gesture", "next", "gesture",
-        "next", "listen", "next", "gesture", "next", "gesture",
-        "next", "return_to_idle",
-        "next", "finish", "idle",
+        "1_listen", "2_gesture", "3_gesture", "4_listen", "5_gesture", "6_gesture",
+        "7_return_to_idle",
+        "finish", "idle",
     ]
 
 
 def test_retry_shows_up_as_repeated_task_node():
     svc = _festival_service({"Listening(DOORBELL)": [False, True]})
     result = run(svc, DigitalFestival.get_mission(), "digital_festival")
-    assert result.steps[:6] == ["start_mission", "next", "listen", "next", "listen", "next"]
+    assert result.steps[:4] == ["start_mission", "1_listen", "1_listen", "2_gesture"]
     assert result.outcome == "succeeded"
+
+
+def test_graph_is_a_line_with_only_the_needed_extra_arrows():
+    from georg_task_manager.burr_app.builder import possible_edges
+
+    # LOW, HIGH, MID, CRITICAL
+    edges = possible_edges([LOW, HIGH, MID, CRITICAL])
+    start, finish = -1, -2
+    assert (start, 0) in edges                      # start -> 1
+    assert {(0, 1), (1, 2), (2, 3)} <= edges        # straight line
+    assert (1, 1) in edges and (3, 3) in edges      # HIGH / CRITICAL retry
+    assert (0, 0) not in edges and (2, 2) not in edges   # LOW / MID never retry in place
+    assert (3, 2) in edges                          # MID retry after the next task
+    assert all((i, finish) in edges for i in range(4))   # abort is possible everywhere
+    # nothing jumps across the mission
+    assert not any(dst >= 0 and src >= 0 and abs(dst - src) > 2 for src, dst in edges)
+
+
+def test_mid_retry_runs_back_one_step():
+    tasks = [FakeTask("a", MID, [False]), FakeTask("b"), FakeTask("c")]
+    result = run(service(), tasks)
+    assert result.steps[1:5] == ["1_fake", "2_fake", "1_fake", "3_fake"]

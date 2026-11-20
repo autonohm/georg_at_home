@@ -1,29 +1,32 @@
 """Builds the Burr application for one mission run.
 
-One node per catalog task type, generated from ``catalog.yaml``. ``next``
-decides after every task which node runs next::
+The graph is built from the mission itself: one node per mission step
+(``1_listen``, ``2_gesture``, ...). Only transitions that the priority rules
+can actually produce are added, so a mission reads as a straight line with
+a few extra arrows::
 
-                 +--> listen ----------+
-    start_mission -> next --> gesture ---------+--> next ...
-                 +--> navigate_object -+
-                 +--> return_to_idle --+
-                 +--> finish -> idle   (complete, failed or aborted)
+    start_mission -> 1_listen -> 2_gesture -> 3_gesture -> ... -> finish -> idle
+                       ^   |
+                       +---+   retry (HIGH / CRITICAL)
 
+Every node also has an arrow to ``finish`` (abort, CRITICAL failure, done).
 Every run gets its own ``app_id`` and therefore its own entry in the Burr UI
 (project ``georg_task_manager``, partition key = mission id).
 """
 
 import os
 import uuid
-from typing import Optional
+from collections import deque
+from typing import List, Optional, Set, Tuple
 
-from burr.core import ApplicationBuilder, default, when
+from burr.core import ApplicationBuilder, when
 
 from georg_task_manager.burr_app import actions as a
-from georg_task_manager.catalog import Catalog
+from georg_task_manager.tasks.priority import TaskPriority
 
 PROJECT = "georg_task_manager"
-RESERVED = {"start_mission", "next", "finish", "idle"}
+START = "start_mission"
+MAX_EXPLORED = 200_000
 
 
 def make_tracker(storage_dir: Optional[str] = None):
@@ -40,30 +43,59 @@ def make_tracker(storage_dir: Optional[str] = None):
     return LocalTrackingClient(project=PROJECT, storage_dir=storage_dir)
 
 
-def build_mission_app(ctx: a.MissionContext, mission_id: str, catalog: Catalog,
-                      app_id: Optional[str] = None, tracker=None):
-    clash = RESERVED & set(catalog.tasks)
-    if clash:
-        raise ValueError(f"catalog task names {sorted(clash)} are reserved Burr nodes")
+def possible_edges(priorities: List[TaskPriority]) -> Set[Tuple[int, int]]:
+    """All (from, to) step transitions the priority rules can produce.
 
-    task_nodes = {name: a.run_task.bind(ctx=ctx, task_type=name) for name in catalog.tasks}
-    transitions = [("start_mission", "next")]
-    transitions += [("next", name, when(next_task=name)) for name in task_nodes]
-    transitions += [("next", "finish", default)]
-    transitions += [(name, "next") for name in task_nodes]
-    transitions += [("finish", "idle")]
+    Step -1 is ``start_mission``, step -2 is ``finish``. Explores every
+    combination of success and failure with the same ``decide`` function the
+    actions use, so the graph and the run can never disagree.
+    """
+    n = len(priorities)
+    edges: Set[Tuple[int, int]] = set()
+    start = (tuple(range(n)), tuple([0] * n), -1)
+    seen, todo = {start}, deque([start])
+    while todo:
+        if len(seen) > MAX_EXPLORED:
+            raise RuntimeError("mission too complex to draw; split it into smaller missions")
+        queue, attempts, current = todo.popleft()
+        results = [None] if current < 0 else [True, False]
+        for result in results:
+            for abort in (False, True):
+                outcome, q, att, nxt, _ = a.decide(
+                    list(queue), list(attempts), current, result, priorities, abort)
+                if outcome != a.RUNNING:
+                    edges.add((current, -2))
+                    continue
+                edges.add((current, nxt))
+                key = (tuple(q), tuple(att), nxt)
+                if key not in seen:
+                    seen.add(key)
+                    todo.append(key)
+    return edges
+
+
+def build_mission_app(ctx: a.MissionContext, mission_id: str,
+                      app_id: Optional[str] = None, tracker=None):
+    def name(step: int) -> str:
+        return {-1: START, -2: a.FINISH}.get(step) or ctx.node(step)
+
+    priorities = [ctx.priority(i) for i in range(len(ctx.tasks))]
+    edges = sorted(possible_edges(priorities))
+    task_nodes = {ctx.node(i): a.run_task.bind(ctx=ctx, index=i) for i in range(len(ctx.tasks))}
+
+    transitions = [(name(src), name(dst), when(go_to=name(dst))) for src, dst in edges]
+    transitions.append((a.FINISH, "idle"))
 
     builder = (
         ApplicationBuilder()
         .with_actions(
             start_mission=a.start_mission.bind(ctx=ctx),
-            next=a.next_step.bind(ctx=ctx),
             finish=a.finish.bind(ctx=ctx),
             idle=a.idle,
             **task_nodes,
         )
         .with_transitions(*transitions)
-        .with_entrypoint("start_mission")
+        .with_entrypoint(START)
         .with_identifiers(app_id=app_id or str(uuid.uuid4()), partition_key=mission_id)
     )
     if tracker is not None:
