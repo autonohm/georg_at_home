@@ -1,0 +1,84 @@
+# Task catalog: the contract between task manager, packages and (from P6) the LLM.
+# One entry per allowed task. Only tasks listed here can run.
+#
+#   class:       Python class of the task (module:Class), as used in missions/
+#   action:      ROS action the task calls (relative to the robot namespace)
+#   type:        ROS action type
+#   args_schema: constructor arguments; type string|number|integer|boolean,
+#                optional: enum, min, max, required (default true)
+#                Every task also accepts "priority": low|mid|high|critical.
+#   timeout_s:   time limit of one attempt
+#   cancelable:  the package supports cancel
+#   modes:       compose profiles in which the task may run
+#   requires:    preconditions (flags) that must hold before the task starts
+#
+# Action names are taken from Georg.py. See docs/OPEN_QUESTIONS.md Q12: the
+# navigation server is launched under /nav/navigate, which does not match.
+
+version: 1
+
+tasks:
+  listen:
+    class: georg_task_manager.tasks.Listening:Listening
+    action: audio/listen
+    type: datatypes/action/Listen
+    args_schema:
+      sound: {type: string, enum: [DOORBELL, SPEECH]}
+      timeout_sec: {type: number, min: 0, required: false}
+    timeout_s: 62
+    cancelable: true
+    modes: [mock, sim, real, mcap]
+    requires: []
+
+  gesture:
+    class: georg_task_manager.tasks.Gesture:Gesture
+    action: pib_gestures_interface
+    type: georg_gesture_msgs/action/PibGesturesInterface
+    args_schema:
+      mode: {type: string, enum: [look_at, point_to, greet_person]}
+      vx: {type: number}
+      vy: {type: number}
+      vz: {type: number}
+    timeout_s: 15
+    cancelable: true
+    modes: [mock, sim, real, mcap]
+    requires: []
+
+  navigate_object:
+    class: georg_task_manager.tasks.NavigateObject:NavigateObject
+    action: nav/navigate_object_x
+    type: georg_nav_msgs/action/Navigate
+    args_schema:
+      object_name: {type: string}
+      map_path: {type: string}
+      standoff_m: {type: number, min: 0, required: false}
+    timeout_s: 60
+    cancelable: true
+    modes: [mock, sim, real, mcap]
+    requires: []        # slam_ready from P3
+
+  navigate_room:
+    class: georg_task_manager.tasks.NavigateRoom:NavigateRoom
+    action: nav/navigate_room_x
+    type: georg_nav_msgs/action/Navigate
+    args_schema:
+      room_name: {type: string}
+      map_path: {type: string}
+    timeout_s: 60
+    cancelable: true
+    modes: [mock, sim, real, mcap]
+    requires: []        # slam_ready from P3
+
+  return_to_idle:
+    class: georg_task_manager.tasks.ReturnToIdle:ReturnToIdle
+    action: ""
+    type: ""
+    args_schema: {}
+    timeout_s: 1
+    cancelable: true
+    modes: [mock, sim, real, mcap]
+    requires: []
+
+# Not in the catalog on purpose:
+# - Navigate (tasks/Navigate.py): older variant of NavigateObject, only used by py_trees missions
+# - GraspPlanning: its action package grasp_planning is not in this repo

@@ -12,6 +12,7 @@ services:
     volumes:
       - ./config:/config:ro
       - ../pkg_slam/maps:/root/georg_maps:ro
+      - burr-data:/root/.burr
     environment:
       - GEORG_MAP_DIR=/root/georg_maps
       - GEORG_DEFAULT_MAP=Nav_Test.yaml
@@ -22,6 +23,27 @@ services:
     restart: unless-stopped
     command: ros2 launch /config/task_manager.launch.py
     # command: sleep 1d
+
+  # Burr UI: every mission run with all steps and states, http://localhost:7241
+  burr_ui:
+    image: task_manager
+    pull_policy: never
+    profiles: [mock, sim, real, mcap]
+    depends_on: [task_manager]
+    networks:
+      - pib-network
+    ports:
+      - "7241:7241"
+    volumes:
+      - burr-data:/root/.burr
+    environment:
+      - burr_path=/root/.burr
+    init: true
+    restart: unless-stopped
+    command: /opt/burr-venv/bin/python -m uvicorn burr.tracking.server.run:app --host 0.0.0.0 --port 7241
+
+volumes:
+  burr-data:
 
 networks:
   pib-network:

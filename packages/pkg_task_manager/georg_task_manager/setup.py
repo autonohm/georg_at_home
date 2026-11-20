@@ -6,10 +6,11 @@ setup(
     name=package_name,
     version='0.0.0',
     packages=find_packages(exclude=['test']),
+    package_data={'georg_task_manager': ['catalog.yaml']},
     data_files=[
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
-        ('share/' + package_name, ['package.xml']),
+        ('share/' + package_name, ['package.xml', 'georg_task_manager/catalog.yaml']),
     ],
     install_requires=['setuptools'],
     zip_safe=True,

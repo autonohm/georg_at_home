@@ -5,7 +5,7 @@ import rclpy
 from rclpy.node import Node
 
 from .Georg import Georg
-from .task_manager import TaskManager
+from .burr_app.ros_adapter import BurrTaskManager
 from .mission_selector import select_mission
 from std_msgs.msg import String
 
@@ -22,7 +22,8 @@ class TaskManagerNode(Node):
 
         self.robot = Georg(self)
 
-        self.manager = TaskManager(
+        # Burr replaces the old loop in task_manager.py (P1)
+        self.manager = BurrTaskManager(
             self.robot,
             self.robot.state,
             self.robot.taskmanager_current_task_pub
