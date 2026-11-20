@@ -5,7 +5,7 @@
 > - This package now contains only the task manager (`georg_task_manager`) and, for the time being, `pib-audio`.
 > - Navigation: `packages/pkg_navigation`. Gestures: `packages/pkg_gestures`. Maps: `packages/pkg_slam/maps`.
 > - Interfaces (`georg_nav_msgs`, `georg_gesture_msgs`, `georg_task_manager_msgs`): `packages/pkg_interfaces`, built into the base image.
-> - The launch file starts only `task_manager`, which runs missions with Burr (P1). `task_manager_bt` (py_trees) is no longer launched.
+> - The launch file starts only `task_manager`, which runs missions with Burr (P1). The py_trees variant (`task_manager_bt`, `render_mission_bt`) was removed.
 > - Start everything with `./projectctl.bash up mock|sim|real|mcap` from the repo root.
 >
 > The terminal instructions below still work, but each package now runs in its own container.
@@ -130,17 +130,5 @@ source install/setup.bash
 
 ros2 run georg_task_manager task_manager
 
-or
-
-source install/setup.bash
-
-ros2 run georg_task_manager task_manager_bt
 
 
-## Rendering the BT Mission
-
-source install/setup.bash 
-
-ros2 run georg_task_manager render_mission_bt x
-
-Set x to Mission ID

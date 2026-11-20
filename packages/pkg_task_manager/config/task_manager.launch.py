@@ -32,9 +32,7 @@ def generate_launch_description():
     )
 
     # Task Manager
-    # Only the sequential task manager is started (decision 2026-11-20, variant A).
-    # The py_trees variant (executable task_manager_bt) stays in the code until
-    # P1 replaces py_trees with Burr.
+    # Runs missions with Burr (P1). The py_trees variant was removed.
 
     task_manager_module = Node(
         package="georg_task_manager",

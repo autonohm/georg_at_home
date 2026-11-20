@@ -80,5 +80,5 @@ tasks:
     requires: []
 
 # Not in the catalog on purpose:
-# - Navigate (tasks/Navigate.py): older variant of NavigateObject, only used by py_trees missions
+# - Navigate (tasks/Navigate.py): older variant of NavigateObject, only used by missions/Comparison*.py (not in the mission selector)
 # - GraspPlanning: its action package grasp_planning is not in this repo
