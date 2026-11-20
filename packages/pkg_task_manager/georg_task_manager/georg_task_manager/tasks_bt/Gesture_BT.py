@@ -1,7 +1,7 @@
 import py_trees
 from py_trees.common import Status
 from geometry_msgs.msg import Vector3
-from pib_gestures_action.action import PibGesturesInterface
+from georg_gesture_msgs.action import PibGesturesInterface
 
 from georg_task_manager.bt.bt_common import ActionLeaf, TaskLabel, with_priority
 from georg_task_manager.tasks.priority import LOW

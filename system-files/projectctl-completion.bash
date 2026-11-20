@@ -13,7 +13,9 @@ _projectctl_completion() {
         stop
         build_base_image
         logs
+        mode
         check_pkgs
+        install_completion
         help
     )
 
@@ -21,11 +23,15 @@ _projectctl_completion() {
         COMPREPLY=(
             $(compgen -W "${commands[*]}" -- "$current")
         )
-    elif [[ "$COMP_CWORD" -eq 2 ]] && [[ $previous == "logs" ]]; then
+    elif [[ "$COMP_CWORD" -eq 2 ]] && [[ " up down build start stop " == *" $previous "* ]]; then
+        COMPREPLY=(
+            $(compgen -W "mock sim real mcap" -- "$current")
+        )
+    elif [[ "$COMP_CWORD" -ge 2 ]] && [[ ${COMP_WORDS[1]} == "logs" ]]; then
         mapfile -t packages < <(
             compgen -W "$(
                 shopt -s nullglob
-                for dir in software/pkg_*/; do
+                for dir in packages/pkg_*/; do
                     dir=${dir%/}
                     dir=${dir##*/}
                     printf '%s\n' "${dir#pkg_}"

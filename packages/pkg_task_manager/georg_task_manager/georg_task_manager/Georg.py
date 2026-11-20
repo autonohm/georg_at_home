@@ -2,7 +2,7 @@ from rclpy.node import Node
 from rclpy.action import ActionClient
 from std_msgs.msg import String
 from std_msgs.msg import Bool
-from pib_gestures_action.action import PibGesturesInterface
+from georg_gesture_msgs.action import PibGesturesInterface
 from datatypes.action import Listen
 from georg_nav_msgs.action import Navigate, DriveRoute
 from std_msgs.msg import String as StringMsg

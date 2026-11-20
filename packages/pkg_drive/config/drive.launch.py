@@ -26,7 +26,9 @@ def generate_launch_description():
       name='thn_georg_bot',
       parameters=[PathJoinSubstitution([cwd_path, 'edu_robot.yaml'])],
       # prefix=['gdbserver localhost:3000'],
-      remappings=[('odometry', 'odom/wheel')],
+      # driver only listens behind the command_gate (packages/pkg_command_gate)
+      # TODO(P7): verify that edu_robot subscribes to 'cmd_vel' so this remap takes effect
+      remappings=[('odometry', 'odom/wheel'), ('cmd_vel', 'cmd_vel/gated')],
       emulate_tty=True,
       output='screen',
       # arguments=[

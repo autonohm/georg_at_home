@@ -1,6 +1,7 @@
 services:
   slam:
     image: slam
+    profiles: [sim, real, mcap]
     build:
       context: .
       dockerfile: ./Dockerfile

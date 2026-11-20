@@ -1,0 +1,18 @@
+services:
+  gestures:
+    image: gestures
+    profiles: [sim, real]
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    networks:
+      - pib-network
+    volumes:
+      - ./config:/config:ro
+    init: true
+    restart: unless-stopped
+    command: ros2 launch /config/gestures.launch.py
+
+networks:
+  pib-network:
+    driver: bridge

@@ -3,6 +3,8 @@ services:
     image: georg-ros:humble
     build:
       context: .
+      additional_contexts:
+        interfaces: ../pkg_interfaces
       platforms:
         - "linux/amd64"
         # - "linux/arm64"

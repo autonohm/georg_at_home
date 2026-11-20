@@ -1,0 +1,4 @@
+# Liefert die startbaren Missionen für das Dropdown in Lichtblick.
+---
+string[] mission_ids
+string[] display_names

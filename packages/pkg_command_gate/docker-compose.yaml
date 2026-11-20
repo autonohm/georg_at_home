@@ -1,0 +1,23 @@
+services:
+  command_gate:
+    image: command_gate
+    # runs in every profile as a second safety net; forwards only in 'real'
+    profiles: [mock, sim, real, mcap]
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    networks:
+      - pib-network
+    volumes:
+      - ./config:/config:ro
+    environment:
+      # set by projectctl.bash: profile that was started, and content of /etc/georg/mode
+      - GEORG_PROFILE=${GEORG_PROFILE:-}
+      - GEORG_DEVICE_MODE=${GEORG_DEVICE_MODE:-}
+    init: true
+    restart: unless-stopped
+    command: ros2 launch /config/command_gate.launch.py
+
+networks:
+  pib-network:
+    driver: bridge

@@ -4,6 +4,9 @@ set -Eeuo pipefail
 
 PROJECT_NAME="georg"
 PACKAGES_DIR="packages"
+COMPOSE_FILE="compose.yaml"
+MODE_FILE="/etc/georg/mode"
+MODES=(mock sim real mcap)
 
 # Space-separated package names to skip, for example:
 #SKIP_PACKAGES=("drive" "examples")
@@ -35,7 +38,7 @@ log_state() {
 }
 
 is_skipped() {
-	  if [[ "${SKIP_PACKAGES[*]}" == *"$1"* ]]; then # if array contains x
+	  if [[ "${SKIP_PACKAGES[*]:-}" == *"$1"* ]]; then # if array contains x
         return 0
     fi
     return 1
@@ -70,7 +73,7 @@ check_packages() {
     log_ok "found pkgs: ${found_packages[*]:-}"
     # :- expand to empty string if empty
 
-    for skip in "${SKIP_PACKAGES[@]}"; do
+    for skip in ${SKIP_PACKAGES[@]+"${SKIP_PACKAGES[@]}"}; do
         if [[ " ${found_packages[*]} " == *" $skip "* ]]; then
             log_warn "skipping pkg: $skip"
         else
@@ -90,57 +93,58 @@ check_packages() {
         if [[ ! -f "$PACKAGES_DIR/pkg_$package/README.md" ]]; then
             log_warn "package $package missing README.md"
         fi
+
+        if ! grep -q "$PACKAGES_DIR/pkg_$package/docker-compose.yaml" "$COMPOSE_FILE"; then
+            log_warn "package $package not included in $COMPOSE_FILE"
+        fi
     done
 }
 
 build_base_image() {
     log_state "build georg-ros image"
-    docker build -t georg-ros:jazzy packages/docker_base_image/
+    docker build -t georg-ros:jazzy \
+        --build-context interfaces="$PACKAGES_DIR/pkg_interfaces" \
+        "$PACKAGES_DIR/docker_base_image/"
+}
+
+device_mode() {
+    # content of /etc/georg/mode, empty if missing
+    if [[ -r "$MODE_FILE" ]]; then
+        tr -d '[:space:]' < "$MODE_FILE"
+    fi
+}
+
+check_mode() {
+    local mode=$1
+    if [[ " ${MODES[*]} " != *" $mode "* ]]; then
+        log_fatal "unknown mode '$mode' (choose one of: ${MODES[*]})"
+    fi
+    if [[ "$mode" == "real" ]] && [[ "$(device_mode)" != "real" ]]; then
+        log_fatal "mode 'real' refused: $MODE_FILE is '$(device_mode)', not 'real'. 'real' only runs on the robot."
+    fi
+}
+
+compose() {
+    # all compose calls go through the root compose file
+    GEORG_DEVICE_MODE="$(device_mode)" \
+        docker compose -p "$PROJECT_NAME" -f "$COMPOSE_FILE" "$@"
 }
 
 docker_cmd() {
-    local dir package
-
-
-    for dir in "$PACKAGES_DIR"/pkg_*/; do
-        package=$(path_to_package_name "$dir")
-
-        if is_skipped "$package"; then
-            continue
-        fi
-
-        log_state ">> $package"
-
-        docker compose \
-            -p "$PROJECT_NAME" \
-            --progress plain \
-            -f "${dir}docker-compose.yaml" \
-            "$@"
-    done
+    # run a compose command for one mode, or for all profiles if no mode is given
+    local mode=$1
+    shift
+    if [[ -n "$mode" ]]; then
+        check_mode "$mode"
+        GEORG_PROFILE="$mode" compose --profile "$mode" "$@"
+    else
+        GEORG_PROFILE="" compose --profile '*' "$@"
+    fi
 }
 
 docker_logs() {
-    selection=($*) # split along spaces
-
-    for dir in "$PACKAGES_DIR"/pkg_*/; do
-        package=$(path_to_package_name "$dir")
-        packages+=($(path_to_package_name "$dir"))
-
-        if is_skipped "$package"; then
-            continue
-        fi
-
-        if [[ ${#selection[@]} == 1 ]] || [[ " ${selection[*]:1} " == *" $package "* ]]; then
-            containers+=("${PROJECT_NAME}-${package}-1")
-        fi
-    done
-
-    for sel in ${selection[*]:1}; do
-      if [[ " ${packages[*]} " != *" $sel "* ]]; then
-          log_warn "selection $sel is not a package"
-      fi
-    done
-    docker logs --follow "${containers[@]%%/*}"
+    # logs [service ...]; service names are the package names (e.g. task_manager)
+    compose --profile '*' logs --follow "$@"
 }
 
 install_completion() {
@@ -148,61 +152,72 @@ install_completion() {
   if grep -q "projectctl-completion.bash" "$HOME/.bashrc" ; then
       log_warn "Completion is already installed in bashrc. Skipping"
   else
-      echo -e "\n# setup autocomplete for georg_at_home project control script\nsource $SCRIPT_DIR/packages/projectctl-completion.bash" >> "$HOME/.bashrc"
+      echo -e "\n# setup autocomplete for georg_at_home project control script\nsource $SCRIPT_DIR/system-files/projectctl-completion.bash" >> "$HOME/.bashrc"
       log_ok "Completion installed to $HOME/.bashrc. Run \`source $HOME/.bashrc\` or open a new terminal to apply"
   fi
 }
 
 
 usage() {
-    cat <<'EOF'
+    cat <<'USAGE'
 Usage:
   projectctl [command]
 
+Modes: mock | sim | real | mcap   ('real' only if /etc/georg/mode is 'real')
+
 Commands:
-  up                  Check packages and bring up all containers (in background)
-  down                Check packages and bring down all containers
-  build               Check packages and build all containers
+  up <mode>           Check packages and bring up the containers of <mode> (in background)
+  down [mode]         Bring down the containers of [mode] (all if empty)
+  build [mode]        Check packages, build base image and the containers of [mode] (all if empty)
   build_base_image    Build base image used for software packages' containers
-  start               Check packages and start all containers
-  stop                Check packages and stop all containers
-  logs [pkg_name]     View logs for specified Package (all if empty)
-  check_pkgs          Validate packages (docker-compose.yaml present, README.md present)
+  start <mode>        Start the containers of <mode>
+  stop [mode]         Stop the containers of [mode] (all if empty)
+  logs [service ...]  View logs for the given services (all if empty)
+  mode                Show the device mode from /etc/georg/mode
+  check_pkgs          Validate packages (docker-compose.yaml, README.md, included in compose.yaml)
   install_completion  Install autocompletion for this script (requires bash-completion)
   help                Show this help message
-EOF
+USAGE
 }
 
 main() {
     local command=${1:-help}
+    local mode=${2:-}
 
     case "$command" in
         up)
-            log_state "bringup containers"
-            docker_cmd up -d 2>&1 | grep -Pv "orphan"
-            # remove warning about orphan containers - always shows up due to project setup
+            [[ -n "$mode" ]] || log_fatal "up needs a mode: ${MODES[*]}"
+            check_mode "$mode"
+            check_packages
+            log_state "bringup containers ($mode)"
+            docker_cmd "$mode" up -d --remove-orphans
             ;;
         down)
-            log_state "bringdown containers"
-            docker_cmd down
+            log_state "bringdown containers ${mode:-(all)}"
+            docker_cmd "$mode" down
             ;;
         start)
-            log_state "start containers"
-            docker_cmd start
+            [[ -n "$mode" ]] || log_fatal "start needs a mode: ${MODES[*]}"
+            log_state "start containers ($mode)"
+            docker_cmd "$mode" start
             ;;
         stop)
-            check_packages
-            log_state "stop containers"
-            docker_cmd stop
+            log_state "stop containers ${mode:-(all)}"
+            docker_cmd "$mode" stop
             ;;
         build)
+            [[ -z "$mode" ]] || check_mode "$mode"
             check_packages
             build_base_image
-            log_state "build containers"
-            docker_cmd build
+            log_state "build containers ${mode:-(all)}"
+            docker_cmd "$mode" build
             ;;
         logs)
-            docker_logs $@
+            shift
+            docker_logs "$@"
+            ;;
+        mode)
+            printf '%s\n' "$(device_mode)"
             ;;
         build_base_image|build-base-image)
             build_base_image

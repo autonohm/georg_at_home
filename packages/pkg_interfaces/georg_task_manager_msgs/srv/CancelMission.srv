@@ -1,0 +1,5 @@
+# Bricht die laufende Mission ab. Leere mission_id = was gerade läuft.
+string mission_id
+---
+bool accepted
+string reason        # z. B. "keine Mission aktiv"
