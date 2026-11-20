@@ -24,6 +24,15 @@ RUN python3 -m pip install --no-cache-dir --break-system-packages \
     PyAudio==0.2.14 \
     faster-whisper==1.2.1
 
+# Burr (P1) in its own venv. --system-site-packages keeps rclpy from Jazzy visible,
+# PYTHONPATH makes the venv visible to `ros2 run` scripts (they use /usr/bin/python3).
+RUN apt-get update && apt-get install -y --no-install-recommends python3-venv \
+    && rm -rf /var/lib/apt/lists/* \
+    && python3 -m venv --system-site-packages /opt/burr-venv \
+    && /opt/burr-venv/bin/pip install --no-cache-dir "apache-burr[tracking]==0.43.0"
+ENV PYTHONPATH=/opt/burr-venv/lib/python3.12/site-packages
+ENV GEORG_BURR_STORAGE_DIR=/root/.burr
+
 # change this variable to trick docker cache into rebuilding
 ENV REBUILD=1
 

@@ -40,3 +40,15 @@ Nebenbei entfernt: 13 eingecheckte `.pyc`-Dateien in der Navigation (Kompilate, 
 **Q14 – Gesten-Result entspricht nicht dem Paket-Vertrag.** `PibGesturesInterface` liefert `int8 success` statt `bool success`, `string error_code`, `string message`. Feedback ist `string status` statt `phase` und `progress`. Unverändert, Anpassung mit dem Gesten-Verantwortlichen.
 
 **Q15 – Kleinkram.** `navigate_server` registriert `fake_odom` aus `odom_sim.py`, die Datei fehlt (gab es nur noch als `.pyc`). `docker_base_image/compose.yaml` taggt `georg-ros:humble`, alles andere nutzt `jazzy`. `projectctl.bash install_completion` zeigte auf `packages/projectctl-completion.bash`, korrigiert auf `system-files/`.
+
+# Offene Fragen – P1
+
+**Q16 – py_trees-Code löschen?** Burr ersetzt die Ausführung, `main.py` nutzt jetzt `BurrTaskManager`. Noch im Repo, aber ungenutzt: `bt/`, `tasks_bt/`, die Entry-Points `task_manager_bt` und `render_mission_bt` in `setup.py`, die apt-Pakete `ros-jazzy-py-trees*` im Dockerfile und die Abhängigkeiten in `package.xml`. Ebenso die alte Schleife `task_manager.py`; sie dient in `test_burr_app.py` als Referenz für die gleiche Reihenfolge. Löschen erst nach deiner Freigabe (Regel 5).
+
+**Q17 – Abweichung von der Zielstruktur.** Der Plan nennt `burr_app/missions/digital_festival.py`. Die Missionen bleiben in `missions/`, weil der Plan auch sagt, dass Tasks und Missionen so angelegt werden wie bisher. Ein zweiter Ort für Missionen würde das verdoppeln.
+
+**Q18 – Ein Burr-Lauf pro Mission.** Jede Mission bekommt eine eigene `burr_app_id`, der Dienst selbst bleibt zwischen Missionen im Leerlauf. So erscheint jeder Lauf einzeln in der Burr-UI, und `StartMission` kann die ID zurückgeben. Die Alternative wäre eine durchgehende Burr-App für alle Missionen.
+
+**Q19 – flake8 im Task Manager war schon vorher rot.** Der bestehende Code hat 203 flake8-Meldungen, `colcon test` scheitert dort also unabhängig von P1. Der neue Code (`burr_app/`, `catalog.py`, `validator.py`, Tests, `command_gate`) ist sauber. Bestehenden Code formatieren, oder flake8 für Altdateien ausnehmen?
+
+**Q20 – Noch nicht im Container gelaufen.** 93 Tests laufen lokal ohne ROS grün (Python 3.9, Burr 0.43.0). Die Burr-UI hat einen lokalen Lauf angezeigt. Im Container (Python 3.12, echtes rclpy) ist das noch ungeprüft, genauso wie der Build aus P0.

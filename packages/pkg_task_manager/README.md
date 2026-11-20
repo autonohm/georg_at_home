@@ -5,10 +5,54 @@
 > - This package now contains only the task manager (`georg_task_manager`) and, for the time being, `pib-audio`.
 > - Navigation: `packages/pkg_navigation`. Gestures: `packages/pkg_gestures`. Maps: `packages/pkg_slam/maps`.
 > - Interfaces (`georg_nav_msgs`, `georg_gesture_msgs`, `georg_task_manager_msgs`): `packages/pkg_interfaces`, built into the base image.
-> - The launch file starts only the sequential `task_manager`. `task_manager_bt` (py_trees) is no longer launched and will be replaced by Burr in P1.
+> - The launch file starts only `task_manager`, which runs missions with Burr (P1). `task_manager_bt` (py_trees) is no longer launched.
 > - Start everything with `./projectctl.bash up mock|sim|real|mcap` from the repo root.
 >
 > The terminal instructions below still work, but each package now runs in its own container.
+
+## Burr engine (since P1)
+
+Missions are executed by an [Apache Burr](https://burr.apache.org/) state machine
+(`georg_task_manager/burr_app/`). Tasks and missions are written exactly as before;
+only the engine that runs them changed. The priority rules below are unchanged.
+
+```
+start_mission -> select_task -> run_task -> handle_result -> select_task ... -> finish -> idle
+```
+
+### Add a new task
+
+1. Write the class in `georg_task_manager/tasks/`, derived from `BaseTask`, with
+   `async def run(self, robot, state) -> bool` (see `Gesture.py`).
+2. Add one entry to `georg_task_manager/catalog.yaml`: `class` (`module:Class`),
+   `action`, `type`, `args_schema` (the constructor arguments), `timeout_s`, `modes`.
+   **Tasks that are not in the catalog are rejected at mission start.**
+3. Run the tests (see below). `test_validator.py` checks that every catalog class can be imported.
+
+### Add a new mission
+
+1. Copy `georg_task_manager/missions/DigitalFestival.py`; `get_mission()` returns the list of tasks.
+2. Add it to `georg_task_manager/mission_selector.py`.
+3. Start it: `MISSION_ID=<number>` in `docker-compose.yaml`, or pick it from the menu.
+
+### Burr UI
+
+Every mission run gets its own `burr_app_id` and shows up with all steps and states in the
+Burr UI: <http://localhost:7241> (service `burr_ui`, started with every profile).
+Project `georg_task_manager`, partition key = mission id.
+Tracking is switched off with `GEORG_BURR_TRACKING=0`.
+
+### Tests without ROS
+
+```bash
+cd georg_task_manager
+pip install "apache-burr[tracking]==0.43.0" pyyaml pytest
+python -m pytest test/test_burr_app.py test/test_validator.py
+```
+
+ROS message modules are replaced by stand-ins in `test/conftest.py` if they are not installed.
+`test_burr_app.py` also compares the Burr engine with the previous loop (`task_manager.py`)
+on random scenarios: same task order, same outcome.
 
 This is the Task Manager for the Pib Robot "Georg". It allows the creation of different
 tasks, which can be fullfilled in costumized, modular missions by the usage of actions. 
