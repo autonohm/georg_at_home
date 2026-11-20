@@ -221,3 +221,34 @@ def test_each_run_is_tracked_for_the_burr_ui(tmp_path, monkeypatch):
     assert a.burr_app_id in runs and b.burr_app_id in runs
     log = (project_dir / a.burr_app_id / "log.jsonl").read_text()
     assert "start_mission" in log and "idle" in log
+
+
+# --- one Burr node per task type: the UI shows the real sequence -------------
+
+def _festival_service(results):
+    """Digital Festival with scripted results per task name (True when used up)."""
+    results = {k: list(v) for k, v in results.items()}
+
+    async def scripted(task):
+        queue = results.get(task.name, [])
+        return queue.pop(0) if queue else True
+
+    return service(run_task=scripted, catalog=load_catalog())
+
+
+def test_burr_steps_show_each_task_as_its_own_node():
+    result = run(_festival_service({}), DigitalFestival.get_mission(), "digital_festival")
+    assert result.steps == [
+        "start_mission",
+        "next", "listen", "next", "gesture", "next", "gesture",
+        "next", "listen", "next", "gesture", "next", "gesture",
+        "next", "return_to_idle",
+        "next", "finish", "idle",
+    ]
+
+
+def test_retry_shows_up_as_repeated_task_node():
+    svc = _festival_service({"Listening(DOORBELL)": [False, True]})
+    result = run(svc, DigitalFestival.get_mission(), "digital_festival")
+    assert result.steps[:6] == ["start_mission", "next", "listen", "next", "listen", "next"]
+    assert result.outcome == "succeeded"

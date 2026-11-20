@@ -25,6 +25,8 @@ class MissionResult:
     reason: str = ""
     burr_app_id: str = ""
     executed: List[str] = field(default_factory=list)
+    # Burr nodes in the order they ran, e.g. start_mission, next, listen, next, ...
+    steps: List[str] = field(default_factory=list)
     message: str = ""
 
 
@@ -74,20 +76,26 @@ class TaskManagerService:
             self._abort.clear()
             self.current_app_id = app_id or str(uuid.uuid4())
 
+        types = [self._catalog.by_class(type(t)).name for t in tasks]
         ctx = a.MissionContext(
             tasks=list(tasks),
+            task_types=types,
+            arg_names={n: list(spec.args_schema) for n, spec in self._catalog.tasks.items()},
             run_task=self._run_task,
             abort_requested=self._abort.is_set,
             on_current_task=self._on_current_task,
             log=self._log,
         )
-        app = build_mission_app(ctx, mission_id, app_id=self.current_app_id, tracker=self._tracker)
+        app = build_mission_app(ctx, mission_id, self._catalog,
+                                app_id=self.current_app_id, tracker=self._tracker)
         self.state = a.RUNNING
         final = None
+        steps = []
         try:
             async for act, _result, state in app.aiterate(
                     halt_after=["idle"], inputs={"mission_id": mission_id}):
                 final = state
+                steps.append(act.name)
                 self._on_step(act.name, state.get_all())
         finally:
             with self._lock:
@@ -99,6 +107,7 @@ class TaskManagerService:
             outcome=final["outcome"],
             burr_app_id=self.current_app_id,
             executed=list(final["executed"]),
+            steps=steps,
             message=final["message"],
         )
 

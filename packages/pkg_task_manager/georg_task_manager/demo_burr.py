@@ -55,7 +55,7 @@ async def demo(delay: float):
         print(f"\n### Lauf {title}")
         result = await service.run_mission("digital_festival", DigitalFestival.get_mission())
         print(f"### Ergebnis: {result.outcome}  burr_app_id={result.burr_app_id}")
-        print(f"### Ausgeführt: {result.executed}")
+        print(f"### Burr-Schritte: {' -> '.join(result.steps)}")
 
 
 if __name__ == "__main__":
