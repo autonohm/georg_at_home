@@ -1,0 +1,2 @@
+# the drive server is not running: StartMission must be rejected with a reason
+nav/drive_route: {result: unreachable}

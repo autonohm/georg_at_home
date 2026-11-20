@@ -16,13 +16,31 @@ services:
     environment:
       - GEORG_MAP_DIR=/root/georg_maps
       - GEORG_DEFAULT_MAP=Nav_Test.yaml
-      - MISSION_ID=2
+      # set by projectctl.bash; the task manager checks the catalog modes against it
+      - GEORG_PROFILE=${GEORG_PROFILE:-}
+      # no MISSION_ID: the node starts in Idle, missions are started via
+      # ros2 service call /georg/task_manager/start (plan: boot never starts a mission)
 
     privileged: true
     init: true
     restart: unless-stopped
     command: ros2 launch /config/task_manager.launch.py
     # command: sleep 1d
+
+  # Mock packages (P2): fake action servers for speech, gestures, navigation + odom.
+  # Scenario via GEORG_MOCK_SCENARIO (all_ok, one_fails, timeout, abort, unreachable, retry_then_ok)
+  mock_packages:
+    image: task_manager
+    pull_policy: never
+    profiles: [mock, mcap]
+    depends_on: [task_manager]
+    networks:
+      - pib-network
+    environment:
+      - GEORG_MOCK_SCENARIO=${GEORG_MOCK_SCENARIO:-all_ok}
+    init: true
+    restart: unless-stopped
+    command: ros2 run georg_task_manager mock_packages --ros-args -r __ns:=/georg
 
   # Burr UI: every mission run with all steps and states, http://localhost:7241
   burr_ui:

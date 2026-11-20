@@ -24,24 +24,23 @@ Priority rules (unchanged from ``task_manager.py``):
 - CRITICAL: like HIGH, but the mission fails when the retries are used up
 """
 
-import re
 from dataclasses import dataclass, field
+import re
 from typing import Awaitable, Callable, Dict, List, Optional, Tuple
 
-from burr.core import State, action
-
+from burr.core import action, State
 from georg_task_manager.tasks.priority import MAX_RETRIES, TaskPriority
 
-RUNNING = "running"
-SUCCEEDED = "succeeded"
-FAILED = "failed"
-ABORTED = "aborted"
-FINISH = "finish"
-RESERVED = {"start_mission", FINISH, "idle"}
+RUNNING = 'running'
+SUCCEEDED = 'succeeded'
+FAILED = 'failed'
+ABORTED = 'aborted'
+FINISH = 'finish'
+RESERVED = {'start_mission', FINISH, 'idle'}
 
 
 def _slug(value) -> str:
-    return re.sub(r"[^a-z0-9]+", "_", str(value).lower()).strip("_")[:30]
+    return re.sub(r'[^a-z0-9]+', '_', str(value).lower()).strip('_')[:30]
 
 
 def make_node_names(tasks: List[object], task_types: List[str],
@@ -52,13 +51,13 @@ def make_node_names(tasks: List[object], task_types: List[str],
         base = kind
         arg = name_args.get(kind)
         if arg:
-            slug = _slug(getattr(task, arg, ""))
+            slug = _slug(getattr(task, arg, ''))
             if slug:
-                base = f"{kind}_{slug}"
+                base = f'{kind}_{slug}'
         name, count = base, 1
         while name in used:
             count += 1
-            name = f"{base}_{count}"
+            name = f'{base}_{count}'
         used.add(name)
         names.append(name)
     return names
@@ -87,11 +86,11 @@ class MissionContext:
         return self.node_names[index]
 
     def priority(self, index: int) -> TaskPriority:
-        return getattr(self.tasks[index], "priority", TaskPriority.LOW)
+        return getattr(self.tasks[index], 'priority', TaskPriority.LOW)
 
 
 def task_name(task) -> str:
-    return getattr(task, "name", type(task).__name__)
+    return getattr(task, 'name', type(task).__name__)
 
 
 def _plain(value):
@@ -105,7 +104,7 @@ def _plain(value):
 
 def task_args(task, names: List[str]) -> dict:
     args = {n: _plain(getattr(task, n)) for n in names if hasattr(task, n)}
-    args["priority"] = _plain(getattr(task, "priority", TaskPriority.LOW))
+    args['priority'] = _plain(getattr(task, 'priority', TaskPriority.LOW))
     return args
 
 
@@ -120,14 +119,14 @@ def apply_priority(priority: TaskPriority, attempts: int, index: int, queue: Lis
     max_retries = MAX_RETRIES.get(priority, 0)
     if attempts > max_retries:
         if priority == TaskPriority.CRITICAL:
-            return FAILED, queue, "critical, out of retries"
-        return RUNNING, queue, f"discarded ({priority.name})"
+            return FAILED, queue, 'critical, out of retries'
+        return RUNNING, queue, f'discarded ({priority.name})'
     if priority in (TaskPriority.HIGH, TaskPriority.CRITICAL):
-        return RUNNING, [index] + queue, f"retry now (attempt {attempts}/{max_retries})"
+        return RUNNING, [index] + queue, f'retry now (attempt {attempts}/{max_retries})'
     if priority == TaskPriority.MID:
         return RUNNING, queue[:1] + [index] + queue[1:], \
-            f"retry after next task (attempt {attempts}/{max_retries})"
-    return RUNNING, queue, f"discarded ({priority.name})"
+            f'retry after next task (attempt {attempts}/{max_retries})'
+    return RUNNING, queue, f'discarded ({priority.name})'
 
 
 def decide(queue: List[int], attempts: List[int], current: int, last_result: Optional[bool],
@@ -142,25 +141,25 @@ def decide(queue: List[int], attempts: List[int], current: int, last_result: Opt
     queue, attempts, notes = list(queue), list(attempts), []
     if current >= 0:
         if last_result:
-            notes.append("ok")
+            notes.append('ok')
         else:
             attempts[current] += 1
             outcome, queue, what = apply_priority(
                 priorities[current], attempts[current], current, queue)
-            notes.append(f"failed, {what}")
+            notes.append(f'failed, {what}')
             if outcome == FAILED:
                 return FAILED, queue, attempts, -1, notes
     if abort:
-        return ABORTED, queue, attempts, -1, notes + ["abort requested"]
+        return ABORTED, queue, attempts, -1, notes + ['abort requested']
     if not queue:
-        return SUCCEEDED, queue, attempts, -1, notes + ["mission complete"]
+        return SUCCEEDED, queue, attempts, -1, notes + ['mission complete']
     return RUNNING, queue[1:], attempts, queue[0], notes
 
 
 def _apply_decision(state: State, ctx: MissionContext, current: int,
                     last_result: Optional[bool]) -> State:
     outcome, queue, attempts, nxt, notes = decide(
-        state["queue"], state["attempts"], current, last_result,
+        state['queue'], state['attempts'], current, last_result,
         [ctx.priority(i) for i in range(len(ctx.tasks))], ctx.abort_requested())
 
     if current >= 0 and not last_result:
@@ -170,32 +169,32 @@ def _apply_decision(state: State, ctx: MissionContext, current: int,
         go_to = ctx.node(nxt)
         name = task_name(task)
         ctx.on_current_task(name)
-        ctx.log(f"[TASK MANAGER] Running {name}")
-        updates = dict(current=nxt, next_task=name,
-                       next_args=task_args(task, ctx.arg_names.get(ctx.task_types[nxt], [])))
+        ctx.log(f'[TASK MANAGER] Running {name}')
+        updates = {'current': nxt, 'next_task': name,
+                   'next_args': task_args(task, ctx.arg_names.get(ctx.task_types[nxt], []))}
     else:
         go_to = FINISH
         if outcome == ABORTED:
-            ctx.log("\n[MISSION ABORTED] Stopping before next task\n")
+            ctx.log('\n[MISSION ABORTED] Stopping before next task\n')
         if outcome == FAILED:
-            ctx.log("[MISSION FAILED]")
-        updates = dict(current=-1, next_task="", next_args={})
+            ctx.log('[MISSION FAILED]')
+        updates = {'current': -1, 'next_task': '', 'next_args': {}}
 
     return state.update(queue=queue, attempts=attempts, outcome=outcome, go_to=go_to,
-                        decision=" | ".join(notes + [f"-> {go_to}"]),
-                        message=notes[-1] if notes else "", **updates)
+                        decision=' | '.join(notes + [f'-> {go_to}']),
+                        message=notes[-1] if notes else '', **updates)
 
 
 # --- Burr actions --------------------------------------------------------------
 
-DECISION_KEYS = ["queue", "attempts", "outcome", "go_to", "decision", "message",
-                 "current", "next_task", "next_args"]
+DECISION_KEYS = ['queue', 'attempts', 'outcome', 'go_to', 'decision', 'message',
+                 'current', 'next_task', 'next_args']
 
 
-@action(reads=[], writes=["mission_id", "planned", "step", "executed", "task", "args",
-                          "last_result"] + DECISION_KEYS)
+@action(reads=[], writes=['mission_id', 'planned', 'step', 'executed', 'task', 'args',
+                          'last_result'] + DECISION_KEYS)
 def start_mission(state: State, ctx: MissionContext, mission_id: str) -> State:
-    ctx.log("\n=== Mission Started ===\n")
+    ctx.log('\n=== Mission Started ===\n')
     state = state.update(
         mission_id=mission_id,
         planned=[ctx.node(i) for i in range(len(ctx.tasks))],
@@ -203,43 +202,43 @@ def start_mission(state: State, ctx: MissionContext, mission_id: str) -> State:
         attempts=[0] * len(ctx.tasks),
         step=0,
         executed=[],
-        task="",
+        task='',
         args={},
         last_result=None,
     )
     return _apply_decision(state, ctx, current=-1, last_result=None)
 
 
-@action(reads=["current", "next_task", "next_args", "queue", "attempts", "step", "executed"],
-        writes=["task", "args", "last_result", "step", "executed"] + DECISION_KEYS)
+@action(reads=['current', 'next_task', 'next_args', 'queue', 'attempts', 'step', 'executed'],
+        writes=['task', 'args', 'last_result', 'step', 'executed'] + DECISION_KEYS)
 async def run_task(state: State, ctx: MissionContext, index: int) -> State:
     """Node of one mission step: run the task, then decide where to go next."""
-    if state["current"] != index:   # graph and decision out of sync
+    if state['current'] != index:   # graph and decision out of sync
         raise RuntimeError(f"node {ctx.node(index)} reached, but step {state['current']} is due")
     task = ctx.tasks[index]
-    name, args = state["next_task"], state["next_args"]
-    error = ""
+    name, args = state['next_task'], state['next_args']
+    error = ''
     try:
         result = bool(await ctx.run_task(task))
     except Exception as exc:  # a crashing task counts as a failed task
         result = False
-        error = f"{name} raised {type(exc).__name__}: {exc}"
-        ctx.log(f"[TASK ERROR] {error}")
-    ctx.log(f"[TASK RESULT] {result}\n")
+        error = f'{name} raised {type(exc).__name__}: {exc}'
+        ctx.log(f'[TASK ERROR] {error}')
+    ctx.log(f'[TASK RESULT] {result}\n')
     state = state.update(task=name, args=args, last_result=result,
-                         step=state["step"] + 1, executed=state["executed"] + [name])
+                         step=state['step'] + 1, executed=state['executed'] + [name])
     state = _apply_decision(state, ctx, current=index, last_result=result)
     if error:
         state = state.update(message=error)
     return state
 
 
-@action(reads=["outcome"], writes=["current_task"])
+@action(reads=['outcome'], writes=['current_task'])
 def finish(state: State, ctx: MissionContext) -> State:
-    ctx.on_current_task("Idle")
-    if state["outcome"] == SUCCEEDED:
-        ctx.log("=== Mission Complete ===")
-    return state.update(current_task="Idle")
+    ctx.on_current_task('Idle')
+    if state['outcome'] == SUCCEEDED:
+        ctx.log('=== Mission Complete ===')
+    return state.update(current_task='Idle')
 
 
 @action(reads=[], writes=[])

@@ -75,3 +75,20 @@ Verworfen:
 Der Code für den Stern liegt im Commit `6c3f685` und wird in P6 wieder eingebaut.
 
 **Q21 – Mission gilt als erfolgreich, obwohl kein Task geklappt hat.** Probelauf auf dem Mac ohne Paket-Server: Alle Tasks scheitern, trotzdem endet die Digital-Festival-Mission mit „succeeded“. Grund sind die bestehenden Prioritätsregeln: Low und High werden nach dem Scheitern verworfen, und die Mission läuft weiter. Nur Critical bricht ab. Sollen wichtige Tasks wie die Klingel Critical werden, oder soll eine Mission mit verworfenen Tasks einen eigenen Ausgang bekommen, etwa „teilweise“?
+
+# P2 – Stand (2026-11-20)
+
+Auf dem Mac (RoboStack) umgesetzt und geprüft:
+
+| Abnahmekriterium P2 | Stand |
+| --- | --- |
+| Start und Abbruch per `ros2 service call` | erfüllt |
+| Alle Pflicht-Szenarien laufen automatisch | erfüllt: `test/test_ros_integration.py`, 10 Tests, zweimal hintereinander grün |
+| Zehn Missionen hintereinander ohne Neustart | erfüllt, gleicher Prozess |
+| Fehlt ein Server, lehnt `StartMission` mit Grund ab | erfüllt, Grund nennt die Action |
+
+**Q22 – Neuer Code im ROS-Stil.** Der neue Code (Burr, Katalog, Validator, Brücke, Mocks, Tests, Gate) ist auf den ROS-Stil umgestellt: einfache Anführungszeichen, Google-Importreihenfolge. `ament_flake8` meldet dafür keine Probleme. Der Altbestand des Task Managers ist weiter rot (Q19), deshalb ist `colcon test` für dieses Paket noch nicht grün.
+
+**Q23 – `MISSION_ID` entfernt.** Der Node `task_manager` ist jetzt die Brücke und startet nach dem Booten nichts. Die alte Variante mit `MISSION_ID` heißt `task_manager_cli`. Im Compose ist `MISSION_ID` entfernt.
+
+**Q24 – Paket-Vertrag noch nicht umgesetzt.** Die echten Actions haben noch nicht das vereinbarte Ergebnis (`success`, `error_code`, `message`) und Feedback (`phase`, `progress`). Die Mocks bilden die heutigen Actions nach. Die Anpassung betrifft die Pakete selbst, siehe Q14.

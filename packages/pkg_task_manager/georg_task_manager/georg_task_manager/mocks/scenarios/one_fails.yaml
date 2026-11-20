@@ -1,0 +1,2 @@
+# the gesture package always fails (mock_test: gesture is CRITICAL -> mission FAILED)
+gesture: {result: fail, after_s: 0.2}
