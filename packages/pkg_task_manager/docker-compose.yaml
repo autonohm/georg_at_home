@@ -42,6 +42,40 @@ services:
     restart: unless-stopped
     command: ros2 run georg_task_manager mock_packages --ros-args -r __ns:=/georg
 
+  # Continuous recording of /task_manager/* as MCAP (plan P5), every profile.
+  # burr_app_id in the status connects recording, status and Burr run.
+  recorder:
+    image: task_manager
+    pull_policy: never
+    profiles: [mock, sim, real, mcap]
+    depends_on: [task_manager]
+    networks:
+      - pib-network
+    volumes:
+      - ${GEORG_RECORDINGS_DIR:-../../recordings}:/recordings
+    init: true
+    restart: unless-stopped
+    command: ["sh", "-c", "ros2 bag record -s mcap --max-bag-duration 3600 -o /recordings/task_manager_$$(date +%Y%m%d_%H%M%S) --regex '/georg/task_manager/.*|/georg/task/current_task'"]
+
+  # Profile mcap: replay a recording (raw sensors only, see pkg_slam/tools/mcap_raw_only.py).
+  # GEORG_MCAP_FILE: bag folder or .mcap below GEORG_RECORDINGS_DIR
+  player:
+    image: task_manager
+    pull_policy: never
+    profiles: [mcap]
+    depends_on: [task_manager]
+    networks:
+      - pib-network
+    volumes:
+      - ${GEORG_RECORDINGS_DIR:-../../recordings}:/recordings:ro
+      - ../pkg_slam/tools:/tools:ro
+    environment:
+      - GEORG_MCAP_FILE=${GEORG_MCAP_FILE:-}
+    init: true
+    restart: "no"
+    # strip SLAM output and map -> odom first (plan rules), then play with /clock
+    command: ["sh", "-c", "test -n \"$$GEORG_MCAP_FILE\" || { echo 'set GEORG_MCAP_FILE'; exit 1; }; python3 /tools/mcap_raw_only.py \"/recordings/$$GEORG_MCAP_FILE\" /tmp/raw && ros2 bag play /tmp/raw --clock 100"]
+
   # Burr UI: every mission run with all steps and states, http://localhost:7241
   burr_ui:
     image: task_manager

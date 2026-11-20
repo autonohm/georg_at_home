@@ -131,3 +131,14 @@ Auf dem Mac (RoboStack) umgesetzt und geprüft, Stufe 1 (2D-Simulator `georg_sim
 - **`foxglove_bridge` 3.x spricht nur `foxglove.sdk.v1`**, Lichtblick 1.30 bietet es an. Ältere Lichtblick-Versionen mit nur `foxglove.websocket.v1` können sich nicht verbinden.
 - **`min_qos_depth:=10` für die Brücke**, Status-Publisher mit Tiefe 10: Sonst gingen die letzten, schnell aufeinanderfolgenden Burr-Schritte verloren.
 - Brücke als Dienst `foxglove_bridge` in `pkg_viz`, Port 8765, in allen vier Profilen.
+
+# P5 – Stand (2026-11-20)
+
+| Abnahmekriterium P5 | Stand |
+| --- | --- |
+| Gleiche MCAP-Aufnahme ergibt zweimal dieselbe Task-Folge | erfüllt (`test_mcap_integration.py`: Fahrt im Simulator aufgenommen, auf Rohsensoren gefiltert, zweimal mit SLAM + Burr abgespielt, beide Burr-Läufe identisch, SLAM baut Karte aus der Wiedergabe) |
+| Entscheidungs-Replay meldet Abweichungen als Testfehler | erfüllt (`tests/decision_replay/`, 4 Tests; veränderte Entscheidung und veränderte Mission werden gemeldet; echter ROS-Lauf ohne Abweichung nachgespielt) |
+
+Weiter umgesetzt: Dienst `recorder` (Daueraufnahme `/georg/task_manager/*` und `task/current_task` als MCAP, alle Profile, getestet mit denselben Argumenten), Dienst `player` im Profil `mcap` (filtert automatisch auf Rohsensoren), `slam_mcap.launch.py` mit `use_sim_time`, Mock-Szenario `mcap` ohne Odometrie (setzt `projectctl.bash` in `mcap` automatisch).
+
+**Hinweis:** Mit festen Missionen und Mocks hängt die Task-Folge nicht von den Sensordaten ab; „zweimal dieselbe Folge“ ist hier vor allem ein Test der Kette Aufnahme → Filter → Wiedergabe → SLAM → Burr. Aussagekräftig für Entscheidungen wird es mit dem LLM (P6), das auf Ereignisse reagiert.

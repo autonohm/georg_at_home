@@ -136,6 +136,10 @@ docker_cmd() {
     shift
     if [[ -n "$mode" ]]; then
         check_mode "$mode"
+        # mcap: odom comes from the recording, the mocks must not publish it
+        if [[ "$mode" == "mcap" ]]; then
+            export GEORG_MOCK_SCENARIO="${GEORG_MOCK_SCENARIO:-mcap}"
+        fi
         GEORG_PROFILE="$mode" compose --profile "$mode" "$@"
     else
         GEORG_PROFILE="" compose --profile '*' "$@"

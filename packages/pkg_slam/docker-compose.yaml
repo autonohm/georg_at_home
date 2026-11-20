@@ -16,7 +16,8 @@ services:
     environment:
       - GEORG_PROFILE=${GEORG_PROFILE:-}
     # profile sim: slam_toolbox only (slam_sim.launch.py), the simulator provides scan and odom
-    command: ["sh", "-c", "cd /config && if [ \"$$GEORG_PROFILE\" = sim ]; then ros2 launch slam_sim.launch.py; else ros2 launch pkg_slam.launch.py; fi"]
+    # profile mcap: slam_toolbox with use_sim_time on the replayed recording (slam_mcap.launch.py)
+    command: ["sh", "-c", "cd /config && case \"$$GEORG_PROFILE\" in sim) ros2 launch slam_sim.launch.py ;; mcap) ros2 launch slam_mcap.launch.py ;; *) ros2 launch pkg_slam.launch.py ;; esac"]
     # command: sleep 1d
 
 networks:
