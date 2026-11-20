@@ -14,18 +14,17 @@ Every run gets its own ``app_id`` and therefore its own entry in the Burr UI
 (project ``georg_task_manager``, partition key = mission id).
 """
 
-import os
-import uuid
 from collections import deque
+import os
 from typing import List, Optional, Set, Tuple
+import uuid
 
 from burr.core import ApplicationBuilder, when
-
 from georg_task_manager.burr_app import actions as a
 from georg_task_manager.tasks.priority import TaskPriority
 
-PROJECT = "georg_task_manager"
-START = "start_mission"
+PROJECT = 'georg_task_manager'
+START = 'start_mission'
 MAX_EXPLORED = 200_000
 
 
@@ -35,11 +34,11 @@ def make_tracker(storage_dir: Optional[str] = None):
     GEORG_BURR_TRACKING=0 switches it off.
     GEORG_BURR_STORAGE_DIR (default ~/.burr) is the folder the Burr UI reads.
     """
-    if os.environ.get("GEORG_BURR_TRACKING", "1") == "0":
+    if os.environ.get('GEORG_BURR_TRACKING', '1') == '0':
         return None
     from burr.tracking import LocalTrackingClient
 
-    storage_dir = storage_dir or os.environ.get("GEORG_BURR_STORAGE_DIR", "~/.burr")
+    storage_dir = storage_dir or os.environ.get('GEORG_BURR_STORAGE_DIR', '~/.burr')
     return LocalTrackingClient(project=PROJECT, storage_dir=storage_dir)
 
 
@@ -56,7 +55,7 @@ def possible_edges(priorities: List[TaskPriority]) -> Set[Tuple[int, int]]:
     seen, todo = {start}, deque([start])
     while todo:
         if len(seen) > MAX_EXPLORED:
-            raise RuntimeError("mission too complex to draw; split it into smaller missions")
+            raise RuntimeError('mission too complex to draw; split it into smaller missions')
         queue, attempts, current = todo.popleft()
         results = [None] if current < 0 else [True, False]
         for result in results:
@@ -84,7 +83,7 @@ def build_mission_app(ctx: a.MissionContext, mission_id: str,
     task_nodes = {ctx.node(i): a.run_task.bind(ctx=ctx, index=i) for i in range(len(ctx.tasks))}
 
     transitions = [(name(src), name(dst), when(go_to=name(dst))) for src, dst in edges]
-    transitions.append((a.FINISH, "idle"))
+    transitions.append((a.FINISH, 'idle'))
 
     builder = (
         ApplicationBuilder()

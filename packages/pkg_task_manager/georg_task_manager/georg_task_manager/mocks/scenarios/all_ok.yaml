@@ -1,0 +1,5 @@
+# every package answers with success after 0.3 s
+listen: {result: success, after_s: 0.3}
+gesture: {result: success, after_s: 0.3}
+navigate_object: {result: success, after_s: 0.3}
+nav/drive_route: {result: success, after_s: 0.3}

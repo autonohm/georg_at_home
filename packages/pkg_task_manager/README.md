@@ -31,6 +31,47 @@ a step back for MID (retry after the next task), and an arrow to `finish` (abort
 failure, done). Each step shows its task, arguments (`args`), result (`last_result`) and where
 it goes next (`decision`). A retry shows up as the same node twice in a row.
 
+### Start and cancel missions (P2)
+
+The task manager node starts in Idle and never starts a mission by itself.
+Missions are started and cancelled via services (namespace `georg` by default):
+
+```bash
+ros2 service call /georg/task_manager/list_missions georg_task_manager_msgs/srv/ListMissions "{}"
+ros2 service call /georg/task_manager/start georg_task_manager_msgs/srv/StartMission "{mission_id: digital_festival}"
+ros2 service call /georg/task_manager/cancel georg_task_manager_msgs/srv/CancelMission "{}"
+ros2 topic echo /georg/task_manager/status --qos-durability transient_local
+```
+
+`StartMission` is rejected with a reason if a mission is running, the mission is unknown,
+a task is not in the catalog or not allowed in the current mode, or **an action server
+the mission needs is not reachable** (checked before the start). `CancelMission` cancels
+the running action goal and ends the mission as `ABORTED`.
+
+Missions that can be started are listed in `mission_selector.py` (`MISSIONS`).
+The old variant that picks a mission from `MISSION_ID` and exits afterwards still exists
+as `ros2 run georg_task_manager task_manager_cli`.
+
+### Mock packages (P2)
+
+`ros2 run georg_task_manager mock_packages --scenario <name>` provides fake action servers for
+speech, gestures and navigation (same names and types as the real packages) plus `odom`.
+Scenarios are in `georg_task_manager/mocks/scenarios/`:
+
+| Scenario | Effect |
+| --- | --- |
+| `all_ok` | every package succeeds |
+| `one_fails` | the gesture package always fails |
+| `retry_then_ok` | the gesture fails once, then works |
+| `timeout` | the speech package never answers |
+| `abort` | driving takes 30 s, time to cancel |
+| `unreachable` | no drive server, the start is rejected |
+
+In compose profile `mock` they run as service `mock_packages`
+(scenario via `GEORG_MOCK_SCENARIO`). The mission `mock_test` uses every package once.
+`test/test_ros_integration.py` runs all mandatory scenarios automatically
+(`GEORG_ROS_TESTS=1`, needs ROS; on a Mac `pixi run test_ros`, see `dev/macos/`).
+
 ### Add a new task
 
 1. Write the class in `georg_task_manager/tasks/`, derived from `BaseTask`, with

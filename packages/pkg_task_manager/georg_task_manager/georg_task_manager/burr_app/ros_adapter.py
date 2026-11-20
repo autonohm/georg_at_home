@@ -12,11 +12,11 @@ from georg_task_manager.burr_app.service import TaskManagerService
 
 class BurrTaskManager:
 
-    def __init__(self, robot, state, current_task_pub, mission_id: str = ""):
+    def __init__(self, robot, state, current_task_pub, mission_id: str = ''):
         self.robot = robot
         self.state = state
         self.current_task_pub = current_task_pub
-        self.mission_id = mission_id or os.environ.get("MISSION_ID", "mission")
+        self.mission_id = mission_id or os.environ.get('MISSION_ID', 'mission')
         self.service = TaskManagerService(
             run_task=self._run_task,
             on_current_task=self._on_current_task,
@@ -45,11 +45,11 @@ class BurrTaskManager:
 
         self.state.mission_running = False
         if not result.accepted:
-            print(f"[MISSION REJECTED] {result.reason}")
+            print(f'[MISSION REJECTED] {result.reason}')
             return False
 
-        print(f"[BURR] run {result.burr_app_id}: {result.outcome}")
-        if result.outcome == "succeeded":
+        print(f'[BURR] run {result.burr_app_id}: {result.outcome}')
+        if result.outcome == 'succeeded':
             self.state.mission_finished = True
             return True
         return False

@@ -3,6 +3,7 @@
 #
 #   class:       Python class of the task (module:Class), as used in missions/
 #   action:      ROS action the task calls (relative to the robot namespace)
+#   extra_actions: further actions the task calls (checked at mission start too)
 #   type:        ROS action type
 #   args_schema: constructor arguments; type string|number|integer|boolean,
 #                optional: enum, min, max, required (default true)
@@ -51,12 +52,13 @@ tasks:
   navigate_object:
     class: georg_task_manager.tasks.NavigateObject:NavigateObject
     action: nav/navigate_object_x
+    extra_actions: [nav/drive_route]
     type: georg_nav_msgs/action/Navigate
     args_schema:
       object_name: {type: string}
       map_path: {type: string}
       standoff_m: {type: number, min: 0, required: false}
-    timeout_s: 60
+    timeout_s: 240      # plan 120 s + drive 120 s
     cancelable: true
     modes: [mock, sim, real, mcap]
     requires: []        # slam_ready from P3
@@ -65,11 +67,12 @@ tasks:
   navigate_room:
     class: georg_task_manager.tasks.NavigateRoom:NavigateRoom
     action: nav/navigate_room_x
+    extra_actions: [nav/drive_route]
     type: georg_nav_msgs/action/Navigate
     args_schema:
       room_name: {type: string}
       map_path: {type: string}
-    timeout_s: 60
+    timeout_s: 240      # plan 120 s + drive 120 s
     cancelable: true
     modes: [mock, sim, real, mcap]
     requires: []        # slam_ready from P3

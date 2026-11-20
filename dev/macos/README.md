@@ -24,7 +24,9 @@ cd dev/macos
 | --- | --- |
 | `pixi run build` | colcon build of every package in `packages/` into `~/.cache/georg-ros-ws` |
 | `pixi run test` | pytest for the task manager (Burr, validator) and the command gate |
-| `MISSION_ID=1 pixi run task_manager` | runs the task manager node (Digital Festival) |
+| `pixi run test_ros` | P2 integration: task manager + mock packages over ROS, all mandatory scenarios (~1 min) |
+| `pixi run task_manager` | task manager node in namespace `/georg` (Idle, start missions via services) |
+| `GEORG_MOCK_SCENARIO=all_ok pixi run mock_packages` | mock packages for manual tests |
 | `pixi run demo` | Burr demo with fake tasks, three runs |
 | `pixi run -e ui burr_ui` | Burr UI on <http://localhost:7241> |
 | `pixi run ros` | interactive shell with ROS and the workspace loaded |

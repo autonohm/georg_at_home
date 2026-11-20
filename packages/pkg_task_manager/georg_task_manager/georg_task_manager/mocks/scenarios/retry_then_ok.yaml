@@ -1,0 +1,2 @@
+# the gesture fails once, then works (CRITICAL retries immediately)
+gesture: [{result: fail, after_s: 0.2}, {result: success, after_s: 0.2}]

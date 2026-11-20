@@ -6,7 +6,7 @@ setup(
     name=package_name,
     version='0.0.0',
     packages=find_packages(exclude=['test']),
-    package_data={'georg_task_manager': ['catalog.yaml']},
+    package_data={'georg_task_manager': ['catalog.yaml', 'mocks/scenarios/*.yaml']},
     data_files=[
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
@@ -25,7 +25,11 @@ setup(
     },
     entry_points={
         'console_scripts': [
-            'task_manager = georg_task_manager.main:main',
+            # long-running node with services (P2)
+            'task_manager = georg_task_manager.ros_bridge:main',
+            # old variant: picks a mission from MISSION_ID / menu, runs it once, exits
+            'task_manager_cli = georg_task_manager.main:main',
+            'mock_packages = georg_task_manager.mocks.mock_packages:main',
         ],
     },
 )

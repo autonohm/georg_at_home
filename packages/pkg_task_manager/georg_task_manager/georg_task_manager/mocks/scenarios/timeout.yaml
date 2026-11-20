@@ -1,0 +1,2 @@
+# the speech package never answers; the task's own timeout cancels the goal
+listen: {result: timeout}
