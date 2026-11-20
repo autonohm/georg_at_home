@@ -18,8 +18,6 @@
 
   <exec_depend>python3-yaml</exec_depend>
   <!-- apache-burr is installed in /opt/burr-venv by the Dockerfile (not a rosdep key) -->
-  <exec_depend>py_trees</exec_depend>
-  <exec_depend>py_trees_ros</exec_depend>
   
   <test_depend>ament_copyright</test_depend>
   <test_depend>ament_flake8</test_depend>

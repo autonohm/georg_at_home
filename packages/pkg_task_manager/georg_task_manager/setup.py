@@ -26,8 +26,6 @@ setup(
     entry_points={
         'console_scripts': [
             'task_manager = georg_task_manager.main:main',
-            'task_manager_bt = georg_task_manager.bt.task_manager_bt:main',
-            'render_mission_bt = georg_task_manager.bt.render_mission:main',
         ],
     },
 )
