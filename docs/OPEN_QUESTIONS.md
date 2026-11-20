@@ -52,3 +52,17 @@ Nebenbei entfernt: 13 eingecheckte `.pyc`-Dateien in der Navigation (Kompilate, 
 **Q19 – flake8 im Task Manager war schon vorher rot.** Der bestehende Code hat 203 flake8-Meldungen, `colcon test` scheitert dort also unabhängig von P1. Der neue Code (`burr_app/`, `catalog.py`, `validator.py`, Tests, `command_gate`) ist sauber. Bestehenden Code formatieren, oder flake8 für Altdateien ausnehmen?
 
 **Q20 – Noch nicht im Container gelaufen.** 93 Tests laufen lokal ohne ROS grün (Python 3.9, Burr 0.43.0). Die Burr-UI hat einen lokalen Lauf angezeigt. Im Container (Python 3.12, echtes rclpy) ist das noch ungeprüft, genauso wie der Build aus P0.
+
+# Vorschlag für P6 – LLM und Burr-Graph (Stand 2026-11-20)
+
+**Ziel:** In der Burr-UI soll auch im LLM-Betrieb auf einen Blick sichtbar sein, welcher Task nach welchem lief.
+
+**Vorschlag: Abschnittsplanung, eine Kette pro Abschnitt.**
+1. Das LLM liefert einen kurzen Abschnitt aus Tasks und Missionsblöcken. Der Validator prüft ihn.
+2. Der bestehende Builder (`burr_app/builder.py`) macht daraus eine Kette `start_mission -> 1_... -> 2_... -> finish`, wie bei festen Missionen.
+3. Nach jedem Task bekommt das LLM das Ergebnis und antwortet mit weiter, umplanen oder abbrechen. Die Antwort steht im Zustand des Task-Knotens.
+4. Bei „umplanen“ endet der Lauf mit dem Ergebnis `replanned`. Der neue Abschnitt startet als neuer Burr-Lauf, verknüpft über `with_spawning_parent` mit dem vorherigen.
+
+**Verworfen:** Ein-Schritt-Loop mit `decide_next_task` und `execute_task`. Im Graphen wäre nur eine Schleife zwischen zwei Knoten zu sehen.
+
+**Offen:** Wie gut die Burr-UI viele kurze, verknüpfte Läufe anzeigt. Das gilt besonders, wenn das LLM oft nur einen Task plant und gleich umplant. Das muss in P6 ausprobiert werden. Der Prompt sollte eher Abschnitte als Einzelschritte anfordern.
