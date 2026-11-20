@@ -35,7 +35,14 @@ log_state() {
 }
 
 is_skipped() {
- 	  if [[ "${SKIP_PACKAGES[*]}" == *"$1"* ]]; then # if array contains x
+	  if [[ "${SKIP_PACKAGES[*]}" == *"$1"* ]]; then # if array contains x
+        return 0
+    fi
+    return 1
+}
+
+is_ignored() {
+	  if [ -f "$PACKAGES_DIR/pkg_$1/PKG_IGNORE" ]; then # if file exists
         return 0
     fi
     return 1
@@ -55,6 +62,9 @@ check_packages() {
     shopt -s nullglob
     for dir in "$PACKAGES_DIR"/pkg_*/; do
         package=$(path_to_package_name "$dir")
+        if is_ignored "$package"; then
+            continue
+        fi
         found_packages+=("$package")
     done
     log_ok "found pkgs: ${found_packages[*]:-}"
@@ -68,18 +78,16 @@ check_packages() {
         fi
     done
 
-    for dir in "$PACKAGES_DIR"/pkg_*/; do
-        package=$(path_to_package_name "$dir")
-
+    for package in "${found_packages[@]}"; do
         if is_skipped "$package"; then
             continue
         fi
 
-        if [[ ! -f "$dir/docker-compose.yaml" ]]; then
+        if [[ ! -f "$PACKAGES_DIR/pkg_$package/docker-compose.yaml" ]]; then
             log_fatal "package $package missing docker-compose.yaml"
         fi
 
-        if [[ ! -f "$dir/README.md" ]]; then
+        if [[ ! -f "$PACKAGES_DIR/pkg_$package/README.md" ]]; then
             log_warn "package $package missing README.md"
         fi
     done
