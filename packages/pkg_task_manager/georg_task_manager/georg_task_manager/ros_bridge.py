@@ -63,7 +63,8 @@ class TaskManagerBridge(Node):
         self._action_clients = {c._action_name: c for c in vars(self.robot).values()
                                 if isinstance(c, ActionClient)}
 
-        status_qos = QoSProfile(depth=1, durability=DurabilityPolicy.TRANSIENT_LOCAL,
+        # depth 10: fast Burr steps must not be dropped on the way to Lichtblick (foxglove_bridge)
+        status_qos = QoSProfile(depth=10, durability=DurabilityPolicy.TRANSIENT_LOCAL,
                                 reliability=ReliabilityPolicy.RELIABLE)
         self._status_pub = self.create_publisher(MissionStatus, 'task_manager/status', status_qos)
         self.create_service(StartMission, 'task_manager/start', self._on_start,

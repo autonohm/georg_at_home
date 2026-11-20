@@ -117,3 +117,17 @@ Auf dem Mac (RoboStack) umgesetzt und geprüft, Stufe 1 (2D-Simulator `georg_sim
 **P3 Stufe 2 – MuJoCo (2026-11-20).** `georg_sim/simmj`: dieselben Topics wie `sim2d`, Physik und Laser aus MuJoCo 3.16. Das Modell wird aus der Karten-YAML gebaut (`mjcf.py`): Wände als Quader, Basis als Zylinder mit Geschwindigkeits-Aktoren für x, y und Gier. Die komplette P3-Abnahme läuft auch mit MuJoCo grün (`pixi run test_sim_mj`).
 - **Abweichung vom Plan:** `mujoco_ros2_control` gibt es für macOS nicht (RoboStack, Stand 2026-11-20). Die Node spricht deshalb direkt mit MuJoCo. Auf Linux kann das Modell später über `mujoco_ros2_control` laufen, die Topics bleiben gleich.
 - **Offen (Q26):** Das echte Robotermodell aus `pkg_urdf` (externes Repo `georg_description`) ist noch nicht übernommen. Die Basis ist ein Zylinder mit 0,2 m Radius. Die DeepMind-Skills wurden nicht eingesetzt; sie brauchen teils einen Gemini-API-Schlüssel und Antigravity.
+
+# P4 – Stand (2026-11-20)
+
+| Abnahmekriterium P4 | Stand |
+| --- | --- |
+| Bedienung komplett aus Lichtblick möglich | über `foxglove_bridge` automatisch geprüft (Missionsliste, Start, Abbruch, Ablehnungsgrund, Status), mit demselben WebSocket-Protokoll wie Lichtblick; das Panel selbst mit simuliertem DOM und Lichtblick-Kontext. **Nicht** geprüft: das Panel in einem echten Lichtblick-Fenster. |
+| Status aktualisiert sich bei jedem Burr-Schritt | erfüllt, jeder Schritt kommt über die Brücke an (dreimal hintereinander grün) |
+
+**Entscheidungen:**
+- **Lichtblick-Version festgelegt: 1.30.0** (2026-10-22). 1.31.0 war erst vier Tage alt.
+- **Panel ohne npm**, reines JavaScript, Paket mit `build.py`. Grund: Der automatische Freigabe-Filter hat `npx create-lichtblick-extension` (Code aus dem Netz ausführen) blockiert. Wer das Panel später mit React/TypeScript neu aufsetzen will, kann `src/model.js` übernehmen.
+- **`foxglove_bridge` 3.x spricht nur `foxglove.sdk.v1`**, Lichtblick 1.30 bietet es an. Ältere Lichtblick-Versionen mit nur `foxglove.websocket.v1` können sich nicht verbinden.
+- **`min_qos_depth:=10` für die Brücke**, Status-Publisher mit Tiefe 10: Sonst gingen die letzten, schnell aufeinanderfolgenden Burr-Schritte verloren.
+- Brücke als Dienst `foxglove_bridge` in `pkg_viz`, Port 8765, in allen vier Profilen.

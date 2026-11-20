@@ -1,0 +1,17 @@
+{
+  "name": "georg-task-manager-panel",
+  "displayName": "Georg Task Manager",
+  "description": "Start, abort and watch missions of Georg's task manager (plan P4)",
+  "publisher": "autonohm",
+  "version": "0.1.0",
+  "license": "Apache-2.0",
+  "main": "./dist/extension.js",
+  "keywords": ["lichtblick", "ros2", "task manager"],
+  "lichtblick": {
+    "testedWith": "1.30.0"
+  },
+  "scripts": {
+    "test": "node --test test/model.test.js",
+    "package": "python3 build.py"
+  }
+}
