@@ -3,7 +3,7 @@
 set -Eeuo pipefail
 
 PROJECT_NAME="georg"
-PACKAGES_DIR="software"
+PACKAGES_DIR="packages"
 
 # Space-separated package names to skip, for example:
 #SKIP_PACKAGES=("drive" "examples")
@@ -42,8 +42,8 @@ is_skipped() {
 }
 
 path_to_package_name() {
-    local dir=$1  # software/pkg_xxx/
-    dir=${dir%/}  # software/pkg_xxx
+    local dir=$1  # packages/pkg_xxx/
+    dir=${dir%/}  # packages/pkg_xxx
     dir=${dir##*/}  # pkg_xxx
     printf '%s\n' "${dir#pkg_}"  # xxx
 }
@@ -87,7 +87,7 @@ check_packages() {
 
 build_base_image() {
     log_state "build georg-ros image"
-    docker build -t georg-ros:jazzy software/docker_base_image/
+    docker build -t georg-ros:jazzy packages/docker_base_image/
 }
 
 docker_cmd() {
@@ -140,7 +140,7 @@ install_completion() {
   if grep -q "projectctl-completion.bash" "$HOME/.bashrc" ; then
       log_warn "Completion is already installed in bashrc. Skipping"
   else
-      echo -e "\n# setup autocomplete for georg_at_home project control script\nsource $SCRIPT_DIR/software/projectctl-completion.bash" >> "$HOME/.bashrc"
+      echo -e "\n# setup autocomplete for georg_at_home project control script\nsource $SCRIPT_DIR/packages/projectctl-completion.bash" >> "$HOME/.bashrc"
       log_ok "Completion installed to $HOME/.bashrc. Run \`source $HOME/.bashrc\` or open a new terminal to apply"
   fi
 }
