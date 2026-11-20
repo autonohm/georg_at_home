@@ -68,6 +68,12 @@ test_sim = { cmd = "bash -c 'source $GEORG_WS/install/setup.bash && export PYTES
 test_sim_mj = { cmd = "bash -c 'source $GEORG_WS/install/setup.bash && export PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 GEORG_ROS_TESTS=1 GEORG_SIMULATOR=simmj && cd ../../packages/pkg_task_manager/georg_task_manager && python -m pytest -v test/test_sim_integration.py'", cwd = "." }
 # P4: operate the task manager through foxglove_bridge like Lichtblick does, plus the panel tests
 test_lichtblick = { cmd = "bash -c 'source $GEORG_WS/install/setup.bash && export PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 GEORG_ROS_TESTS=1 && cd ../../packages/pkg_task_manager/georg_task_manager && python -m pytest -v test/test_lichtblick_bridge.py && cd ../../pkg_viz/lichtblick_panel && python3 build.py && node --test test/model.test.js test/panel.test.js'", cwd = "." }
+# P5: record in the simulator, strip to raw sensors, replay twice with SLAM + Burr (~2 min)
+test_mcap = { cmd = "bash -c 'source $GEORG_WS/install/setup.bash && export PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 GEORG_ROS_TESTS=1 && cd ../../packages/pkg_task_manager/georg_task_manager && python -m pytest -v test/test_mcap_integration.py && cd ../../../tests/decision_replay && python -m pytest -q test_replay.py'", cwd = "." }
+# decision replay of a recorded run: pixi run replay <burr_app_id> [--runs 3]
+replay = { cmd = "bash -c 'source $GEORG_WS/install/setup.bash && python ../../tests/decision_replay/replay.py \"$@\"' replay", cwd = "." }
+# continuous recording of /georg/task_manager/* like the compose service recorder
+record = { cmd = "bash -c 'source $GEORG_WS/install/setup.bash && mkdir -p ../../recordings && ros2 bag record -s mcap --max-bag-duration 3600 -o ../../recordings/task_manager_$(date +%Y%m%d_%H%M%S) --regex \"/georg/task_manager/.*|/georg/task/current_task\"'", cwd = "." }
 # runs the task manager node (Idle, start missions via the services)
 task_manager = { cmd = "bash -c 'source $GEORG_WS/install/setup.bash && ros2 run georg_task_manager task_manager --ros-args -r __ns:=/georg'", cwd = "." }
 # mock packages; scenario via GEORG_MOCK_SCENARIO (all_ok, one_fails, timeout, abort, unreachable, retry_then_ok)
