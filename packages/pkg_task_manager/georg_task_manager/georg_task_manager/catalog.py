@@ -22,6 +22,7 @@ class TaskSpec:
     cancelable: bool
     modes: List[str]
     requires: List[str] = field(default_factory=list)
+    name_arg: str = ""
 
     @property
     def module(self) -> str:
@@ -55,6 +56,8 @@ def _check_spec(name: str, raw: dict) -> TaskSpec:
     for key in ("class", "args_schema", "timeout_s", "modes"):
         if key not in raw:
             raise CatalogError(f"task '{name}': missing '{key}'")
+    if raw.get("name_arg") and raw["name_arg"] not in (raw["args_schema"] or {}):
+        raise CatalogError(f"task '{name}': name_arg '{raw['name_arg']}' is not an argument")
     if ":" not in raw["class"]:
         raise CatalogError(f"task '{name}': class must be 'module:Class'")
     for arg, schema in (raw["args_schema"] or {}).items():
@@ -70,6 +73,7 @@ def _check_spec(name: str, raw: dict) -> TaskSpec:
         cancelable=bool(raw.get("cancelable", False)),
         modes=list(raw["modes"]),
         requires=list(raw.get("requires") or []),
+        name_arg=raw.get("name_arg") or "",
     )
 
 

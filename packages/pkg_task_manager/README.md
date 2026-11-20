@@ -17,10 +17,13 @@ Missions are executed by an [Apache Burr](https://burr.apache.org/) state machin
 only the engine that runs them changed. The priority rules below are unchanged.
 
 The Burr graph is built from the mission at every start: one node per mission step,
-named `<position>_<catalog task>`. The Digital Festival mission reads as a straight line:
+named after the task and its most telling argument (`name_arg` in `catalog.yaml`).
+A number is only added when the same step occurs twice. The Digital Festival mission
+reads as a straight line:
 
 ```
-start_mission -> 1_listen -> 2_gesture -> 3_gesture -> 4_listen -> 5_gesture -> 6_gesture -> 7_return_to_idle -> finish -> idle
+start_mission -> listen_doorbell -> gesture_look_at -> gesture_point_to -> listen_speech
+              -> gesture_look_at_2 -> gesture_greet_person -> return_to_idle -> finish -> idle
 ```
 
 Only arrows the priority rules can produce are drawn: a loop on a HIGH/CRITICAL step (retry),
@@ -34,8 +37,9 @@ it goes next (`decision`). A retry shows up as the same node twice in a row.
    `async def run(self, robot, state) -> bool` (see `Gesture.py`).
 2. Add one entry to `georg_task_manager/catalog.yaml`: `class` (`module:Class`),
    `action`, `type`, `args_schema` (the constructor arguments), `timeout_s`, `modes`.
-   **Tasks that are not in the catalog are rejected at mission start.** The catalog name is
-   also the node name in the Burr graph (e.g. `3_gesture`), no Burr code needed.
+   **Tasks that are not in the catalog are rejected at mission start.** The catalog name plus
+   the `name_arg` argument become the node name in the Burr graph (e.g. `gesture_look_at`),
+   no Burr code needed.
 3. Run the tests (see below). `test_validator.py` checks that every catalog class can be imported.
 
 ### Add a new mission

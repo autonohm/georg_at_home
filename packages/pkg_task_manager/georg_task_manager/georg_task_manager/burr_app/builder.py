@@ -1,13 +1,13 @@
 """Builds the Burr application for one mission run.
 
 The graph is built from the mission itself: one node per mission step
-(``1_listen``, ``2_gesture``, ...). Only transitions that the priority rules
+(``listen_doorbell``, ``gesture_look_at``, ...). Only transitions that the priority rules
 can actually produce are added, so a mission reads as a straight line with
 a few extra arrows::
 
-    start_mission -> 1_listen -> 2_gesture -> 3_gesture -> ... -> finish -> idle
-                       ^   |
-                       +---+   retry (HIGH / CRITICAL)
+    start_mission -> listen_doorbell -> gesture_look_at -> ... -> finish -> idle
+                       ^          |
+                       +----------+   retry (HIGH / CRITICAL)
 
 Every node also has an arrow to ``finish`` (abort, CRITICAL failure, done).
 Every run gets its own ``app_id`` and therefore its own entry in the Burr UI
