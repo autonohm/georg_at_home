@@ -16,9 +16,16 @@ Missions are executed by an [Apache Burr](https://burr.apache.org/) state machin
 (`georg_task_manager/burr_app/`). Tasks and missions are written exactly as before;
 only the engine that runs them changed. The priority rules below are unchanged.
 
+Every task type of `catalog.yaml` is its own Burr node. `next` decides after every task
+which one comes next, so the Burr UI shows the sequence exactly as it happened:
+
 ```
-start_mission -> select_task -> run_task -> handle_result -> select_task ... -> finish -> idle
+start_mission -> next -> listen -> next -> gesture -> next -> gesture -> ... -> next -> finish -> idle
 ```
+
+Each task step shows its arguments (`task_args`) and its result (`last_result`); each `next`
+step shows its decision (`decision`). A retry shows up as the same node twice in a row.
+Today `next` takes the next entry of the mission; from P6 an LLM can decide there instead.
 
 ### Add a new task
 
@@ -26,7 +33,8 @@ start_mission -> select_task -> run_task -> handle_result -> select_task ... -> 
    `async def run(self, robot, state) -> bool` (see `Gesture.py`).
 2. Add one entry to `georg_task_manager/catalog.yaml`: `class` (`module:Class`),
    `action`, `type`, `args_schema` (the constructor arguments), `timeout_s`, `modes`.
-   **Tasks that are not in the catalog are rejected at mission start.**
+   **Tasks that are not in the catalog are rejected at mission start.** The entry also creates
+   the Burr node of the task (node name = catalog name), no Burr code needed.
 3. Run the tests (see below). `test_validator.py` checks that every catalog class can be imported.
 
 ### Add a new mission
