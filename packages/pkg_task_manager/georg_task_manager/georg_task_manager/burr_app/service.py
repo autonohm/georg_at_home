@@ -25,7 +25,7 @@ class MissionResult:
     reason: str = ""
     burr_app_id: str = ""
     executed: List[str] = field(default_factory=list)
-    # Burr nodes in the order they ran, e.g. start_mission, 1_listen, 2_gesture, ...
+    # Burr nodes in the order they ran, e.g. start_mission, listen_doorbell, gesture_look_at, ...
     steps: List[str] = field(default_factory=list)
     message: str = ""
 
@@ -85,6 +85,8 @@ class TaskManagerService:
             abort_requested=self._abort.is_set,
             on_current_task=self._on_current_task,
             log=self._log,
+            node_names=a.make_node_names(
+                tasks, types, {n: spec.name_arg for n, spec in self._catalog.tasks.items()}),
         )
         app = build_mission_app(ctx, mission_id,
                                 app_id=self.current_app_id, tracker=self._tracker)

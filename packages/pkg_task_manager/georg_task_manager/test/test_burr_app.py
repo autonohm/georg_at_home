@@ -240,8 +240,8 @@ def test_burr_steps_show_each_mission_step_as_its_own_node():
     result = run(_festival_service({}), DigitalFestival.get_mission(), "digital_festival")
     assert result.steps == [
         "start_mission",
-        "1_listen", "2_gesture", "3_gesture", "4_listen", "5_gesture", "6_gesture",
-        "7_return_to_idle",
+        "listen_doorbell", "gesture_look_at", "gesture_point_to", "listen_speech",
+        "gesture_look_at_2", "gesture_greet_person", "return_to_idle",
         "finish", "idle",
     ]
 
@@ -249,7 +249,8 @@ def test_burr_steps_show_each_mission_step_as_its_own_node():
 def test_retry_shows_up_as_repeated_task_node():
     svc = _festival_service({"Listening(DOORBELL)": [False, True]})
     result = run(svc, DigitalFestival.get_mission(), "digital_festival")
-    assert result.steps[:4] == ["start_mission", "1_listen", "1_listen", "2_gesture"]
+    assert result.steps[:4] == ["start_mission", "listen_doorbell", "listen_doorbell",
+                                "gesture_look_at"]
     assert result.outcome == "succeeded"
 
 
@@ -272,4 +273,20 @@ def test_graph_is_a_line_with_only_the_needed_extra_arrows():
 def test_mid_retry_runs_back_one_step():
     tasks = [FakeTask("a", MID, [False]), FakeTask("b"), FakeTask("c")]
     result = run(service(), tasks)
-    assert result.steps[1:5] == ["1_fake", "2_fake", "1_fake", "3_fake"]
+    assert result.steps[1:5] == ["fake", "fake_2", "fake", "fake_3"]
+
+
+def test_node_names_are_readable_and_unique():
+    from georg_task_manager.burr_app.actions import make_node_names
+
+    class T:
+        def __init__(self, **kw):
+            self.__dict__.update(kw)
+
+    tasks = [T(mode="look_at"), T(mode="look_at"), T(sound="DOORBELL"), T(mode="Point To!"),
+             T(), T(object_name="")]
+    types = ["gesture", "gesture", "listen", "gesture", "finish", "navigate_object"]
+    names = make_node_names(tasks, types, {"gesture": "mode", "listen": "sound",
+                                           "navigate_object": "object_name"})
+    assert names == ["gesture_look_at", "gesture_look_at_2", "listen_doorbell",
+                     "gesture_point_to", "finish_2", "navigate_object"]

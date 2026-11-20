@@ -1,9 +1,11 @@
 """Burr actions of the task manager.
 
 The Burr graph is built per mission run: one node per mission step, named
-``<position>_<catalog task>``. For the Digital Festival mission::
+after the catalog task and its ``name_arg`` argument. A number is only added
+when the same step occurs twice. For the Digital Festival mission::
 
-    start_mission -> 1_listen -> 2_gesture -> 3_gesture -> 4_listen -> ... -> finish -> idle
+    start_mission -> listen_doorbell -> gesture_look_at -> gesture_point_to -> listen_speech
+                  -> gesture_look_at_2 -> gesture_greet_person -> return_to_idle -> finish -> idle
 
 Each task node runs its task and then decides where to go next (``go_to``):
 the next step, itself again (retry), a step back (MID retry after the next
@@ -22,6 +24,7 @@ Priority rules (unchanged from ``task_manager.py``):
 - CRITICAL: like HIGH, but the mission fails when the retries are used up
 """
 
+import re
 from dataclasses import dataclass, field
 from typing import Awaitable, Callable, Dict, List, Optional, Tuple
 
@@ -34,11 +37,31 @@ SUCCEEDED = "succeeded"
 FAILED = "failed"
 ABORTED = "aborted"
 FINISH = "finish"
+RESERVED = {"start_mission", FINISH, "idle"}
 
 
-def node_name(index: int, task_type: str) -> str:
-    """Burr node of mission step ``index`` (0-based), e.g. ``1_listen``."""
-    return f"{index + 1}_{task_type}"
+def _slug(value) -> str:
+    return re.sub(r"[^a-z0-9]+", "_", str(value).lower()).strip("_")[:30]
+
+
+def make_node_names(tasks: List[object], task_types: List[str],
+                    name_args: Dict[str, str]) -> List[str]:
+    """Readable, unique Burr node names, e.g. ``gesture_look_at``, ``gesture_look_at_2``."""
+    names, used = [], set(RESERVED)
+    for task, kind in zip(tasks, task_types):
+        base = kind
+        arg = name_args.get(kind)
+        if arg:
+            slug = _slug(getattr(task, arg, ""))
+            if slug:
+                base = f"{kind}_{slug}"
+        name, count = base, 1
+        while name in used:
+            count += 1
+            name = f"{base}_{count}"
+        used.add(name)
+        names.append(name)
+    return names
 
 
 @dataclass
@@ -57,9 +80,11 @@ class MissionContext:
     # called with the task name before a task starts, and with "Idle" at the end
     on_current_task: Callable[[str], None] = lambda name: None
     log: Callable[[str], None] = print
+    # Burr node name per mission step (see make_node_names); same order as tasks
+    node_names: List[str] = field(default_factory=list)
 
     def node(self, index: int) -> str:
-        return node_name(index, self.task_types[index])
+        return self.node_names[index]
 
     def priority(self, index: int) -> TaskPriority:
         return getattr(self.tasks[index], "priority", TaskPriority.LOW)

@@ -11,6 +11,8 @@
 #   cancelable:  the package supports cancel
 #   modes:       compose profiles in which the task may run
 #   requires:    preconditions (flags) that must hold before the task starts
+#   name_arg:    optional; argument that goes into the Burr node name,
+#                e.g. gesture + mode=look_at -> node gesture_look_at
 #
 # Action names are taken from Georg.py. See docs/OPEN_QUESTIONS.md Q12: the
 # navigation server is launched under /nav/navigate, which does not match.
@@ -29,6 +31,7 @@ tasks:
     cancelable: true
     modes: [mock, sim, real, mcap]
     requires: []
+    name_arg: sound
 
   gesture:
     class: georg_task_manager.tasks.Gesture:Gesture
@@ -43,6 +46,7 @@ tasks:
     cancelable: true
     modes: [mock, sim, real, mcap]
     requires: []
+    name_arg: mode
 
   navigate_object:
     class: georg_task_manager.tasks.NavigateObject:NavigateObject
@@ -56,6 +60,7 @@ tasks:
     cancelable: true
     modes: [mock, sim, real, mcap]
     requires: []        # slam_ready from P3
+    name_arg: object_name
 
   navigate_room:
     class: georg_task_manager.tasks.NavigateRoom:NavigateRoom
@@ -68,6 +73,7 @@ tasks:
     cancelable: true
     modes: [mock, sim, real, mcap]
     requires: []        # slam_ready from P3
+    name_arg: room_name
 
   return_to_idle:
     class: georg_task_manager.tasks.ReturnToIdle:ReturnToIdle

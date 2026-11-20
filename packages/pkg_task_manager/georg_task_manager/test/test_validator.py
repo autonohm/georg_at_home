@@ -97,3 +97,11 @@ def test_broken_catalog_is_reported(tmp_path):
                    "    timeout_s: 1\n    modes: [mock]\n")
     with pytest.raises(CatalogError, match="needs a type"):
         load_catalog(str(bad))
+
+
+def test_name_arg_must_be_an_argument(tmp_path):
+    bad = tmp_path / "catalog.yaml"
+    bad.write_text("tasks:\n  x:\n    class: a:B\n    args_schema: {n: {type: number}}\n"
+                   "    timeout_s: 1\n    modes: [mock]\n    name_arg: m\n")
+    with pytest.raises(CatalogError, match="name_arg"):
+        load_catalog(str(bad))
