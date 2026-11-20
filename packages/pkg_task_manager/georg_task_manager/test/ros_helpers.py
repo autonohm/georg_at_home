@@ -43,7 +43,7 @@ class Client:
 
     def __init__(self):
         self.node = rclpy.create_node('task_manager_test')
-        qos = QoSProfile(depth=1, durability=DurabilityPolicy.TRANSIENT_LOCAL,
+        qos = QoSProfile(depth=10, durability=DurabilityPolicy.TRANSIENT_LOCAL,
                          reliability=ReliabilityPolicy.RELIABLE)
         self.statuses = []
         self._lock = threading.Lock()

@@ -37,6 +37,7 @@ pyyaml = "*"
 pytest = "*"
 flake8 = "*"
 mujoco = "*"
+websockets = "*"
 
 [pypi-dependencies]
 apache-burr = { version = "==0.43.0", extras = ["tracking-client"] }
@@ -65,6 +66,8 @@ sim = { cmd = "bash -c 'source $GEORG_WS/install/setup.bash && ros2 launch ../..
 # P3: simulator + SLAM + real navigation + task manager (~2 min)
 test_sim = { cmd = "bash -c 'source $GEORG_WS/install/setup.bash && export PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 GEORG_ROS_TESTS=1 && cd ../../packages/pkg_task_manager/georg_task_manager && python -m pytest -v test/test_sim_integration.py'", cwd = "." }
 test_sim_mj = { cmd = "bash -c 'source $GEORG_WS/install/setup.bash && export PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 GEORG_ROS_TESTS=1 GEORG_SIMULATOR=simmj && cd ../../packages/pkg_task_manager/georg_task_manager && python -m pytest -v test/test_sim_integration.py'", cwd = "." }
+# P4: operate the task manager through foxglove_bridge like Lichtblick does, plus the panel tests
+test_lichtblick = { cmd = "bash -c 'source $GEORG_WS/install/setup.bash && export PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 GEORG_ROS_TESTS=1 && cd ../../packages/pkg_task_manager/georg_task_manager && python -m pytest -v test/test_lichtblick_bridge.py && cd ../../pkg_viz/lichtblick_panel && python3 build.py && node --test test/model.test.js test/panel.test.js'", cwd = "." }
 # runs the task manager node (Idle, start missions via the services)
 task_manager = { cmd = "bash -c 'source $GEORG_WS/install/setup.bash && ros2 run georg_task_manager task_manager --ros-args -r __ns:=/georg'", cwd = "." }
 # mock packages; scenario via GEORG_MOCK_SCENARIO (all_ok, one_fails, timeout, abort, unreachable, retry_then_ok)
