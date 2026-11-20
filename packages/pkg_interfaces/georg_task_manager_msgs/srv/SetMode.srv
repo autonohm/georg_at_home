@@ -1,0 +1,6 @@
+# Operating mode (plan P6): mission (default after start), llm, llm_approval
+string mode
+---
+bool accepted
+string reason
+string mode          # mode after the call

@@ -164,3 +164,53 @@ class Mocks:
             _stop(self.proc)
             self.proc = None
             time.sleep(0.5)
+
+
+class FakeLLMServer:
+    """OpenAI-compatible HTTP endpoint with scripted answers (P6 integration tests).
+
+    ``answers``: list of dicts/str, one per chat request; ``offline`` makes it unreachable.
+    """
+
+    def __init__(self):
+        import http.server
+        import json as _json
+
+        server = self
+        self.answers = []
+        self.requests = []
+        self.offline = False
+
+        class Handler(http.server.BaseHTTPRequestHandler):
+            def log_message(self, *args):
+                pass
+
+            def _send(self, code, body):
+                data = _json.dumps(body).encode()
+                self.send_response(code)
+                self.send_header('Content-Type', 'application/json')
+                self.send_header('Content-Length', str(len(data)))
+                self.end_headers()
+                self.wfile.write(data)
+
+            def do_GET(self):
+                if server.offline:
+                    self._send(503, {'error': 'offline'})
+                else:
+                    self._send(200, {'data': [{'id': 'fake'}]})
+
+            def do_POST(self):
+                length = int(self.headers.get('Content-Length', 0))
+                server.requests.append(_json.loads(self.rfile.read(length)))
+                answer = server.answers.pop(0) if server.answers else {
+                    'decision': 'abort', 'steps': [], 'reason': 'script empty'}
+                content = answer if isinstance(answer, str) else _json.dumps(answer)
+                self._send(200, {'choices': [{'message': {'role': 'assistant',
+                                                          'content': content}}]})
+
+        self.httpd = http.server.ThreadingHTTPServer(('127.0.0.1', 0), Handler)
+        self.url = f'http://127.0.0.1:{self.httpd.server_address[1]}'
+        threading.Thread(target=self.httpd.serve_forever, daemon=True).start()
+
+    def close(self):
+        self.httpd.shutdown()

@@ -2,6 +2,7 @@
 from .base import BaseTask
 from .timeout_watcher import wait_for_action_result
 from .priority import TaskPriority
+from .base import default_map_path
 from geometry_msgs.msg import Point
 from georg_nav_msgs.action import Navigate, DriveRoute
 
@@ -18,10 +19,11 @@ class NavigateObject(BaseTask):
 
     DEFAULT_STANDOFF_M = 0.3
 
-    def __init__(self,  object_name: str, map_path: str, standoff_m: float = DEFAULT_STANDOFF_M, priority: TaskPriority = TaskPriority.LOW):
+    def __init__(self,  object_name: str, map_path: str = None, standoff_m: float = DEFAULT_STANDOFF_M, priority: TaskPriority = TaskPriority.LOW):
         super().__init__("NavigateObject", priority)
         self.object_name = object_name
-        self.map_path = map_path
+        # no map given (e.g. by the LLM planner): the default map of this robot
+        self.map_path = map_path or default_map_path()
         self.standoff_m = standoff_m
 
     async def run(self, robot, state):

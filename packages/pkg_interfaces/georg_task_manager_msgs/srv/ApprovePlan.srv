@@ -1,0 +1,5 @@
+# Mode llm_approval: approve or reject the plan the LLM proposed
+bool approve
+---
+bool accepted
+string reason

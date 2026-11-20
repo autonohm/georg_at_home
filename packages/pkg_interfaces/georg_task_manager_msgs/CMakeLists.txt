@@ -10,6 +10,9 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/StartMission.srv"
   "srv/CancelMission.srv"
   "srv/ListMissions.srv"
+  "srv/SetMode.srv"
+  "srv/Instruct.srv"
+  "srv/ApprovePlan.srv"
   DEPENDENCIES builtin_interfaces
 )
 

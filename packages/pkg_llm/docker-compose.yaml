@@ -1,0 +1,24 @@
+services:
+  # Local LLM for the task manager's planner (plan P6): llama.cpp server with an
+  # OpenAI-compatible endpoint, http://llm:8080/v1/chat/completions in the compose network.
+  # Started only with GEORG_WITH_LLM=1 (projectctl.bash adds profile llm).
+  llm:
+    # pin the image on the robot (open question in docs/OPEN_QUESTIONS.md);
+    # Jetson Thor: a CUDA build, e.g. GEORG_LLM_IMAGE=ghcr.io/ggml-org/llama.cpp:server-cuda
+    image: ${GEORG_LLM_IMAGE:-ghcr.io/ggml-org/llama.cpp:server}
+    profiles: [llm]
+    networks:
+      - pib-network
+    ports:
+      - "8080:8080"
+    volumes:
+      - ${GEORG_LLM_MODELS:-~/georg-llm}:/models:ro
+    init: true
+    restart: unless-stopped
+    command: >-
+      -m /models/${GEORG_LLM_MODEL_FILE:-qwen2.5-1.5b-instruct-q4_k_m.gguf}
+      --host 0.0.0.0 --port 8080 --ctx-size 8192 -ngl 99
+
+networks:
+  pib-network:
+    driver: bridge

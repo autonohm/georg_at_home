@@ -14,14 +14,18 @@
 #   requires:    preconditions (flags) that must hold before the task starts
 #   name_arg:    optional; argument that goes into the Burr node name,
 #                e.g. gesture + mode=look_at -> node gesture_look_at
+#   description: what the task does (shown to the LLM planner, P6)
 #
-# Action names are taken from Georg.py. See docs/OPEN_QUESTIONS.md Q12: the
-# navigation server is launched under /nav/navigate, which does not match.
+# blocks: tested, fixed sequences of tasks (mission blocks). The LLM planner can
+# use them like tasks; the more it plans with blocks, the less it can combine wrongly.
+#
+# Action names are taken from Georg.py.
 
 version: 1
 
 tasks:
   listen:
+    description: Wait for the doorbell or for speech; succeeds when it was detected.
     class: georg_task_manager.tasks.Listening:Listening
     action: audio/listen
     type: datatypes/action/Listen
@@ -35,6 +39,9 @@ tasks:
     name_arg: sound
 
   gesture:
+    description: >-
+      Arm/head gesture towards a camera vector (vx, vy, vz in mm, robot frame):
+      look_at, point_to or greet_person.
     class: georg_task_manager.tasks.Gesture:Gesture
     action: pib_gestures_interface
     type: georg_gesture_msgs/action/PibGesturesInterface
@@ -50,13 +57,14 @@ tasks:
     name_arg: mode
 
   navigate_object:
+    description: Drive to a named place of the map (see places), stopping short of it.
     class: georg_task_manager.tasks.NavigateObject:NavigateObject
     action: nav/navigate_object_x
     extra_actions: [nav/drive_route]
     type: georg_nav_msgs/action/Navigate
     args_schema:
       object_name: {type: string}
-      map_path: {type: string}
+      map_path: {type: string, required: false}   # default: GEORG_MAP_DIR/GEORG_DEFAULT_MAP
       standoff_m: {type: number, min: 0, required: false}
     timeout_s: 240      # plan 120 s + drive 120 s
     cancelable: true
@@ -65,13 +73,14 @@ tasks:
     name_arg: object_name
 
   navigate_room:
+    description: Drive into a named room of the map.
     class: georg_task_manager.tasks.NavigateRoom:NavigateRoom
     action: nav/navigate_room_x
     extra_actions: [nav/drive_route]
     type: georg_nav_msgs/action/Navigate
     args_schema:
       room_name: {type: string}
-      map_path: {type: string}
+      map_path: {type: string, required: false}   # default: GEORG_MAP_DIR/GEORG_DEFAULT_MAP
     timeout_s: 240      # plan 120 s + drive 120 s
     cancelable: true
     modes: [mock, sim, real, mcap]
@@ -79,6 +88,7 @@ tasks:
     name_arg: room_name
 
   return_to_idle:
+    description: Reset all flags and go back to the idle pose. Use it to finish.
     class: georg_task_manager.tasks.ReturnToIdle:ReturnToIdle
     action: ""
     type: ""
@@ -87,6 +97,22 @@ tasks:
     cancelable: true
     modes: [mock, sim, real, mcap]
     requires: []
+
+blocks:
+  greet_guest:
+    description: Look at the door, point at it and greet the guest (all gestures).
+    modes: [mock, sim, real, mcap]
+    steps:
+      - {task: gesture, args: {mode: look_at, vx: -1000.0, vy: 0.0, vz: 100.0}}
+      - {task: gesture, args: {mode: point_to, vx: -2000.0, vy: 0.0, vz: 100.0}}
+      - {task: gesture, args: {mode: greet_person, vx: -1000.0, vy: 0.0, vz: 100.0}}
+
+  wait_for_guest:
+    description: Wait up to 60 s for the doorbell, then look at the door.
+    modes: [mock, sim, real, mcap]
+    steps:
+      - {task: listen, args: {sound: DOORBELL, timeout_sec: 60.0}}
+      - {task: gesture, args: {mode: look_at, vx: -1000.0, vy: 0.0, vz: 100.0}}
 
 # Not in the catalog on purpose:
 # - Navigate (tasks/Navigate.py): older variant of NavigateObject, only used by missions/Comparison*.py (not in the mission selector)

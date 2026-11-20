@@ -142,3 +142,25 @@ Auf dem Mac (RoboStack) umgesetzt und geprüft, Stufe 1 (2D-Simulator `georg_sim
 Weiter umgesetzt: Dienst `recorder` (Daueraufnahme `/georg/task_manager/*` und `task/current_task` als MCAP, alle Profile, getestet mit denselben Argumenten), Dienst `player` im Profil `mcap` (filtert automatisch auf Rohsensoren), `slam_mcap.launch.py` mit `use_sim_time`, Mock-Szenario `mcap` ohne Odometrie (setzt `projectctl.bash` in `mcap` automatisch).
 
 **Hinweis:** Mit festen Missionen und Mocks hängt die Task-Folge nicht von den Sensordaten ab; „zweimal dieselbe Folge“ ist hier vor allem ein Test der Kette Aufnahme → Filter → Wiedergabe → SLAM → Burr. Aussagekräftig für Entscheidungen wird es mit dem LLM (P6), das auf Ereignisse reagiert.
+
+# P6 – Stand (2026-11-20)
+
+| Abnahmekriterium P6 | Stand |
+| --- | --- |
+| Im Profil `mock` plant das LLM Missionen, Burr führt sie ohne Eingriff aus | erfüllt, mit echtem lokalem LLM (Qwen2.5-1.5B-Instruct Q4, llama.cpp auf dem Mac): Ziel „Gast klingelt, begrüßen, zum Sitzplatz bringen“ → 4 Entscheidungen, Tasks laufen über die Mock-Pakete, Ende „done“ (`test_llm_real.py`, zweimal identisch) |
+| Ungültige Pläne gehen mit Fehlertext zurück, nach der Versuchsgrenze Idle | erfüllt (Test-LLM: 3 ungültige Antworten → FAILED, Fehlertext in der 2. Anfrage) |
+| Schlägt ein Task fehl, plant das LLM um oder bricht sauber ab | erfüllt (beide Fälle über ROS mit Test-LLM) |
+| Entscheidungs-Replay mit festem Prompt ist stabil | erfüllt, mit dem echten LLM (Temperatur 0, Seed 42): jede Entscheidung zweimal nachgespielt, identisch |
+| Betriebsart LLM auf `real` erst nach bestandenen Replay- und Sim-Tests | umgesetzt als Sperre: `set_mode` lehnt LLM-Modi in `real` ab, solange `GEORG_LLM_REAL_APPROVED=1` nicht gesetzt ist. Nicht live getestet (Regel 6: kein Profil `real`). |
+
+Weiter umgesetzt: Missionsblöcke im Katalog (`greet_guest`, `wait_for_guest`), Betriebsarten mission / llm / llm_approval, Services `set_mode`, `instruct`, `approve_plan`, Topic `task_manager/plan`, Panel mit Modus, Anweisung, Freigabe und Planansicht, Entscheidungsprotokoll, Replay von LLM-Entscheidungen, Dienst `llm` (pkg_llm, nur mit `GEORG_WITH_LLM=1`).
+
+**Durch das echte LLM gefundene und behobene Fehler:**
+- JSON kennt keinen Unterschied zwischen 60 und 60.0; die ROS-Nachricht `Listen` brach mit einer C-Assertion ab. Zahlen werden jetzt beim Erzeugen der Tasks in float umgewandelt.
+- Ohne Schema verwechselte das kleine Modell Tasks und Blöcke; jetzt eingeschränktes Decodieren mit Schema aus dem Katalog.
+- Es erfand Orte und antwortete „continue“ ohne Plan; beides wird jetzt abgewiesen.
+- Es erkannte das Ende nicht; Kontextfeld `plan_finished` und Prompt `planner-v3`.
+
+**Offen:**
+- **Q27 – Modell auf dem Jetson Thor.** Das 1,5B-Modell plant gültig, aber inhaltlich schwach (z. B. „schau zur Tür“ → „auf Klingel hören“). Auf dem Jetson ein größeres Modell wählen und das Image von `pkg_llm` festlegen (für die neuesten llama.cpp-Builds gab es keine nummerierten Image-Tags).
+- **Q28 – Ereignisse als Auslöser.** Heute startet nur eine Anweisung der Bedienperson einen LLM-Lauf. Ereignisse (Klingel, Sprache) könnten Läufe direkt auslösen; das ist noch nicht gebaut.

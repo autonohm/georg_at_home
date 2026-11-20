@@ -1,0 +1,7 @@
+# Instruction or feedback of the operator for the LLM planner (LLM modes only).
+# Idle: starts an LLM run with this text as goal. Running: passed to the next decision.
+string text
+---
+bool accepted
+string reason
+string burr_app_id

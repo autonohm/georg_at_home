@@ -24,6 +24,7 @@ class TaskSpec:
     requires: List[str] = field(default_factory=list)
     name_arg: str = ''
     extra_actions: List[str] = field(default_factory=list)
+    description: str = ''
 
     @property
     def actions(self) -> List[str]:
@@ -44,8 +45,19 @@ class TaskSpec:
 
 
 @dataclass
+class BlockSpec:
+    """Mission block: a tested, fixed sequence of catalog tasks (plan P6)."""
+
+    name: str
+    description: str
+    steps: List[dict]
+    modes: List[str]
+
+
+@dataclass
 class Catalog:
     tasks: Dict[str, TaskSpec]
+    blocks: Dict[str, BlockSpec] = field(default_factory=dict)
 
     def by_class(self, cls) -> 'TaskSpec | None':
         for spec in self.tasks.values():
@@ -81,7 +93,21 @@ def _check_spec(name: str, raw: dict) -> TaskSpec:
         requires=list(raw.get('requires') or []),
         name_arg=raw.get('name_arg') or '',
         extra_actions=list(raw.get('extra_actions') or []),
+        description=str(raw.get('description') or '').strip(),
     )
+
+
+def _check_block(name: str, raw: dict, tasks: Dict[str, TaskSpec]) -> BlockSpec:
+    steps = raw.get('steps') or []
+    if not steps:
+        raise CatalogError(f"block '{name}': no steps")
+    for i, step in enumerate(steps):
+        if not isinstance(step, dict) or step.get('task') not in tasks:
+            raise CatalogError(f"block '{name}' step {i}: unknown task {step!r}")
+    return BlockSpec(name=name, description=str(raw.get('description') or '').strip(),
+                     steps=[{'task': s['task'], 'args': dict(s.get('args') or {})}
+                            for s in steps],
+                     modes=list(raw.get('modes') or ['mock', 'sim', 'real', 'mcap']))
 
 
 def load_catalog(path: str = DEFAULT_PATH) -> Catalog:
@@ -90,4 +116,10 @@ def load_catalog(path: str = DEFAULT_PATH) -> Catalog:
     tasks = raw.get('tasks') or {}
     if not tasks:
         raise CatalogError(f'{path}: no tasks')
-    return Catalog({name: _check_spec(name, spec) for name, spec in tasks.items()})
+    specs = {name: _check_spec(name, spec) for name, spec in tasks.items()}
+    blocks = {name: _check_block(name, raw_block, specs)
+              for name, raw_block in (raw.get('blocks') or {}).items()}
+    clash = set(specs) & set(blocks)
+    if clash:
+        raise CatalogError(f'names used for a task and a block: {sorted(clash)}')
+    return Catalog(specs, blocks)

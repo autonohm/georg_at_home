@@ -23,7 +23,10 @@ DEFAULT_MAX_STEPS = 20
 class ValidationResult:
     ok: bool
     errors: List[str] = field(default_factory=list)
+    # task steps only (name, args); blocks are not expanded here
     steps: List[Tuple[str, dict]] = field(default_factory=list)
+    # every step in order: {'task': name, 'args': {...}} or {'block': name}
+    items: List[dict] = field(default_factory=list)
 
 
 def _check_value(task: str, arg: str, value, schema: dict) -> List[str]:
@@ -70,6 +73,7 @@ def validate_plan(plan, catalog: Catalog, mode: str, satisfied: Iterable[str] = 
     """Check a plan against the catalog. Returns all errors, not just the first."""
     errors: List[str] = []
     steps: List[Tuple[str, dict]] = []
+    items: List[dict] = []
     satisfied = set(satisfied)
 
     if not isinstance(plan, list):
@@ -81,8 +85,12 @@ def validate_plan(plan, catalog: Catalog, mode: str, satisfied: Iterable[str] = 
 
     for i, step in enumerate(plan):
         prefix = f'step {i}'
+        if isinstance(step, dict) and 'block' in step and 'task' not in step:
+            errors += _check_block_step(prefix, step, catalog, mode, satisfied)
+            items.append({'block': step.get('block')})
+            continue
         if not isinstance(step, dict) or 'task' not in step:
-            errors.append(f'{prefix}: needs the form {{task, args}}')
+            errors.append(f'{prefix}: needs the form {{task, args}} or {{block}}')
             continue
         extra = set(step) - {'task', 'args'}
         if extra:
@@ -103,8 +111,33 @@ def validate_plan(plan, catalog: Catalog, mode: str, satisfied: Iterable[str] = 
             errors.append(f"{prefix}: task '{name}' requires {missing}")
         errors += [f'{prefix}: {e}' for e in check_args(spec, args)]
         steps.append((name, dict(args)))
+        items.append({'task': name, 'args': dict(args)})
 
-    return ValidationResult(not errors, errors, steps if not errors else [])
+    if errors:
+        return ValidationResult(False, errors)
+    return ValidationResult(True, [], steps, items)
+
+
+def _check_block_step(prefix, step, catalog, mode, satisfied) -> List[str]:
+    extra = set(step) - {'block', 'args'}
+    if extra:
+        return [f'{prefix}: unknown keys {sorted(extra)}']
+    name = step.get('block')
+    block = catalog.blocks.get(name) if isinstance(name, str) else None
+    if block is None:
+        return [f'{prefix}: unknown block {name!r}']
+    if step.get('args'):
+        return [f'{prefix}: block {name!r} takes no arguments']
+    if mode not in block.modes:
+        return [f"{prefix}: block '{name}' not allowed in mode '{mode}'"]
+    inner = validate_plan(block.steps, catalog, mode, satisfied, max_steps=len(block.steps))
+    return [f"{prefix}: block '{name}': {e}" for e in inner.errors]
+
+
+def block_tasks(name: str, catalog: Catalog) -> List[object]:
+    """Task objects of a mission block, in order."""
+    block = catalog.blocks[name]
+    return instantiate([(s['task'], s['args']) for s in block.steps], catalog)
 
 
 def instantiate(steps: List[Tuple[str, dict]], catalog: Catalog) -> List[object]:
@@ -116,6 +149,12 @@ def instantiate(steps: List[Tuple[str, dict]], catalog: Catalog) -> List[object]
         args = dict(args)
         if 'priority' in args:
             args['priority'] = TaskPriority(args['priority'])
+        # JSON (e.g. from the LLM) has no float/int distinction: 60 must become 60.0,
+        # otherwise the ROS message conversion of float fields fails (C assertion)
+        for arg, schema in catalog.tasks[name].args_schema.items():
+            if schema['type'] == 'number' and isinstance(args.get(arg), int) \
+                    and not isinstance(args.get(arg), bool):
+                args[arg] = float(args[arg])
         tasks.append(catalog.tasks[name].load_class()(**args))
     return tasks
 

@@ -2,6 +2,7 @@
 from .base import BaseTask
 from .timeout_watcher import wait_for_action_result
 from .priority import TaskPriority
+from .base import default_map_path
 from geometry_msgs.msg import Point
 from georg_nav_msgs.action import Navigate, DriveRoute
 
@@ -18,10 +19,11 @@ def _get_current_position(robot, state):
 class NavigateRoom(BaseTask):
 
 
-    def __init__(self, room_name: str, map_path: str, priority: TaskPriority = TaskPriority.LOW):
+    def __init__(self, room_name: str, map_path: str = None, priority: TaskPriority = TaskPriority.LOW):
         super().__init__("NavigateRoom", priority)
         self.room_name = room_name
-        self.map_path = map_path
+        # no map given (e.g. by the LLM planner): the default map of this robot
+        self.map_path = map_path or default_map_path()
 
     async def run(self, robot, state):
 

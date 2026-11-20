@@ -13,11 +13,16 @@ services:
       - ./config:/config:ro
       - ../pkg_slam/maps:/root/georg_maps:ro
       - burr-data:/root/.burr
+      - ${GEORG_RECORDINGS_DIR:-../../recordings}/decisions:/root/.georg/decisions
     environment:
       - GEORG_MAP_DIR=/root/georg_maps
       - GEORG_DEFAULT_MAP=Nav_Test.yaml
       # set by projectctl.bash; the task manager checks the catalog modes against it
       - GEORG_PROFILE=${GEORG_PROFILE:-}
+      # LLM planner (P6): endpoint of pkg_llm; LLM modes on 'real' only with approval
+      - GEORG_LLM_URL=${GEORG_LLM_URL:-http://llm:8080}
+      - GEORG_LLM_REAL_APPROVED=${GEORG_LLM_REAL_APPROVED:-0}
+      - GEORG_DECISION_LOG_DIR=/root/.georg/decisions
       # no MISSION_ID: the node starts in Idle, missions are started via
       # ros2 service call /georg/task_manager/start (plan: boot never starts a mission)
 

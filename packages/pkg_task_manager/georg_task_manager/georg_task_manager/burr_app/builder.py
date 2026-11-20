@@ -74,7 +74,7 @@ def possible_edges(priorities: List[TaskPriority]) -> Set[Tuple[int, int]]:
 
 
 def build_mission_app(ctx: a.MissionContext, mission_id: str,
-                      app_id: Optional[str] = None, tracker=None):
+                      app_id: Optional[str] = None, tracker=None, spawning_parent=None):
     def name(step: int) -> str:
         return {-1: START, -2: a.FINISH}.get(step) or ctx.node(step)
 
@@ -96,6 +96,37 @@ def build_mission_app(ctx: a.MissionContext, mission_id: str,
         .with_transitions(*transitions)
         .with_entrypoint(START)
         .with_identifiers(app_id=app_id or str(uuid.uuid4()), partition_key=mission_id)
+    )
+    if tracker is not None:
+        builder = builder.with_tracker(tracker)
+    if spawning_parent is not None:
+        # (app_id, sequence_id, partition_key) of the run that started this one (LLM block)
+        builder = builder.with_spawning_parent(*spawning_parent)
+    return builder.build()
+
+
+def build_llm_app(ctx, goal_id: str, app_id: Optional[str] = None, tracker=None):
+    """Star graph of the LLM mode: next -> one node per catalog task and mission block."""
+    from georg_task_manager.burr_app import llm_actions as la
+
+    nodes = {name: la.run_llm_task.bind(ctx=ctx, task_type=name) for name in ctx.catalog.tasks}
+    nodes.update({name: la.run_block.bind(ctx=ctx, block_name=name)
+                  for name in ctx.catalog.blocks})
+    reserved = {START, 'next', a.FINISH, 'idle', 'start_llm'} & set(nodes)
+    if reserved:
+        raise ValueError(f'catalog names {sorted(reserved)} are reserved Burr nodes')
+    transitions = [('start_llm', 'next')]
+    transitions += [('next', name, when(next_node=name)) for name in nodes]
+    transitions += [('next', a.FINISH, when(next_node=a.FINISH))]
+    transitions += [(name, 'next') for name in nodes]
+    transitions += [(a.FINISH, 'idle')]
+    builder = (
+        ApplicationBuilder()
+        .with_actions(start_llm=la.start_llm.bind(ctx=ctx), next=la.next_step.bind(ctx=ctx),
+                      finish=a.finish.bind(ctx=ctx), idle=a.idle, **nodes)
+        .with_transitions(*transitions)
+        .with_entrypoint('start_llm')
+        .with_identifiers(app_id=app_id or str(uuid.uuid4()), partition_key=goal_id)
     )
     if tracker is not None:
         builder = builder.with_tracker(tracker)

@@ -140,7 +140,12 @@ docker_cmd() {
         if [[ "$mode" == "mcap" ]]; then
             export GEORG_MOCK_SCENARIO="${GEORG_MOCK_SCENARIO:-mcap}"
         fi
-        GEORG_PROFILE="$mode" compose --profile "$mode" "$@"
+        local extra=()
+        # optional local LLM for the planner (pkg_llm, P6)
+        if [[ "${GEORG_WITH_LLM:-0}" == "1" ]]; then
+            extra=(--profile llm)
+        fi
+        GEORG_PROFILE="$mode" compose --profile "$mode" ${extra[@]+"${extra[@]}"} "$@"
     else
         GEORG_PROFILE="" compose --profile '*' "$@"
     fi
