@@ -13,7 +13,10 @@ services:
     privileged: true
 #    restart: always
     init: true
-    command: "sh -c 'cd /config && ros2 launch pkg_slam.launch.py'"
+    environment:
+      - GEORG_PROFILE=${GEORG_PROFILE:-}
+    # profile sim: slam_toolbox only (slam_sim.launch.py), the simulator provides scan and odom
+    command: ["sh", "-c", "cd /config && if [ \"$$GEORG_PROFILE\" = sim ]; then ros2 launch slam_sim.launch.py; else ros2 launch pkg_slam.launch.py; fi"]
     # command: sleep 1d
 
 networks:

@@ -1,0 +1,24 @@
+services:
+  sim:
+    image: sim
+    profiles: [sim]
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    networks:
+      - pib-network
+    volumes:
+      - ./config:/config:ro
+      - ../pkg_slam/maps:/root/georg_maps:ro
+    environment:
+      - GEORG_MAP_DIR=/root/georg_maps
+      # sim2d (stage 1) or simmj (MuJoCo, stage 2)
+      - GEORG_SIMULATOR=${GEORG_SIMULATOR:-sim2d}
+    init: true
+    restart: unless-stopped
+    # headless; look at it in Lichtblick (foxglove_bridge in pkg_viz)
+    command: sh -c 'ros2 run georg_sim $${GEORG_SIMULATOR} --ros-args -r __ns:=/georg -p map_file:=/root/georg_maps/Nav_Test.yaml'
+
+networks:
+  pib-network:
+    driver: bridge

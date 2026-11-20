@@ -19,6 +19,7 @@ behaviour or a list of behaviours used one after another (the last one repeats):
 Cancel is always honoured within 0.1 s (plan: abort within 2 s).
 
 Also publishes ``odom`` (robot at 0/0), because navigation tasks need a position.
+Set ``odom: false`` in the scenario when a simulator or the robot provides odom.
 
     ros2 run georg_task_manager mock_packages --scenario all_ok
 """
@@ -104,8 +105,11 @@ class MockPackages(Node):
                 callback_group=self._cb))
             self.get_logger().info(f'{action}: {first}')
 
-        self._odom = self.create_publisher(Odometry, 'odom', 10)
-        self.create_timer(0.1, self._publish_odom)
+        if scenario.get('odom', True):
+            self._odom = self.create_publisher(Odometry, 'odom', 10)
+            self.create_timer(0.1, self._publish_odom)
+        else:
+            self.get_logger().info('odom: off (provided by simulator or robot)')
 
     def _actions(self):
         """Map each action name to (type, catalog task name), from the catalog."""

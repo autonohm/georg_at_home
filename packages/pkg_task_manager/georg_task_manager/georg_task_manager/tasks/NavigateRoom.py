@@ -73,6 +73,8 @@ class NavigateRoom(BaseTask):
         # Hand the plan off to DriveRoute for execution.
         drive_goal = DriveRoute.Goal()
         drive_goal.waypoints = result.waypoints
+        # known walls of this map are not reported as obstacles by the drive server
+        drive_goal.map_name = self.map_path
 
         drive_result = await wait_for_action_result(
             robot.drive_route_action_client,

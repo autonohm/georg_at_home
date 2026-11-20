@@ -13,28 +13,40 @@ def generate_launch_description():
         'robot_namespace', default_value=os.getenv('EDU_ROBOT_NAMESPACE', default='georg')
     )
 
-    nav_module = Node(
-        package="navigate_server",
-        executable="navigate_action_server",
-        name="nav_server",
-        # TODO(OPEN_QUESTIONS Q12): Task Manager erwartet nav/navigate_object_x und nav/navigate_room_x
-        arguments=["--node-name", "nav_server",
-                   "--action-name", "/nav/navigate"],
-        output="screen",
+    # One planning server per action name the task manager calls (Georg.py):
+    # nav/navigate_object_x (NavigateObject) and nav/navigate_room_x (NavigateRoom).
+    # Relative names, so they end up in the robot namespace (/georg/nav/...).
+    nav_object = Node(
+        package='navigate_server',
+        executable='navigate_action_server',
+        name='nav_object_server',
+        arguments=['--node-name', 'nav_object_server',
+                   '--action-name', 'nav/navigate_object_x'],
+        output='screen',
+    )
+
+    nav_room = Node(
+        package='navigate_server',
+        executable='navigate_action_server',
+        name='nav_room_server',
+        arguments=['--node-name', 'nav_room_server',
+                   '--action-name', 'nav/navigate_room_x'],
+        output='screen',
     )
 
     drive_route_module = Node(
-        package="drive_route_server",
-        executable="drive_route_action_server",
-        name="drive_route_action_server",
-        output="screen",
+        package='drive_route_server',
+        executable='drive_route_action_server',
+        name='drive_route_action_server',
+        output='screen',
     )
 
     return LaunchDescription([
         robot_namespace_arg,
         GroupAction(actions=[
             PushRosNamespace(robot_namespace),
-            nav_module,
+            nav_object,
+            nav_room,
             drive_route_module,
         ]),
     ])

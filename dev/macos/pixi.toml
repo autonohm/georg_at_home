@@ -22,6 +22,11 @@ ros-jazzy-geometry-msgs = "*"
 ros-jazzy-nav-msgs = "*"
 ros-jazzy-action-msgs = "*"
 ros-jazzy-launch-ros = "*"
+ros-jazzy-tf2-ros = "*"
+ros-jazzy-slam-toolbox = "*"
+ros-jazzy-foxglove-bridge = "*"
+ros-jazzy-rosbag2 = "*"
+ros-jazzy-rosbag2-storage-mcap = "*"
 colcon-common-extensions = "*"
 compilers = "*"
 cmake = "*"
@@ -50,9 +55,14 @@ GEORG_WS = "$HOME/.cache/georg-ros-ws"
 # macOS strips DYLD_LIBRARY_PATH when bash starts (SIP), so every task re-sources the workspace.
 # builds every ROS package in packages/ (the audio package builds, but its TensorFlow deps are not installed)
 build = { cmd = "colcon --log-base $GEORG_WS/log build --build-base $GEORG_WS/build --install-base $GEORG_WS/install --symlink-install --cmake-args -G Ninja --base-paths ../../packages", cwd = "." }
-test = { cmd = "bash -c 'source $GEORG_WS/install/setup.bash && export PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 && cd ../../packages/pkg_task_manager/georg_task_manager && python -m pytest -q test/test_burr_app.py test/test_validator.py && cd ../../pkg_command_gate/command_gate && python -m pytest -q test'", cwd = "." }
+test = { cmd = "bash -c 'source $GEORG_WS/install/setup.bash && export PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 && cd ../../packages/pkg_task_manager/georg_task_manager && python -m pytest -q test/test_burr_app.py test/test_validator.py && cd ../../pkg_command_gate/command_gate && python -m pytest -q test && cd ../../pkg_sim/georg_sim && python -m pytest -q test'", cwd = "." }
 # P2: task manager node + mock packages over real ROS (all mandatory scenarios, ~1 min)
 test_ros = { cmd = "bash -c 'source $GEORG_WS/install/setup.bash && export PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 GEORG_ROS_TESTS=1 && cd ../../packages/pkg_task_manager/georg_task_manager && python -m pytest -v test/test_ros_integration.py'", cwd = "." }
+# P3: whole profile sim in one command (simulator, SLAM, navigation, task manager, mocks, gate)
+# simulator:=simmj for MuJoCo (stage 2)
+sim = { cmd = "bash -c 'source $GEORG_WS/install/setup.bash && ros2 launch ../../packages/pkg_sim/config/sim_stack.launch.py'", cwd = "." }
+# P3: simulator + SLAM + real navigation + task manager (~2 min)
+test_sim = { cmd = "bash -c 'source $GEORG_WS/install/setup.bash && export PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 GEORG_ROS_TESTS=1 && cd ../../packages/pkg_task_manager/georg_task_manager && python -m pytest -v test/test_sim_integration.py'", cwd = "." }
 # runs the task manager node (Idle, start missions via the services)
 task_manager = { cmd = "bash -c 'source $GEORG_WS/install/setup.bash && ros2 run georg_task_manager task_manager --ros-args -r __ns:=/georg'", cwd = "." }
 # mock packages; scenario via GEORG_MOCK_SCENARIO (all_ok, one_fails, timeout, abort, unreachable, retry_then_ok)
