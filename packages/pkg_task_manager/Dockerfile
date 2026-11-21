@@ -29,7 +29,7 @@ ENV REBUILD=1
 
 # Interfaces (georg_nav_msgs, georg_gesture_msgs, georg_task_manager_msgs, datatypes)
 # come from the base image (packages/pkg_interfaces).
-COPY ./task_manager /ws/task_manager
+COPY ./task_manager_pkg /ws/task_manager
 # NavigateObject/NavigateRoom import navigate_server.grid_rasterizer directly.
 # Until that is resolved in P1 (OPEN_QUESTIONS Q4b) the package is built here too.
 COPY --from=navigation ./navigate_server_pkg /ws/navigate_server_pkg

@@ -57,28 +57,28 @@ GEORG_WS = "$HOME/.cache/georg-ros-ws"
 # macOS strips DYLD_LIBRARY_PATH when bash starts (SIP), so every task re-sources the workspace.
 # builds every ROS package in packages/ (the audio package builds, but its TensorFlow deps are not installed)
 build = { cmd = "colcon --log-base $GEORG_WS/log build --build-base $GEORG_WS/build --install-base $GEORG_WS/install --symlink-install --cmake-args -G Ninja --base-paths ../../packages", cwd = "." }
-test = { cmd = "bash -c 'source $GEORG_WS/install/setup.bash && export PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 && cd ../../packages/pkg_task_manager/task_manager && python -m pytest -q test/test_burr_app.py test/test_validator.py test/test_planner.py && cd ../../pkg_command_gate/command_gate && python -m pytest -q test && cd ../../pkg_sim/georg_sim && python -m pytest -q test'", cwd = "." }
+test = { cmd = "bash -c 'source $GEORG_WS/install/setup.bash && export PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 && cd ../../packages/pkg_task_manager/task_manager_pkg && python -m pytest -q test/test_burr_app.py test/test_validator.py test/test_planner.py && cd ../../pkg_command_gate/command_gate && python -m pytest -q test && cd ../../pkg_sim/georg_sim && python -m pytest -q test'", cwd = "." }
 # P2: task manager node + mock packages over real ROS (all mandatory scenarios, ~1 min)
-test_ros = { cmd = "bash -c 'source $GEORG_WS/install/setup.bash && export PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 GEORG_ROS_TESTS=1 && cd ../../packages/pkg_task_manager/task_manager && python -m pytest -v test/test_ros_integration.py'", cwd = "." }
+test_ros = { cmd = "bash -c 'source $GEORG_WS/install/setup.bash && export PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 GEORG_ROS_TESTS=1 && cd ../../packages/pkg_task_manager/task_manager_pkg && python -m pytest -v test/test_ros_integration.py'", cwd = "." }
 # P3: whole profile sim in one command (simulator, SLAM, navigation, task manager, mocks, gate)
 # simulator:=simmj for MuJoCo (stage 2)
 sim = { cmd = "bash -c 'source $GEORG_WS/install/setup.bash && ros2 launch ../../packages/pkg_sim/config/sim_stack.launch.py'", cwd = "." }
 sim_mj = { cmd = "bash -c 'source $GEORG_WS/install/setup.bash && ros2 launch ../../packages/pkg_sim/config/sim_stack.launch.py simulator:=simmj'", cwd = "." }
 # P3: simulator + SLAM + real navigation + task manager (~2 min)
-test_sim = { cmd = "bash -c 'source $GEORG_WS/install/setup.bash && export PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 GEORG_ROS_TESTS=1 && cd ../../packages/pkg_task_manager/task_manager && python -m pytest -v test/test_sim_integration.py'", cwd = "." }
-test_sim_mj = { cmd = "bash -c 'source $GEORG_WS/install/setup.bash && export PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 GEORG_ROS_TESTS=1 GEORG_SIMULATOR=simmj && cd ../../packages/pkg_task_manager/task_manager && python -m pytest -v test/test_sim_integration.py'", cwd = "." }
+test_sim = { cmd = "bash -c 'source $GEORG_WS/install/setup.bash && export PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 GEORG_ROS_TESTS=1 && cd ../../packages/pkg_task_manager/task_manager_pkg && python -m pytest -v test/test_sim_integration.py'", cwd = "." }
+test_sim_mj = { cmd = "bash -c 'source $GEORG_WS/install/setup.bash && export PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 GEORG_ROS_TESTS=1 GEORG_SIMULATOR=simmj && cd ../../packages/pkg_task_manager/task_manager_pkg && python -m pytest -v test/test_sim_integration.py'", cwd = "." }
 # P4: operate the task manager through foxglove_bridge like Lichtblick does, plus the panel tests
-test_lichtblick = { cmd = "bash -c 'source $GEORG_WS/install/setup.bash && export PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 GEORG_ROS_TESTS=1 && cd ../../packages/pkg_task_manager/task_manager && python -m pytest -v test/test_lichtblick_bridge.py && cd ../../pkg_viz/lichtblick_panel && python3 build.py && node --test test/model.test.js test/panel.test.js'", cwd = "." }
+test_lichtblick = { cmd = "bash -c 'source $GEORG_WS/install/setup.bash && export PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 GEORG_ROS_TESTS=1 && cd ../../packages/pkg_task_manager/task_manager_pkg && python -m pytest -v test/test_lichtblick_bridge.py && cd ../../pkg_viz/lichtblick_panel && python3 build.py && node --test test/model.test.js test/panel.test.js'", cwd = "." }
 # P5: record in the simulator, strip to raw sensors, replay twice with SLAM + Burr (~2 min)
-test_mcap = { cmd = "bash -c 'source $GEORG_WS/install/setup.bash && export PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 GEORG_ROS_TESTS=1 && cd ../../packages/pkg_task_manager/task_manager && python -m pytest -v test/test_mcap_integration.py && cd ../../../tests/decision_replay && python -m pytest -q test_replay.py'", cwd = "." }
+test_mcap = { cmd = "bash -c 'source $GEORG_WS/install/setup.bash && export PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 GEORG_ROS_TESTS=1 && cd ../../packages/pkg_task_manager/task_manager_pkg && python -m pytest -v test/test_mcap_integration.py && cd ../../../tests/decision_replay && python -m pytest -q test_replay.py'", cwd = "." }
 # decision replay of a recorded run: pixi run replay <burr_app_id> [--runs 3]
 replay = { cmd = "bash -c 'source $GEORG_WS/install/setup.bash && python ../../tests/decision_replay/replay.py \"$@\"' replay", cwd = "." }
 # continuous recording of /georg/task_manager/* like the compose service recorder
 record = { cmd = "bash -c 'source $GEORG_WS/install/setup.bash && mkdir -p ../../recordings && ros2 bag record -s mcap --max-bag-duration 3600 -o ../../recordings/task_manager_$(date +%Y%m%d_%H%M%S) --regex \"/georg/task_manager/.*|/georg/task/current_task\"'", cwd = "." }
 # P6: operating modes + LLM planner over ROS with a scripted LLM (~1 min)
-test_llm = { cmd = "bash -c 'source $GEORG_WS/install/setup.bash && export PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 GEORG_ROS_TESTS=1 && cd ../../packages/pkg_task_manager/task_manager && python -m pytest -v test/test_llm_integration.py'", cwd = "." }
+test_llm = { cmd = "bash -c 'source $GEORG_WS/install/setup.bash && export PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 GEORG_ROS_TESTS=1 && cd ../../packages/pkg_task_manager/task_manager_pkg && python -m pytest -v test/test_llm_integration.py'", cwd = "." }
 # P6 with a real local LLM (start it first: pixi run -e llm llm_server)
-test_llm_real = { cmd = "bash -c 'source $GEORG_WS/install/setup.bash && export PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 GEORG_ROS_TESTS=1 GEORG_LLM_REAL=1 && cd ../../packages/pkg_task_manager/task_manager && python -m pytest -v -s test/test_llm_real.py'", cwd = "." }
+test_llm_real = { cmd = "bash -c 'source $GEORG_WS/install/setup.bash && export PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 GEORG_ROS_TESTS=1 GEORG_LLM_REAL=1 && cd ../../packages/pkg_task_manager/task_manager_pkg && python -m pytest -v -s test/test_llm_real.py'", cwd = "." }
 # runs the task manager node (Idle, start missions via the services)
 task_manager = { cmd = "bash -c 'source $GEORG_WS/install/setup.bash && ros2 run task_manager task_manager --ros-args -r __ns:=/georg'", cwd = "." }
 # mock packages; scenario via GEORG_MOCK_SCENARIO (all_ok, one_fails, timeout, abort, unreachable, retry_then_ok)

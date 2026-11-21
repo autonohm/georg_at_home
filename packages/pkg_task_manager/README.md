@@ -12,8 +12,8 @@
 ## Layout
 
 ```
-task_manager/                    ROS package task_manager (package.xml, setup.py, test/)
-task_manager/task_manager/       Python code
+task_manager_pkg/                ROS package task_manager (package.xml, setup.py, test/)
+task_manager_pkg/task_manager/   Python code
   node.py        ROS node: services, status topic, mode switch (entry point task_manager)
   robot.py       action clients to speech, gestures, navigation; odom
   state.py       RobotState (position, current task)
@@ -23,7 +23,7 @@ task_manager/task_manager/       Python code
   tasks/         one class per task (Gesture, Listening, NavigateObject, ...)
   missions/      one file per mission; registry MISSIONS in missions/__init__.py
   mocks/         fake action servers + scenarios (entry point mock_packages)
-task_manager/test/  tests (unit without ROS, ROS/sim/MCAP/LLM integration with env flags)
+task_manager_pkg/test/  tests (unit without ROS, ROS/sim/MCAP/LLM integration with env flags)
 ```
 
 ## Burr engine (since P1)
@@ -137,7 +137,7 @@ Tracking is switched off with `GEORG_BURR_TRACKING=0`.
 ### Tests without ROS
 
 ```bash
-cd task_manager
+cd task_manager_pkg
 pip install "apache-burr[tracking]==0.43.0" pyyaml pytest
 python -m pytest test/test_burr_app.py test/test_validator.py
 ```

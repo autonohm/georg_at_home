@@ -81,7 +81,7 @@ def test_core_services_have_health_checks(real_services):
 def test_boot_never_starts_a_mission(real_services):
     env = real_services['task_manager'].get('environment') or {}
     assert 'MISSION_ID' not in env
-    bridge = open(os.path.join(REPO, 'packages', 'pkg_task_manager', 'task_manager',
+    bridge = open(os.path.join(REPO, 'packages', 'pkg_task_manager', 'task_manager_pkg',
                                'task_manager', 'node.py'), encoding='utf-8').read()
     assert "self._mode = 'mission'" in bridge
 
