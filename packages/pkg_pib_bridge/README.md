@@ -1,30 +1,28 @@
 # pkg_pib_bridge
 
-Brücke zwischen Georgs Stack und [pib-backend](https://github.com/pib-rocks/pib-backend) für
-Sprache (Sprechen, Zuhören), mit fester Freigabeliste. Optional: `GEORG_WITH_PIB_BACKEND=1 ./projectctl.bash up sim|real`
-(braucht das Docker-Netz `pib-network` von pib-backend).
+Bridge between Georg's stack and [pib-backend](https://github.com/pib-rocks/pib-backend) for
+speech, with a fixed allowlist. Optional: `GEORG_WITH_PIB_BACKEND=1 ./projectctl.bash up sim|real`
+(needs pib-backend's Docker network `pib-network`).
 
-Ein Prozess, zwei ROS-Domains: Stack (`ROS_DOMAIN_ID`, 30 in sim, 0 am Roboter) und pib-backend
-(`PIB_BACKEND_DOMAIN_ID`, 0). Der Container hängt als **einziger** in beiden Docker-Netzen. Es
-geht nichts anderes durch – insbesondere keine Fahr- oder Motorbefehle.
+One process in two ROS domains: the stack (`ROS_DOMAIN_ID`, 30 in sim, 0 on the robot) and
+pib-backend (`PIB_BACKEND_DOMAIN_ID`, 0). This container is the only one in both Docker networks.
+Nothing else crosses – in particular no drive or motor commands.
 
-| Stack-Seite | pib-backend |
+| Stack side | pib-backend |
 | --- | --- |
-| Action `speech/say` (`georg_speech_msgs/Say`) | Service `/play_audio_from_speech` (`join=true`), Stimme `M1`/`de` |
-| Action `audio/listen` (`georg_speech_msgs/Listen`), SPEECH | `/speech_detected` (Bool), Text aus `/chat_messages` (`is_user`) |
-| Action `audio/listen`, DOORBELL | `PIB_DOORBELL_TOPIC` (Bool), Standard keins → „nicht erkannt“ |
+| action `speech/say` (`georg_speech_msgs/Say`) | service `/play_audio_from_speech`, voice `M1`/`de` |
+| action `audio/listen` (`georg_speech_msgs/Listen`), SPEECH | action `/record_audio` (speech-to-text) → `transcript` |
+| action `audio/listen`, DOORBELL | `PIB_DOORBELL_TOPIC` (`std_msgs/Bool`), none by default → not detected |
 
-`PIB_SAY_JOIN=false`: nicht auf das Satzende warten – nur für Rechner ohne Lautsprecher (sonst
-hängt pib-backends `audio_player`, Q37). Am Roboter `true` lassen, sonst hört Greeting Georgs
-eigene Stimme.
+**No sensor data** (camera, detections, joint states) crosses: in `sim` the robot sees only the
+simulation, like it can only move simulated motors. On the robot the stack and pib-backend share
+domain 0; in `mcap` the image comes from the recording.
 
-**Keine Sensordaten** (Kamera, Erkennungen, Gelenkwinkel) gehen über die Brücke: In `sim`
-sieht der Roboter nur die Simulation – wie er auch nur simulierte Motoren bewegt. Am
-Roboter teilen Stack und pib-backend Domain 0; in `mcap` kommt das Bild aus der Aufnahme.
+`PIB_SAY_JOIN=false`: do not wait until spoken – only for machines without a loudspeaker
+(otherwise pib-backend's `audio_player` blocks). Keep `true` on the robot, or `greeting` hears
+Georg's own voice.
 
-Test: `tests/stack/bridge_check.py` (Speak, Listen aus Sicht des Stacks).
+Test: `tests/stack/bridge_check.py` (speak and listen as seen from the stack).
 
-## Offen
-- Am Roboter läuft pib-backend auf dem Pi im LAN, nicht im Docker-Netz dieses Rechners → dort
-  braucht der Container Zugang zum Roboternetz (z. B. Host-Netz oder macvlan).
-- Türklingel: keine Quelle (pib-backend kennt keine; evtl. Home Assistant).
+Open: on the robot pib-backend runs on the Pi in the LAN, not in this machine's Docker network
+(docs/OPEN_ISSUES.md S4); next: pib poses to `/apply_joint_trajectory` (G1).

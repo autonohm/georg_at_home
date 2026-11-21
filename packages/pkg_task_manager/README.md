@@ -1,13 +1,15 @@
 # pkg_task_manager
 
-> **Layout since P0 (2026-11-20)** – see `docs/task_manager_plan.md`
->
-> - This package contains only the ROS package `task_manager`. `pib-audio` was removed (2026-11-21); its `Listen` action is in `packages/pkg_interfaces` (package `georg_speech_msgs`, formerly `datatypes`).
-> - Navigation: `packages/pkg_navigation`. Gestures: `packages/pkg_gestures`. Maps: `packages/pkg_slam/maps`.
-> - Interfaces (`georg_nav_msgs`, `georg_gesture_msgs`, `georg_task_manager_msgs`, `georg_speech_msgs`): `packages/pkg_interfaces`; pib-backend `datatypes` comes from the pib-backend repo, built into the base image.
-> - The launch file starts only `task_manager`, which runs missions with Burr (P1). The py_trees variant (`task_manager_bt`, `render_mission_bt`) was removed.
-> - Start everything with `./projectctl.bash up mock|sim|real|mcap` from the repo root.
->
+Runs Georg's missions: a mission is a list of tasks (drive, gesture, pose, speak, listen, …);
+the Burr state machine executes them, the catalog defines which tasks exist, an optional LLM
+plans them. Overview: [../../README.md](../../README.md), operation: [docs/OPERATIONS.md](../../docs/OPERATIONS.md).
+
+- Services `/task_manager/{start,cancel,list_missions,set_mode,instruct,approve_plan}`, status
+  `/task_manager/status`, plan `/task_manager/plan`. The node starts idle; nothing runs at boot.
+- Tasks talk to packages by actions only (`nav/...`, `pib_gestures_interface`, `pib/pose`,
+  `speech/say`, `audio/listen`, `sim/reset`); interfaces in `packages/pkg_interfaces`.
+- Same container image also runs `mock_packages` (fake action servers), `recorder` (MCAP) and
+  `burr_ui` (port 7241).
 
 ## Layout
 

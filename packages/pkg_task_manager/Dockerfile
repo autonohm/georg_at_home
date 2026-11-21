@@ -31,7 +31,7 @@ ENV REBUILD=1
 # come from the base image (packages/pkg_interfaces).
 COPY ./task_manager_pkg /ws/task_manager
 # NavigateObject/NavigateRoom import navigate_server.grid_rasterizer directly.
-# Until that is resolved in P1 (OPEN_QUESTIONS Q4b) the package is built here too.
+# Until that is resolved in P1 (docs/OPEN_ISSUES.md T3) the package is built here too.
 COPY --from=navigation ./navigate_server_pkg /ws/navigate_server_pkg
 # Maps are mounted from packages/pkg_slam/maps at runtime (docker-compose.yaml).
 

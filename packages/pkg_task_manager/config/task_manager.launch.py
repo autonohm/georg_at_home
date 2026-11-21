@@ -22,7 +22,7 @@ def generate_launch_description():
     # Gestures   -> packages/pkg_gestures/config/gestures.launch.py
 
     # Listening / Speech: the Listen action server (audio/listen) is not started here any more;
-    # pib-audio was removed (2026-11-21, docs/OPEN_QUESTIONS.md Q1)
+    # pib-audio was removed (2026-11-21); speech now goes through pkg_pib_bridge
 
     # Task Manager
     # Runs missions with Burr (P1). The py_trees variant was removed.

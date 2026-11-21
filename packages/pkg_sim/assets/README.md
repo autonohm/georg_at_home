@@ -1,7 +1,7 @@
 # Simulation assets
 
 Large source files of the simulation world. They are **not in plain git** (`.gitignore`);
-put them here by hand, or move them to Git LFS (decision open, see docs/OPEN_QUESTIONS.md).
+put them here by hand, or move them to Git LFS (not needed now: the simulation worlds are generated, see docs/OPERATIONS.md).
 
 ## arena/ – RoboCup@Home competition arena
 

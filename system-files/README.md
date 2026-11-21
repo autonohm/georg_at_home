@@ -34,6 +34,6 @@ cd georg_at_home/system-files
 ```
 
 ## Continuous operation on the robot (plan P8)
-See `docs/P8_ANLEITUNG.md`: `setup-robot.sh` writes `real` to `/etc/georg/mode` and installs
+See `docs/OPERATIONS.md`: `setup-robot.sh` writes `real` to `/etc/georg/mode` and installs
 `georg.service` (starts `projectctl.bash up real` at boot). `setup-PC.sh` writes `sim` and
 installs Lichtblick 1.30.0 and the Burr UI (`georg-burr-ui`).

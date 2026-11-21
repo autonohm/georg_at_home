@@ -1,6 +1,6 @@
 """Burr actions of the LLM mode (plan P6), graph "star".
 
-Decision 2026-11-20, see docs/OPEN_QUESTIONS.md.
+Decision 2026-11-20, see docs/DECISIONS.md.
 
     start_llm -> next -> <task or block node> -> next -> ... -> finish -> idle
 
