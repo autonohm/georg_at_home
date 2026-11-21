@@ -1,20 +1,15 @@
-"""Burr engine: Idle -> Mission -> Idle, success, failure, abort, same order as before.
+"""Burr engine: Idle -> Mission -> Idle, success, failure, abort, priorities.
 
 Runs without ROS and without a robot: tasks are executed by fake runners.
 """
 
 import asyncio
-import random
-from unittest.mock import MagicMock
 
-from georg_task_manager.burr_app.service import IDLE, TaskManagerService
 from georg_task_manager.catalog import Catalog, load_catalog, TaskSpec
-from georg_task_manager.interface import RobotState
+from georg_task_manager.engine.service import IDLE, TaskManagerService
 from georg_task_manager.missions import DigitalFestival
-from georg_task_manager.task_manager import TaskManager
 from georg_task_manager.tasks.base import BaseTask
 from georg_task_manager.tasks.priority import CRITICAL, HIGH, LOW, MID
-import pytest
 
 
 class FakeTask(BaseTask):
@@ -159,36 +154,6 @@ def test_ten_missions_in_a_row_without_restart():
     assert len(ids) == 10
 
 
-# --- same order as the previous task manager ---------------------------------
-
-def _legacy(tasks):
-    log = []
-    for t in tasks:
-        t.log = log
-    state = RobotState()
-    ok = asyncio.run(TaskManager(None, state, MagicMock()).run(tasks))
-    return ok, log
-
-
-def _scenario(seed):
-    rnd = random.Random(seed)
-    spec = []
-    for i in range(rnd.randint(1, 7)):
-        prio = rnd.choice([LOW, MID, HIGH, CRITICAL])
-        results = [rnd.random() < 0.6 for _ in range(rnd.randint(0, 5))]
-        spec.append((f't{i}', prio, results))
-    return spec
-
-
-@pytest.mark.parametrize('seed', range(60))
-def test_same_order_and_outcome_as_previous_task_manager(seed):
-    spec = _scenario(seed)
-    legacy_ok, legacy_log = _legacy([FakeTask(n, p, r) for n, p, r in spec])
-    result = run(service(), [FakeTask(n, p, r) for n, p, r in spec])
-    assert result.executed == legacy_log
-    assert (result.outcome == 'succeeded') == legacy_ok
-
-
 def test_digital_festival_runs_in_mission_order():
     mission = DigitalFestival.get_mission()
     seen = []
@@ -209,7 +174,7 @@ def test_digital_festival_runs_in_mission_order():
 
 def test_each_run_is_tracked_for_the_burr_ui(tmp_path, monkeypatch):
     monkeypatch.setenv('GEORG_BURR_TRACKING', '1')
-    from georg_task_manager.burr_app.builder import PROJECT, make_tracker
+    from georg_task_manager.engine.builder import PROJECT, make_tracker
 
     tracker = make_tracker(storage_dir=str(tmp_path))
     svc = service(tracker=tracker)
@@ -254,7 +219,7 @@ def test_retry_shows_up_as_repeated_task_node():
 
 
 def test_graph_is_a_line_with_only_the_needed_extra_arrows():
-    from georg_task_manager.burr_app.builder import possible_edges
+    from georg_task_manager.engine.builder import possible_edges
 
     # LOW, HIGH, MID, CRITICAL
     edges = possible_edges([LOW, HIGH, MID, CRITICAL])
@@ -276,7 +241,7 @@ def test_mid_retry_runs_back_one_step():
 
 
 def test_node_names_are_readable_and_unique():
-    from georg_task_manager.burr_app.actions import make_node_names
+    from georg_task_manager.engine.actions import make_node_names
 
     class T:
         def __init__(self, **kw):

@@ -17,11 +17,11 @@ from typing import Awaitable, Callable, List, Optional
 import uuid
 
 from burr.core import action, ApplicationContext, State
-from georg_task_manager.burr_app import actions as a
 from georg_task_manager.catalog import Catalog
+from georg_task_manager.catalog.validator import block_tasks, instantiate
+from georg_task_manager.engine import actions as a
 from georg_task_manager.planner.llm_client import LLMError
 from georg_task_manager.planner.planner import Planner
-from georg_task_manager.validator import block_tasks, instantiate
 
 MAX_TASK_RUNS = 30
 
@@ -147,7 +147,7 @@ async def run_llm_task(state: State, ctx: LLMContext, task_type: str) -> State:
 async def run_block(state: State, ctx: LLMContext, block_name: str,
                     __context: ApplicationContext) -> State:
     """Node of one mission block: runs the block as its own (linked) Burr run, a chain."""
-    from georg_task_manager.burr_app.builder import build_mission_app
+    from georg_task_manager.engine.builder import build_mission_app
 
     tasks = block_tasks(block_name, ctx.catalog)
     results = []

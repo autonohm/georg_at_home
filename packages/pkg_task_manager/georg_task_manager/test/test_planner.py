@@ -4,9 +4,9 @@ import asyncio
 import json
 import os
 
-from georg_task_manager.burr_app.builder import make_tracker, PROJECT
-from georg_task_manager.burr_app.service import TaskManagerService
 from georg_task_manager.catalog import load_catalog
+from georg_task_manager.engine.builder import make_tracker, PROJECT
+from georg_task_manager.engine.service import TaskManagerService
 from georg_task_manager.planner import prompts
 from georg_task_manager.planner.planner import Planner
 import pytest

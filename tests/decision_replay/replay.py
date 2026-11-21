@@ -72,7 +72,7 @@ def load_recording(app_dir: str) -> Recording:
 
 def replay_once(rec: Recording, tasks) -> Recording:
     """Run the mission again with the recorded task results; record what happened."""
-    from georg_task_manager.burr_app.service import TaskManagerService
+    from georg_task_manager.engine.service import TaskManagerService
 
     results = list(rec.results)
     seen = Recording(app_id='replay', mission_id=rec.mission_id)
@@ -119,7 +119,7 @@ def compare(recorded: Recording, replayed: Recording) -> List[str]:
 def replay(app_dir: str, runs: int = 3, mission_factory=None) -> List[str]:
     """Replay a recorded run ``runs`` times; return all deviations."""
     _import_task_manager()
-    from georg_task_manager.mission_selector import get_mission
+    from georg_task_manager.missions import get_mission
 
     rec = load_recording(app_dir)
     factory = mission_factory or get_mission

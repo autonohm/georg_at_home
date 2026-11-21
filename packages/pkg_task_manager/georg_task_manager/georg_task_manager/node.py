@@ -11,7 +11,7 @@ Topic:
     task_manager/status          MissionStatus   transient_local, updated on every Burr step
 
 The node starts in Idle and never starts a mission by itself (plan: hard rules).
-Missions run in Burr (burr_app/service.py) on an asyncio loop in a worker thread;
+Missions run in Burr (engine/service.py) on an asyncio loop in a worker thread;
 the node itself spins in a MultiThreadedExecutor so action results arrive while
 a mission runs.
 
@@ -27,14 +27,14 @@ import threading
 import traceback
 import uuid
 
-from georg_task_manager.burr_app.service import TaskManagerService
 from georg_task_manager.catalog import load_catalog
-from georg_task_manager.Georg import Georg
-from georg_task_manager.mission_selector import ALIASES, get_mission, MISSIONS
+from georg_task_manager.catalog.validator import check_mission
+from georg_task_manager.engine.service import TaskManagerService
+from georg_task_manager.missions import ALIASES, get_mission, MISSIONS
 from georg_task_manager.planner.llm_client import LLMClient
 from georg_task_manager.planner.planner import Planner
+from georg_task_manager.robot import Georg
 from georg_task_manager.tasks.base import default_map_path
-from georg_task_manager.validator import check_mission
 from georg_task_manager_msgs.msg import MissionStatus
 from georg_task_manager_msgs.srv import ApprovePlan, CancelMission, Instruct, ListMissions
 from georg_task_manager_msgs.srv import SetMode, StartMission
@@ -183,7 +183,7 @@ class TaskManagerBridge(Node):
         for action in sorted({a for s in specs.values() for a in s.actions}):
             client = self._action_clients.get(action)
             if client is None:
-                missing.append(f'{action} (no client in Georg.py)')
+                missing.append(f'{action} (no client in robot.py)')
             elif not client.wait_for_server(timeout_sec=timeout):
                 missing.append(action)
         if missing:

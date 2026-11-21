@@ -100,7 +100,7 @@ Omitted optional arguments default to `none`, so the logic chooses the side, ges
 
 ## Using the action from the Task Manager
 
-The Task Manager creates the client in `georg_task_manager/georg_task_manager/Georg.py`:
+The Task Manager creates the client in `georg_task_manager/georg_task_manager/robot.py`:
 
 ```python
 self.greet_action_client = ActionClient(node, PibGesturesInterface, "pib_gestures_interface")

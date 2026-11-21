@@ -6,7 +6,7 @@ from georg_gesture_msgs.action import PibGesturesInterface
 from datatypes.action import Listen
 from georg_nav_msgs.action import Navigate, DriveRoute
 from std_msgs.msg import String as StringMsg
-from .interface import RobotState
+from .state import RobotState
 from nav_msgs.msg import Odometry
 
 class Georg:

@@ -13,7 +13,7 @@ def generate_launch_description():
         'robot_namespace', default_value=os.getenv('EDU_ROBOT_NAMESPACE', default='georg')
     )
 
-    # One planning server per action name the task manager calls (Georg.py):
+    # One planning server per action name the task manager calls (robot.py):
     # nav/navigate_object_x (NavigateObject) and nav/navigate_room_x (NavigateRoom).
     # Relative names, so they end up in the robot namespace (/georg/nav/...).
     nav_object = Node(
