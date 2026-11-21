@@ -21,7 +21,7 @@ ROS_MODULES = [
     'std_msgs', 'std_msgs.msg',
     'geometry_msgs', 'geometry_msgs.msg',
     'nav_msgs', 'nav_msgs.msg',
-    'datatypes', 'datatypes.action',
+    'georg_speech_msgs', 'georg_speech_msgs.action',
     'georg_gesture_msgs', 'georg_gesture_msgs.action',
     'georg_nav_msgs', 'georg_nav_msgs.action',
     'navigate_server', 'navigate_server.grid_rasterizer',

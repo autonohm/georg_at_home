@@ -2,9 +2,9 @@
 
 > **Layout since P0 (2026-11-20)** – see `docs/task_manager_plan.md`
 >
-> - This package contains only the ROS package `task_manager`. `pib-audio` was removed (2026-11-21); its `Listen` action (`datatypes`) is in `packages/pkg_interfaces`.
+> - This package contains only the ROS package `task_manager`. `pib-audio` was removed (2026-11-21); its `Listen` action is in `packages/pkg_interfaces` (package `georg_speech_msgs`, formerly `datatypes`).
 > - Navigation: `packages/pkg_navigation`. Gestures: `packages/pkg_gestures`. Maps: `packages/pkg_slam/maps`.
-> - Interfaces (`georg_nav_msgs`, `georg_gesture_msgs`, `georg_task_manager_msgs`, `datatypes`): `packages/pkg_interfaces`, built into the base image.
+> - Interfaces (`georg_nav_msgs`, `georg_gesture_msgs`, `georg_task_manager_msgs`, `georg_speech_msgs`): `packages/pkg_interfaces`; pib-backend `datatypes` comes from the pib-backend repo, built into the base image.
 > - The launch file starts only `task_manager`, which runs missions with Burr (P1). The py_trees variant (`task_manager_bt`, `render_mission_bt`) was removed.
 > - Start everything with `./projectctl.bash up mock|sim|real|mcap` from the repo root.
 >

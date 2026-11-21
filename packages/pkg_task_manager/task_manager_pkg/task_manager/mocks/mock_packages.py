@@ -29,7 +29,7 @@ import os
 import threading
 import time
 
-from datatypes.action import Listen
+from georg_speech_msgs.action import Listen, Say
 from geometry_msgs.msg import Point
 from georg_gesture_msgs.action import PibGesturesInterface
 from georg_nav_msgs.action import DriveRoute, Navigate
@@ -46,7 +46,8 @@ SCENARIO_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'scenari
 DEFAULT = {'result': 'success', 'after_s': 0.3}
 
 ACTION_TYPES = {
-    'datatypes/action/Listen': Listen,
+    'georg_speech_msgs/action/Listen': Listen,
+    'georg_speech_msgs/action/Say': Say,
     'georg_gesture_msgs/action/PibGesturesInterface': PibGesturesInterface,
     'georg_nav_msgs/action/Navigate': Navigate,
 }
@@ -66,6 +67,9 @@ def _result(action_type, ok: bool):
     if action_type is Listen:
         r = Listen.Result()
         r.detected, r.confidence, r.transcript = ok, 0.9 if ok else 0.1, 'mock' if ok else ''
+    elif action_type is Say:
+        r = Say.Result()
+        r.success, r.message = (True, 'mock said it') if ok else (False, 'mock failure')
     elif action_type is PibGesturesInterface:
         r = PibGesturesInterface.Result()
         r.success, r.message = (0, 'mock ok') if ok else (1, 'mock failure')

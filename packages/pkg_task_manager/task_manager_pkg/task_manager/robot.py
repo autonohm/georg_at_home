@@ -3,7 +3,7 @@ from rclpy.action import ActionClient
 from std_msgs.msg import String
 from std_msgs.msg import Bool
 from georg_gesture_msgs.action import PibGesturesInterface
-from datatypes.action import Listen
+from georg_speech_msgs.action import Listen, Say
 from georg_nav_msgs.action import Navigate, DriveRoute
 from std_msgs.msg import String as StringMsg
 from .state import RobotState
@@ -31,6 +31,13 @@ class Georg:
             node,
             Listen,
             "audio/listen"
+        )
+
+        # speak (pkg_pib_bridge -> pib-backend /play_audio_from_speech, or the mocks)
+        self.say_action_client = ActionClient(
+            node,
+            Say,
+            "speech/say"
         )
 
         self.greet_action_client = ActionClient(

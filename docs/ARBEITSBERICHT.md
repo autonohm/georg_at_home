@@ -98,6 +98,8 @@ Comment: Ja das müssen wir definitiv angehen
   ins Repo kopiert. Grund: Lizenz unklar (Repo AGPL-3.0, `package.xml` „Proprietary“) –
   **bitte klären, bevor Images weitergegeben werden.** Ohne Internet beim Build kein Modell.
 
+  Comment:  erkläre verstehe garnicht erstens warum eigener container und dnicht mit der fahrenden bas e in einen und 2 tens warum nicht das urdf direkt klingt doch ansich besser und einfacher
+
 #### E4 – Wie die Meshes zu Lichtblick kommen
 - **Fund:** Das Bridge-Image enthielt bisher **kein** `georg_description` → in Docker hätte
   Lichtblick Georg ohne Meshes gezeigt (auf dem Mac fiel das nicht auf). Außerdem lässt die
@@ -108,6 +110,8 @@ Comment: Ja das müssen wir definitiv angehen
   (gleiche Pinnung). Freigabeliste mit Leerzeichen in `pkg_viz/config/foxglove_bridge.yaml`.
 - **Folgen:** Modell wird zweimal geladen (15 MB, Sekunden). `georg_description` in Bridge und
   `urdf` sind beide „main“ zum Build-Zeitpunkt – bei Änderungen beide neu bauen.
+
+ Comment: auch das müssen wir nochmal besprechen
 
 #### E5 – Starres pib-Mesh von Georg und Montage
 - **Problem:** `georg_description` zeigt pib als ein starres `pib_4S.stl`; doppelt mit dem
@@ -132,6 +136,8 @@ Comment: Ja das müssen wir definitiv angehen
   Vorschlag: `/apply_joint_trajectory` von pib-backend nutzen – dann sieht man die Gesten sofort
   in der Sim (Fake-Motoren) und auf dem Roboter.
 
+  Comment: muss dringend behoben werden 
+
 ### Phase 4 – Fahren in der Sim wie am Roboter
 
 #### E6 – Wie weit Sams `sim_mode` in der Sim geht
@@ -149,6 +155,8 @@ Comment: Ja das müssen wir definitiv angehen
   startet immer den Treiber, `sim` nie. Der `drive`-Container läuft in `sim` jetzt mit
   `privileged` und `/dev` (so ist Sams Compose) – der Treiber startet dort aber nicht.
 
+Comment auch das müssen wir besprechen 
+
 #### Fehler gefunden und behoben
 - **QoS:** `twist_limiter` sendet `cmd_vel` als *best effort*, der Simulator abonnierte
   *reliable* → **keine einzige Nachricht** kam an, Georg stand still. Simulator abonniert jetzt
@@ -156,6 +164,7 @@ Comment: Ja das müssen wir definitiv angehen
   abonniert.
 - **Doppelte tf:** Simulator sendete `base_footprint → base_link` mit 0 m, `georg_description`
   mit 0,128 m – im Stack jetzt nur noch das URDF.
+  
 
 #### Realistischere Sensoren (Parameter des Simulators, Schalter im Compose)
 | Parameter | Standard im Stack | Was |
@@ -188,3 +197,34 @@ Strahlauflösung 1° statt 0,33°: der zusammengeführte Scan hat ohnehin 1°, P
   als einziger Integrationsweg reicht.
 - **S3 – Meshes verkleinern** (~50 MB beim ersten Verbinden von Lichtblick).
 - **S4 – Q21:** Mission meldet `succeeded`, obwohl ein LOW-Task scheiterte.
+
+### Phase 5 – Sprache über pib-backend (Schritt 1 von 2: Task Manager) – erledigt
+
+#### E7 – Namenskonflikt `datatypes` und Anbindung an pib-backend
+- **Problem:** Unser Paket `datatypes` (Listen, VoiceEvent, VoiceTask, aus `pib-audio`) und das
+  `datatypes` von pib-backend (PlayAudioFromSpeech, ApplyJointTrajectory, …) heißen gleich,
+  sind aber verschieden. pib-backend hat **keine** `Listen`-Action und keine Türklingel.
+- **Optionen:** (a) unser Paket löschen, Task Manager direkt auf pib-backend umbauen (Listening
+  auf `/speech_detected`/`/chat_messages`, Speak als Service-Aufruf); (b) unser Paket
+  umbenennen, Task Manager behält seinen Vertrag (Actions), ein kleiner Adapter übersetzt zu
+  pib-backend.
+- **Gewählt:** (b). Unser Paket heißt jetzt `georg_speech_msgs` (dazu neu `Say.action`); das
+  Basis-Image baut zusätzlich `datatypes` aus dem pib-backend-Repo, gepinnt auf den Commit, der
+  auf dem Jetson läuft (`f3a8a376`, v0.7.10).
+- **Folgen:** Task Manager und Mocks hängen nicht an pib-backend-Details; wenn pib-backend seine
+  Schnittstellen ändert, muss nur der Adapter (Schritt 2) angepasst werden. Neue
+  pib-backend-Version → Pinnung im Basis-Image mitziehen.
+
+#### E8 – Speak als Action statt Service
+- **Problem:** Der Branch `pib_backend_integration` ruft `/play_audio_from_speech` direkt als
+  Service auf. Katalog, Startprüfung, Mocks und Abbrechen kennen nur Actions.
+- **Gewählt:** Task `Speak` nutzt die Action `speech/say` (`georg_speech_msgs/Say`); der Adapter
+  ruft dahinter den Service. Text, Stimme (`M1`, `de`) und Mission „Greeting“ wie im Branch.
+- **Folgen:** `Speak` lässt sich abbrechen und erscheint im Katalog (auch für das LLM).
+
+#### Ergebnis
+- Im Container: Burr 18, Validator 27, Planer 17, Mock-Integration 10/10.
+- Stack `mock`: 4/4, neue Mission `greeting` spricht zweimal über `speech/say` (Mocks).
+- **Noch offen (Schritt 2):** Adapter `pkg_pib_bridge` – `speech/say` → pib-backend
+  `/play_audio_from_speech`, `audio/listen` (SPEECH) → `/speech_detected` + `/chat_messages`,
+  Brücke zwischen Domain 30 (Sim) und 0 (pib-backend), Türklingel ohne Quelle (Frage).

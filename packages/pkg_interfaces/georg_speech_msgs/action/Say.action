@@ -1,0 +1,13 @@
+# Speak a text (Georg's voice). Served by pkg_pib_bridge (pib-backend /play_audio_from_speech)
+# or by the mock packages. Returns when the audio has finished playing.
+
+string text
+string language   # e.g. "de"; empty = default of the bridge
+string gender     # voice of pib-backend, e.g. "M1"; empty = default of the bridge
+
+---
+bool success
+string message
+
+---
+string state

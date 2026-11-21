@@ -3,7 +3,7 @@ from .base import BaseTask
 from .timeout_watcher import wait_for_action_result
 from .priority import TaskPriority
 
-from datatypes.action import Listen
+from georg_speech_msgs.action import Listen
 
 
 class Listening(BaseTask):

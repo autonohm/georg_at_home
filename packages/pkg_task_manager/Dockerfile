@@ -27,7 +27,7 @@ ENV GEORG_BURR_STORAGE_DIR=/root/.burr
 # change this variable to trick docker cache into rebuilding
 ENV REBUILD=1
 
-# Interfaces (georg_nav_msgs, georg_gesture_msgs, georg_task_manager_msgs, datatypes)
+# Interfaces (georg_nav_msgs, georg_gesture_msgs, georg_task_manager_msgs, georg_speech_msgs, pib-backend datatypes)
 # come from the base image (packages/pkg_interfaces).
 COPY ./task_manager_pkg /ws/task_manager
 # NavigateObject/NavigateRoom import navigate_server.grid_rasterizer directly.

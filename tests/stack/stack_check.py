@@ -155,6 +155,13 @@ def main():
             return st.message
         check('mock_test succeeds with the mock packages', mock_mission)
 
+        def greeting():
+            st = node.run_mission('greeting', timeout=60)
+            if st.state != MissionStatus.SUCCEEDED:
+                raise RuntimeError(f'state {STATE[st.state]}: {st.message}')
+            return st.message
+        check('greeting (speak via speech/say) succeeds with the mock packages', greeting)
+
     if profile == 'sim':
         def odom():
             if not wait_for(lambda: node.pose is not None, 15):

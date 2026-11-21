@@ -28,7 +28,7 @@ tasks:
     description: Wait for the doorbell or for speech; succeeds when it was detected.
     class: task_manager.tasks.Listening:Listening
     action: audio/listen
-    type: datatypes/action/Listen
+    type: georg_speech_msgs/action/Listen
     args_schema:
       sound: {type: string, enum: [DOORBELL, SPEECH]}
       timeout_sec: {type: number, min: 0, required: false}
@@ -37,6 +37,21 @@ tasks:
     modes: [mock, sim, real, mcap]
     requires: []
     name_arg: sound
+
+  speak:
+    description: Georg says a text (German by default) and waits until it was spoken.
+    class: task_manager.tasks.Speak:Speak
+    action: speech/say
+    type: georg_speech_msgs/action/Say
+    args_schema:
+      text: {type: string}
+      gender: {type: string, required: false}
+      language: {type: string, required: false}
+      timeout: {type: number, min: 0, required: false}
+    timeout_s: 60
+    cancelable: true
+    modes: [mock, sim, real, mcap]
+    requires: []
 
   gesture:
     description: >-
