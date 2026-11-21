@@ -25,7 +25,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 MAPS = os.path.join(HERE, '..', '..', 'pkg_slam', 'maps')
 SIZE = 9.0
 WALL_T = 0.1
-WALL_H = 1.25
+WALL_H = 2.4      # full room height (the RoboCup arena has 1.25 m, the camera looked over it)
 DOOR = 0.9
 
 WHITE = (0.93, 0.93, 0.9)
