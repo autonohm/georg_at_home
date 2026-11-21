@@ -16,6 +16,8 @@
   <depend>georg_sim_msgs</depend>
   <depend>slam_toolbox</depend>
   <depend>python3-yaml</depend>
+  <depend>python3-pil</depend>
+  <depend>python3-numpy</depend>
 
   <test_depend>python3-pytest</test_depend>
 

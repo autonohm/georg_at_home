@@ -53,6 +53,12 @@ class PibModelNode(Node):
         self.xyz = list(p('mount_xyz', [0.103, 0.065, 0.613]).value)
         self.rpy = list(p('mount_rpy', [0.0, 0.0, math.pi / 2]).value)
         self.hide_mesh = p('hide_mesh', 'pib_4S.stl').value
+        # head camera (OAK) on the head link, same frame id as pib-backend's camera images;
+        # position from the face of the pib model (front, upper middle), looking forward
+        self.camera_link = p('camera_link', 'a81_motor_shaft').value
+        self.camera_frame = p('camera_frame', 'oak_rgb_camera_optical_frame').value
+        self.camera_xyz = list(p('camera_xyz', [0.0415, -0.0504, 0.0796]).value)
+        self.camera_rpy = list(p('camera_rpy', [-math.pi / 2, 0.0, -math.pi]).value)
         with open(os.path.join(model_dir, 'mapping.json'), encoding='utf-8') as f:
             self.mapping = MotorMapping(json.load(f))
         with open(os.path.join(model_dir, 'pib.urdf'), encoding='utf-8') as f:
@@ -70,16 +76,20 @@ class PibModelNode(Node):
         self.get_logger().info(f'pib model ready: {len(self.motors)} motors, mount '
                                f'{self.waist} -> root xyz={self.xyz} rpy={self.rpy}')
 
-    def _publish_mount(self):
+    def _static(self, parent, child, xyz, rpy):
         t = TransformStamped()
         t.header.stamp = self.get_clock().now().to_msg()
-        t.header.frame_id, t.child_frame_id = self.waist, 'root'
-        t.transform.translation.x, t.transform.translation.y, t.transform.translation.z = \
-            self.xyz
-        q = _quaternion(*self.rpy)
+        t.header.frame_id, t.child_frame_id = parent, child
+        t.transform.translation.x, t.transform.translation.y, t.transform.translation.z = xyz
         (t.transform.rotation.x, t.transform.rotation.y, t.transform.rotation.z,
-         t.transform.rotation.w) = q
-        self.static_tf.sendTransform(t)
+         t.transform.rotation.w) = _quaternion(*rpy)
+        return t
+
+    def _publish_mount(self):
+        self.static_tf.sendTransform([
+            self._static(self.waist, 'root', self.xyz, self.rpy),
+            self._static(self.camera_link, self.camera_frame, self.camera_xyz, self.camera_rpy),
+        ])
 
     def _on_motor_states(self, msg):
         for name, value in zip(msg.name, msg.position):

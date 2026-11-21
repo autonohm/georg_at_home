@@ -21,6 +21,7 @@ setup(
         'console_scripts': [
             'sim2d = georg_sim.sim2d_node:main',
             'simmj = georg_sim.simmj_node:main',
+            'sim_camera = georg_sim.camera_node:main',
         ],
     },
 )

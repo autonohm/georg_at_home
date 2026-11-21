@@ -39,6 +39,32 @@ services:
       -p lidar_noise_m:=$${GEORG_SIM_LIDAR_NOISE} -p odom_noise:=$${GEORG_SIM_ODOM_NOISE}
       -p cmd_latency_s:=$${GEORG_SIM_CMD_LATENCY}'
 
+  # Simulated head camera (MuJoCo on the GPU): what Georg would see in the simulation.
+  # Same topic/frame as the real OAK camera of pib-backend (/oak/rgb/image_raw/compressed).
+  sim_camera:
+    image: sim
+    environment:
+      - ROS_DOMAIN_ID=${ROS_DOMAIN_ID:-0}
+      - GEORG_MAP_DIR=/root/georg_maps
+      - MUJOCO_GL=egl
+      - NVIDIA_DRIVER_CAPABILITIES=all
+    profiles: [sim]
+    runtime: nvidia
+    networks:
+      - pib-network
+    volumes:
+      - ../pkg_slam/maps:/root/georg_maps:ro
+    depends_on: [sim]
+    init: true
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", ". /opt/ros/jazzy/setup.sh && . /ws/install/setup.sh && ros2 node list | grep -qx /sim_camera"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+      start_period: 60s
+    command: ros2 run georg_sim sim_camera --ros-args -p map_file:=/root/georg_maps/Nav_Test.yaml
+
 networks:
   pib-network:
     driver: bridge
