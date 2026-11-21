@@ -153,7 +153,7 @@ drive_goal.waypoints = nav_result.waypoints
 # send to /nav/drive_route, check result.result_code == RESULT_OK
 ```
 
-`NavigateRoom` and `NavigateObject` in `pkg_task_manager/georg_task_manager/tasks/` implement this pattern.
+`NavigateRoom` and `NavigateObject` in `pkg_task_manager/task_manager/task_manager/tasks/` implement this pattern.
 
 ## How to add a new navigation action
 
@@ -163,7 +163,7 @@ Example: a `NavigateZone` action that plans to a named zone.
 2. **Write the server.** Copy `navigate_action_server.py` and change the action type and the goal handling. Reuse `grid_rasterizer.load_grid` and `astar.find_path` for the planning logic. Give it its own node and action names. Keep the `ReentrantCallbackGroup` and `MultiThreadedExecutor` pattern if the server needs concurrent callbacks.
 3. **Register the executable** in `navigate_server_pkg/setup.py` under `console_scripts`.
 4. **Add it to the launch file** in `config/navigation.launch.py`, as a `Node` inside the `GroupAction`.
-5. **Add a task** in `pkg_task_manager/georg_task_manager/tasks/`, following `NavigateObject.py`, and add the client to `georg_task_manager/robot.py`.
+5. **Add a task** in `pkg_task_manager/task_manager/task_manager/tasks/`, following `NavigateObject.py`, and add the client to `task_manager/robot.py`.
 6. **Build and test** on the robot or in simulation before adding it to a mission.
 
 For a driving action, follow `drive_route_action_server.py`. The controller parameters come from `ControllerGains` in `mecanum_controller.py`.

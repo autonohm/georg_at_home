@@ -100,13 +100,13 @@ Omitted optional arguments default to `none`, so the logic chooses the side, ges
 
 ## Using the action from the Task Manager
 
-The Task Manager creates the client in `georg_task_manager/georg_task_manager/robot.py`:
+The Task Manager creates the client in `task_manager/task_manager/robot.py`:
 
 ```python
 self.greet_action_client = ActionClient(node, PibGesturesInterface, "pib_gestures_interface")
 ```
 
-A task is a `BaseTask` subclass in `georg_task_manager/georg_task_manager/tasks/`. `tasks/Gesture.py` shows the pattern:
+A task is a `BaseTask` subclass in `task_manager/task_manager/tasks/`. `tasks/Gesture.py` shows the pattern:
 
 ```python
 goal_msg = PibGesturesInterface.Goal()
@@ -214,7 +214,7 @@ ros2 run pib_gestures_action pib_gestures_server.py      # terminal 1
 ros2 run pib_gestures_action pib_gestures_client.py nod -1000 0 0   # terminal 2
 ```
 
-Then add a task in `georg_task_manager/tasks/` (copy `Gesture.py`, change the name and fields) and use it in a mission.
+Then add a task in `task_manager/tasks/` (copy `Gesture.py`, change the name and fields) and use it in a mission.
 
 ### Adding a new action *type* (not a new gesture)
 

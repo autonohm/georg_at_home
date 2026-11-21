@@ -21,21 +21,14 @@ def generate_launch_description():
     # Navigation -> packages/pkg_navigation/config/navigation.launch.py
     # Gestures   -> packages/pkg_gestures/config/gestures.launch.py
 
-    # Listening / Speech
-    # stays here until the state of pkg_speech is clear (OPEN_QUESTIONS Q1)
-
-    voice_module = Node(
-        package="voice_assistant",
-        executable="listen_action_server",
-        name="listen_action_server",
-        output="screen",
-    )
+    # Listening / Speech: the Listen action server (audio/listen) is not started here any more;
+    # pib-audio was removed (2026-11-21, docs/OPEN_QUESTIONS.md Q1)
 
     # Task Manager
     # Runs missions with Burr (P1). The py_trees variant was removed.
 
     task_manager_module = Node(
-        package="georg_task_manager",
+        package="task_manager",
         executable="task_manager",
         name="task_manager",
         output="screen",
@@ -46,7 +39,6 @@ def generate_launch_description():
         GroupAction(
             actions=[
                 PushRosNamespace(robot_namespace),
-                voice_module,
                 task_manager_module,
             ]
         )

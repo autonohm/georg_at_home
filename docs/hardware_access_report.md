@@ -1,6 +1,6 @@
 # Hardware-Zugriffs-Bericht (P7)
 
-Erzeugt am 2026-11-21 von `tools/hardware_scan.py`. 3210 Dateien einzeln geprüft, 86 Fundstellen.
+Erzeugt am 2026-11-21 von `tools/hardware_scan.py`. 3185 Dateien einzeln geprüft, 63 Fundstellen.
 
 **Profil `real`: NICHT freigegeben** – es gibt offene Probleme (unten). Funde in fremden Paketen werden gemeldet, nicht umgebaut.
 
@@ -8,7 +8,7 @@ Erzeugt am 2026-11-21 von `tools/hardware_scan.py`. 3210 Dateien einzeln geprüf
 | --- | --- |
 | Problem | 13 |
 | offen | 8 |
-| Hinweis | 56 |
+| Hinweis | 33 |
 | erlaubt | 9 |
 
 ## Meldungen an die Paket-Verantwortlichen
@@ -64,7 +64,7 @@ Erzeugt am 2026-11-21 von `tools/hardware_scan.py`. 3210 Dateien einzeln geprüf
 | pkg_gestures | `packages/pkg_gestures/pib_gestures_action/modules/pib_gestures/README.md` | 170 | `- **ERROR: Could not find a version that satisfies the requirement mediapipe (from pib-sdk) (from versions: none)**` | controller sdk | Hinweis | nur Dokumentation |
 | pkg_gestures | `packages/pkg_gestures/pib_gestures_action/modules/pib_gestures/README.md` | 173 | `- **roslibpy.core.RosTimeoutError: Failed to connect to ROS**` | controller sdk | Hinweis | nur Dokumentation |
 | pkg_gestures | `packages/pkg_gestures/pib_gestures_action/modules/pib_gestures/src/pib_gestures/utils/pib_control.py` | 5 | `more detailed description on pibrocks github / pib-sdk / branch-978` | controller sdk | Hinweis | nur Kommentar/Docstring |
-| pkg_navigation | `packages/pkg_navigation/drive_route_server_pkg/drive_route_server/drive_route_action_server.py` | 177 | `self._cmd_vel_pub = self.create_publisher(Twist, CMD_VEL_TOPIC, 10)` | cmd_vel publisher | Hinweis | Fahrbefehl über ROS (cmd_vel). Im Profil real per Launch auf cmd_vel/nav umgeleitet -> twist_mux -> twist_limiter -> command_gate |
+| pkg_navigation | `packages/pkg_navigation/drive_route_server/drive_route_server/drive_route_action_server.py` | 177 | `self._cmd_vel_pub = self.create_publisher(Twist, CMD_VEL_TOPIC, 10)` | cmd_vel publisher | Hinweis | Fahrbefehl über ROS (cmd_vel). Im Profil real per Launch auf cmd_vel/nav umgeleitet -> twist_mux -> twist_limiter -> command_gate |
 | pkg_object_detection | `packages/pkg_object_detection/README.md` | 5 | `'''git clone --depth 1 https://github.com/luxonis/oak-examples.git` | external code | Hinweis | nur Dokumentation |
 | pkg_slam | `packages/pkg_slam/Dockerfile` | 15 | `RUN git clone https://github.com/SICKAG/sick_scan_xd.git --branch 3.8.0 && \` | external code | offen | Sensor-Treiber (sick_scan_xd, rf2o, scan merger) werden geklont; lesend, nicht im Repo geprüft |
 | pkg_slam | `packages/pkg_slam/Dockerfile` | 16 | `git clone https://github.com/MAPIRlab/rf2o_laser_odometry.git && \` | external code | offen | Sensor-Treiber (sick_scan_xd, rf2o, scan merger) werden geklont; lesend, nicht im Repo geprüft |
@@ -73,32 +73,9 @@ Erzeugt am 2026-11-21 von `tools/hardware_scan.py`. 3210 Dateien einzeln geprüf
 | pkg_slam | `packages/pkg_slam/config/lidars.launch.py` | 36 | `arguments=[node_arguments, "hostname:=192.168.2.144", "frame_id:=laser2_frame", "tf_publish_rate:=0.0"],` | hardware ip | erlaubt | Netzwerk-Lidar (SICK), nur lesend, kein Aktor |
 | pkg_speech | `packages/pkg_speech/README.md` | 45 | `# - ALSA_CARD=ArrayUAC10 #  <-- remove this line` | audio device | Hinweis | nur Dokumentation |
 | pkg_speech | `packages/pkg_speech/README.md` | 46 | `- PULSE_SERVER=unix:${XDG_RUNTIME_DIR:-/run/user/1000}/pulse/native` | audio device | Hinweis | nur Dokumentation |
-| pkg_task_manager | `packages/pkg_task_manager/Dockerfile` | 24 | `PyAudio==0.2.14 \` | audio device | Hinweis | Mikrofon/Lautsprecher der Spracherkennung, kein Bewegungsaktor |
-| pkg_task_manager | `packages/pkg_task_manager/Dockerfile` | 48 | `#RUN git clone https://github.com/Giusaurus/pkg_navigation.git` | external code | Hinweis | nur Kommentar/Docstring |
-| pkg_task_manager | `packages/pkg_task_manager/docker-compose.yaml` | 31 | `devices:` | device mount | Hinweis | nur Audio-Geräte (/dev/snd) für die Spracherkennung, kein Bewegungsaktor |
-| pkg_task_manager | `packages/pkg_task_manager/docker-compose.yaml` | 32 | `- /dev/snd:/dev/snd` | device file | Hinweis | nur Audio-Geräte (/dev/snd) für die Spracherkennung, kein Bewegungsaktor |
-| pkg_task_manager | `packages/pkg_task_manager/docker-compose.yaml` | 32 | `- /dev/snd:/dev/snd` | device mount | Hinweis | nur Audio-Geräte (/dev/snd) für die Spracherkennung, kein Bewegungsaktor |
-| pkg_task_manager | `packages/pkg_task_manager/georg_task_manager/test/test_mcap_integration.py` | 77 | `cmd = client.node.create_publisher(Twist, f'{NS}/cmd_vel', 10)` | cmd_vel publisher | Hinweis | Fahrbefehl über ROS; läuft über das command_gate |
-| pkg_task_manager | `packages/pkg_task_manager/georg_task_manager/test/test_sim_integration.py` | 75 | `self.cmd = node.create_publisher(Twist, f'{NS}/cmd_vel', 10)` | cmd_vel publisher | Hinweis | Fahrbefehl über ROS; läuft über das command_gate |
-| pkg_task_manager | `packages/pkg_task_manager/pib-audio/README.md` | 14 | `├── requirements.txt              # Python dependencies (TensorFlow, faster-whisper, PyAudio, ...)` | audio device | Hinweis | nur Dokumentation |
-| pkg_task_manager | `packages/pkg_task_manager/pib-audio/README.md` | 81 | `'PyAudio' needs 'portaudio19-dev' installed on the system.` | audio device | Hinweis | nur Dokumentation |
-| pkg_task_manager | `packages/pkg_task_manager/pib-audio/README.md` | 180 | `- **'pyaudio is required for microphone listening':** install 'PyAudio' and 'portaudio19-dev', or use 'wav_path' for tes` | audio device | Hinweis | nur Dokumentation |
-| pkg_task_manager | `packages/pkg_task_manager/pib-audio/requirements.lock.txt` | 77 | `PyAudio==0.2.14` | audio device | Hinweis | Mikrofon/Lautsprecher der Spracherkennung, kein Bewegungsaktor |
-| pkg_task_manager | `packages/pkg_task_manager/pib-audio/requirements.txt` | 5 | `PyAudio==0.2.14` | audio device | Hinweis | Mikrofon/Lautsprecher der Spracherkennung, kein Bewegungsaktor |
-| pkg_task_manager | `packages/pkg_task_manager/pib-audio/src/voice_assistant/Dockerfile` | 15 | `libusb-1.0-0-dev \` | usb | Hinweis | USB-Bibliothek für das Mikrofon-Array der Spracherkennung, kein Bewegungsaktor |
-| pkg_task_manager | `packages/pkg_task_manager/pib-audio/src/voice_assistant/Dockerfile` | 24 | `pyaudio \` | audio device | Hinweis | Mikrofon/Lautsprecher der Spracherkennung, kein Bewegungsaktor |
-| pkg_task_manager | `packages/pkg_task_manager/pib-audio/src/voice_assistant/Dockerfile` | 48 | `ENV PULSE_SERVER=unix:"${XDG_RUNTIME_DIR}/pulse/native"` | audio device | Hinweis | Mikrofon/Lautsprecher der Spracherkennung, kein Bewegungsaktor |
-| pkg_task_manager | `packages/pkg_task_manager/pib-audio/src/voice_assistant/package.xml` | 16 | `<exec_depend>pyaudio</exec_depend>` | audio device | Hinweis | Mikrofon/Lautsprecher der Spracherkennung, kein Bewegungsaktor |
-| pkg_task_manager | `packages/pkg_task_manager/pib-audio/src/voice_assistant/requirements.txt` | 50 | `PyAudio==0.2.14` | audio device | Hinweis | Mikrofon/Lautsprecher der Spracherkennung, kein Bewegungsaktor |
-| pkg_task_manager | `packages/pkg_task_manager/pib-audio/src/voice_assistant/requirements.txt` | 68 | `pyaudio==0.2.14` | audio device | Hinweis | Mikrofon/Lautsprecher der Spracherkennung, kein Bewegungsaktor |
-| pkg_task_manager | `packages/pkg_task_manager/pib-audio/src/voice_assistant/voice_assistant/listen_action_server.py` | 282 | `import pyaudio` | audio device | Hinweis | Mikrofon/Lautsprecher der Spracherkennung, kein Bewegungsaktor |
-| pkg_task_manager | `packages/pkg_task_manager/pib-audio/src/voice_assistant/voice_assistant/listen_action_server.py` | 284 | `self.get_logger().error("pyaudio is required for microphone listening")` | audio device | Hinweis | Mikrofon/Lautsprecher der Spracherkennung, kein Bewegungsaktor |
-| pkg_task_manager | `packages/pkg_task_manager/pib-audio/src/voice_assistant/voice_assistant/listen_action_server.py` | 306 | `audio = pyaudio.PyAudio()` | audio device | Hinweis | Mikrofon/Lautsprecher der Spracherkennung, kein Bewegungsaktor |
-| pkg_task_manager | `packages/pkg_task_manager/pib-audio/src/voice_assistant/voice_assistant/listen_action_server.py` | 311 | `format=pyaudio.paInt16,` | audio device | Hinweis | Mikrofon/Lautsprecher der Spracherkennung, kein Bewegungsaktor |
-| pkg_task_manager | `packages/pkg_task_manager/pib-audio/src/voice_assistant/voice_assistant/listen_action_server.py` | 472 | `import pyaudio` | audio device | Hinweis | Mikrofon/Lautsprecher der Spracherkennung, kein Bewegungsaktor |
-| pkg_task_manager | `packages/pkg_task_manager/pib-audio/src/voice_assistant/voice_assistant/listen_action_server.py` | 474 | `self.get_logger().error("pyaudio is required for microphone listening")` | audio device | Hinweis | Mikrofon/Lautsprecher der Spracherkennung, kein Bewegungsaktor |
-| pkg_task_manager | `packages/pkg_task_manager/pib-audio/src/voice_assistant/voice_assistant/listen_action_server.py` | 480 | `audio = pyaudio.PyAudio()` | audio device | Hinweis | Mikrofon/Lautsprecher der Spracherkennung, kein Bewegungsaktor |
-| pkg_task_manager | `packages/pkg_task_manager/pib-audio/src/voice_assistant/voice_assistant/listen_action_server.py` | 485 | `format=pyaudio.paInt16,` | audio device | Hinweis | Mikrofon/Lautsprecher der Spracherkennung, kein Bewegungsaktor |
+| pkg_task_manager | `packages/pkg_task_manager/Dockerfile` | 38 | `#RUN git clone https://github.com/Giusaurus/pkg_navigation.git` | external code | Hinweis | nur Kommentar/Docstring |
+| pkg_task_manager | `packages/pkg_task_manager/task_manager/test/test_mcap_integration.py` | 77 | `cmd = client.node.create_publisher(Twist, f'{NS}/cmd_vel', 10)` | cmd_vel publisher | Hinweis | Fahrbefehl über ROS; läuft über das command_gate |
+| pkg_task_manager | `packages/pkg_task_manager/task_manager/test/test_sim_integration.py` | 75 | `self.cmd = node.create_publisher(Twist, f'{NS}/cmd_vel', 10)` | cmd_vel publisher | Hinweis | Fahrbefehl über ROS; läuft über das command_gate |
 | pkg_urdf | `packages/pkg_urdf/Dockerfile` | 16 | `RUN git clone https://github.com/autonohm/georg_description.git` | external code | offen | beim Bauen geklonter Code, nicht im Repo geprüft |
 | pkg_viz | `packages/pkg_viz/Dockerfile` | 26 | `RUN git clone https://github.com/autonohm/georg_description.git` | external code | offen | beim Bauen geklonter Code, nicht im Repo geprüft |
 | system-files | `system-files/README.md` | 16 | `git clone https://github.com/autonohm/georg_at_home.git` | external code | Hinweis | nur Dokumentation |
@@ -118,7 +95,7 @@ Erzeugt am 2026-11-21 von `tools/hardware_scan.py`. 3210 Dateien einzeln geprüf
 
 ## Geprüfte Dateien (Beleg)
 
-3210 Dateien, jede einzeln gelesen.
+3185 Dateien, jede einzeln gelesen.
 
 ```
 compose.yaml  –  26 Zeilen geprüft
@@ -222,6 +199,11 @@ packages/pkg_gestures/pib_gestures_action/modules/pib_gestures_server.py  –  1
 packages/pkg_gestures/pib_gestures_action/package.xml  –  24 Zeilen geprüft
 packages/pkg_interfaces/PKG_IGNORE  –  2 Zeilen geprüft
 packages/pkg_interfaces/README.md  –  14 Zeilen geprüft
+packages/pkg_interfaces/datatypes/CMakeLists.txt  –  21 Zeilen geprüft
+packages/pkg_interfaces/datatypes/action/Listen.action  –  19 Zeilen geprüft
+packages/pkg_interfaces/datatypes/msg/VoiceEvent.msg  –  4 Zeilen geprüft
+packages/pkg_interfaces/datatypes/msg/VoiceTask.msg  –  4 Zeilen geprüft
+packages/pkg_interfaces/datatypes/package.xml  –  24 Zeilen geprüft
 packages/pkg_interfaces/georg_gesture_msgs/CMakeLists.txt  –  16 Zeilen geprüft
 packages/pkg_interfaces/georg_gesture_msgs/action/PibGesturesInterface.action  –  11 Zeilen geprüft
 packages/pkg_interfaces/georg_gesture_msgs/package.xml  –  23 Zeilen geprüft
@@ -244,22 +226,22 @@ packages/pkg_navigation/Dockerfile  –  25 Zeilen geprüft
 packages/pkg_navigation/README.md  –  186 Zeilen geprüft
 packages/pkg_navigation/config/navigation.launch.py  –  58 Zeilen geprüft
 packages/pkg_navigation/docker-compose.yaml  –  32 Zeilen geprüft
-packages/pkg_navigation/drive_route_server_pkg/drive_route_server/__init__.py  –  1 Zeilen geprüft
-packages/pkg_navigation/drive_route_server_pkg/drive_route_server/drive_route_action_server.py  –  557 Zeilen geprüft
-packages/pkg_navigation/drive_route_server_pkg/drive_route_server/drive_route_client.py  –  114 Zeilen geprüft
-packages/pkg_navigation/drive_route_server_pkg/drive_route_server/mecanum_controller.py  –  126 Zeilen geprüft
-packages/pkg_navigation/drive_route_server_pkg/package.xml  –  26 Zeilen geprüft
-packages/pkg_navigation/drive_route_server_pkg/resource/drive_route_server  –  1 Zeilen geprüft
-packages/pkg_navigation/drive_route_server_pkg/setup.cfg  –  5 Zeilen geprüft
-packages/pkg_navigation/drive_route_server_pkg/setup.py  –  29 Zeilen geprüft
-packages/pkg_navigation/navigate_server_pkg/navigate_server/__init__.py  –  1 Zeilen geprüft
-packages/pkg_navigation/navigate_server_pkg/navigate_server/astar.py  –  214 Zeilen geprüft
-packages/pkg_navigation/navigate_server_pkg/navigate_server/grid_rasterizer.py  –  281 Zeilen geprüft
-packages/pkg_navigation/navigate_server_pkg/navigate_server/navigate_action_server.py  –  259 Zeilen geprüft
-packages/pkg_navigation/navigate_server_pkg/package.xml  –  26 Zeilen geprüft
-packages/pkg_navigation/navigate_server_pkg/resource/navigate_server  –  1 Zeilen geprüft
-packages/pkg_navigation/navigate_server_pkg/setup.cfg  –  5 Zeilen geprüft
-packages/pkg_navigation/navigate_server_pkg/setup.py  –  29 Zeilen geprüft
+packages/pkg_navigation/drive_route_server/drive_route_server/__init__.py  –  1 Zeilen geprüft
+packages/pkg_navigation/drive_route_server/drive_route_server/drive_route_action_server.py  –  557 Zeilen geprüft
+packages/pkg_navigation/drive_route_server/drive_route_server/drive_route_client.py  –  114 Zeilen geprüft
+packages/pkg_navigation/drive_route_server/drive_route_server/mecanum_controller.py  –  126 Zeilen geprüft
+packages/pkg_navigation/drive_route_server/package.xml  –  26 Zeilen geprüft
+packages/pkg_navigation/drive_route_server/resource/drive_route_server  –  1 Zeilen geprüft
+packages/pkg_navigation/drive_route_server/setup.cfg  –  5 Zeilen geprüft
+packages/pkg_navigation/drive_route_server/setup.py  –  29 Zeilen geprüft
+packages/pkg_navigation/navigate_server/navigate_server/__init__.py  –  1 Zeilen geprüft
+packages/pkg_navigation/navigate_server/navigate_server/astar.py  –  214 Zeilen geprüft
+packages/pkg_navigation/navigate_server/navigate_server/grid_rasterizer.py  –  281 Zeilen geprüft
+packages/pkg_navigation/navigate_server/navigate_server/navigate_action_server.py  –  259 Zeilen geprüft
+packages/pkg_navigation/navigate_server/package.xml  –  26 Zeilen geprüft
+packages/pkg_navigation/navigate_server/resource/navigate_server  –  1 Zeilen geprüft
+packages/pkg_navigation/navigate_server/setup.cfg  –  5 Zeilen geprüft
+packages/pkg_navigation/navigate_server/setup.py  –  29 Zeilen geprüft
 packages/pkg_object_detection/Datensatz/images/train/20260708_145237.jpg  –  binär (Bild/Modell/Archiv), kein Code
 packages/pkg_object_detection/Datensatz/images/train/20260708_145357.jpg  –  binär (Bild/Modell/Archiv), kein Code
 packages/pkg_object_detection/Datensatz/images/train/20260708_145736.jpg  –  binär (Bild/Modell/Archiv), kein Code
@@ -3206,100 +3188,70 @@ packages/pkg_slam/maps/README.md  –  101 Zeilen geprüft
 packages/pkg_slam/tools/mcap_raw_only.py  –  83 Zeilen geprüft
 packages/pkg_speech/PKG_IGNORE  –  1 Zeilen geprüft
 packages/pkg_speech/README.md  –  54 Zeilen geprüft
-packages/pkg_task_manager/Dockerfile  –  60 Zeilen geprüft
-packages/pkg_task_manager/README.md  –  154 Zeilen geprüft
-packages/pkg_task_manager/config/task_manager.launch.py  –  54 Zeilen geprüft
-packages/pkg_task_manager/docker-compose.yaml  –  125 Zeilen geprüft
-packages/pkg_task_manager/georg_task_manager/georg_task_manager/__init__.py  –  1 Zeilen geprüft
-packages/pkg_task_manager/georg_task_manager/georg_task_manager/catalog/catalog.yaml  –  120 Zeilen geprüft
-packages/pkg_task_manager/georg_task_manager/georg_task_manager/catalog/loader.py  –  126 Zeilen geprüft
-packages/pkg_task_manager/georg_task_manager/georg_task_manager/catalog/validator.py  –  173 Zeilen geprüft
-packages/pkg_task_manager/georg_task_manager/georg_task_manager/engine/__init__.py  –  2 Zeilen geprüft
-packages/pkg_task_manager/georg_task_manager/georg_task_manager/engine/actions.py  –  248 Zeilen geprüft
-packages/pkg_task_manager/georg_task_manager/georg_task_manager/engine/builder.py  –  134 Zeilen geprüft
-packages/pkg_task_manager/georg_task_manager/georg_task_manager/engine/llm_actions.py  –  181 Zeilen geprüft
-packages/pkg_task_manager/georg_task_manager/georg_task_manager/engine/service.py  –  156 Zeilen geprüft
-packages/pkg_task_manager/georg_task_manager/georg_task_manager/missions/DigitalFestival.py  –  34 Zeilen geprüft
-packages/pkg_task_manager/georg_task_manager/georg_task_manager/missions/Mock_Test.py  –  24 Zeilen geprüft
-packages/pkg_task_manager/georg_task_manager/georg_task_manager/missions/Sim_Test.py  –  22 Zeilen geprüft
-packages/pkg_task_manager/georg_task_manager/georg_task_manager/missions/Test_Mapping.py  –  34 Zeilen geprüft
-packages/pkg_task_manager/georg_task_manager/georg_task_manager/missions/__init__.py  –  24 Zeilen geprüft
-packages/pkg_task_manager/georg_task_manager/georg_task_manager/mocks/__init__.py  –  2 Zeilen geprüft
-packages/pkg_task_manager/georg_task_manager/georg_task_manager/mocks/mock_packages.py  –  188 Zeilen geprüft
-packages/pkg_task_manager/georg_task_manager/georg_task_manager/mocks/scenarios/abort.yaml  –  3 Zeilen geprüft
-packages/pkg_task_manager/georg_task_manager/georg_task_manager/mocks/scenarios/all_ok.yaml  –  6 Zeilen geprüft
-packages/pkg_task_manager/georg_task_manager/georg_task_manager/mocks/scenarios/mcap.yaml  –  8 Zeilen geprüft
-packages/pkg_task_manager/georg_task_manager/georg_task_manager/mocks/scenarios/one_fails.yaml  –  3 Zeilen geprüft
-packages/pkg_task_manager/georg_task_manager/georg_task_manager/mocks/scenarios/retry_then_ok.yaml  –  3 Zeilen geprüft
-packages/pkg_task_manager/georg_task_manager/georg_task_manager/mocks/scenarios/sim_mocks.yaml  –  8 Zeilen geprüft
-packages/pkg_task_manager/georg_task_manager/georg_task_manager/mocks/scenarios/slow_drive.yaml  –  3 Zeilen geprüft
-packages/pkg_task_manager/georg_task_manager/georg_task_manager/mocks/scenarios/timeout.yaml  –  3 Zeilen geprüft
-packages/pkg_task_manager/georg_task_manager/georg_task_manager/mocks/scenarios/unreachable.yaml  –  3 Zeilen geprüft
-packages/pkg_task_manager/georg_task_manager/georg_task_manager/node.py  –  412 Zeilen geprüft
-packages/pkg_task_manager/georg_task_manager/georg_task_manager/planner/__init__.py  –  2 Zeilen geprüft
-packages/pkg_task_manager/georg_task_manager/georg_task_manager/planner/llm_client.py  –  82 Zeilen geprüft
-packages/pkg_task_manager/georg_task_manager/georg_task_manager/planner/planner.py  –  164 Zeilen geprüft
-packages/pkg_task_manager/georg_task_manager/georg_task_manager/planner/prompts.py  –  126 Zeilen geprüft
-packages/pkg_task_manager/georg_task_manager/georg_task_manager/robot.py  –  105 Zeilen geprüft
-packages/pkg_task_manager/georg_task_manager/georg_task_manager/state.py  –  100 Zeilen geprüft
-packages/pkg_task_manager/georg_task_manager/georg_task_manager/tasks/Gesture.py  –  50 Zeilen geprüft
-packages/pkg_task_manager/georg_task_manager/georg_task_manager/tasks/Listening.py  –  64 Zeilen geprüft
-packages/pkg_task_manager/georg_task_manager/georg_task_manager/tasks/NavigateObject.py  –  115 Zeilen geprüft
-packages/pkg_task_manager/georg_task_manager/georg_task_manager/tasks/NavigateRoom.py  –  100 Zeilen geprüft
-packages/pkg_task_manager/georg_task_manager/georg_task_manager/tasks/ReturnToIdle.py  –  34 Zeilen geprüft
-packages/pkg_task_manager/georg_task_manager/georg_task_manager/tasks/__init__.py  –  1 Zeilen geprüft
-packages/pkg_task_manager/georg_task_manager/georg_task_manager/tasks/base.py  –  21 Zeilen geprüft
-packages/pkg_task_manager/georg_task_manager/georg_task_manager/tasks/priority.py  –  22 Zeilen geprüft
-packages/pkg_task_manager/georg_task_manager/georg_task_manager/tasks/timeout_watcher.py  –  76 Zeilen geprüft
-packages/pkg_task_manager/georg_task_manager/package.xml  –  31 Zeilen geprüft
-packages/pkg_task_manager/georg_task_manager/resource/georg_task_manager  –  1 Zeilen geprüft
-packages/pkg_task_manager/georg_task_manager/setup.cfg  –  5 Zeilen geprüft
-packages/pkg_task_manager/georg_task_manager/setup.py  –  34 Zeilen geprüft
-packages/pkg_task_manager/georg_task_manager/test/conftest.py  –  93 Zeilen geprüft
-packages/pkg_task_manager/georg_task_manager/test/ros_helpers.py  –  217 Zeilen geprüft
-packages/pkg_task_manager/georg_task_manager/test/test_burr_app.py  –  257 Zeilen geprüft
-packages/pkg_task_manager/georg_task_manager/test/test_copyright.py  –  26 Zeilen geprüft
-packages/pkg_task_manager/georg_task_manager/test/test_flake8.py  –  26 Zeilen geprüft
-packages/pkg_task_manager/georg_task_manager/test/test_lichtblick_bridge.py  –  202 Zeilen geprüft
-packages/pkg_task_manager/georg_task_manager/test/test_llm_integration.py  –  218 Zeilen geprüft
-packages/pkg_task_manager/georg_task_manager/test/test_llm_real.py  –  80 Zeilen geprüft
-packages/pkg_task_manager/georg_task_manager/test/test_mcap_integration.py  –  184 Zeilen geprüft
-packages/pkg_task_manager/georg_task_manager/test/test_pep257.py  –  24 Zeilen geprüft
-packages/pkg_task_manager/georg_task_manager/test/test_planner.py  –  219 Zeilen geprüft
-packages/pkg_task_manager/georg_task_manager/test/test_ros_integration.py  –  116 Zeilen geprüft
-packages/pkg_task_manager/georg_task_manager/test/test_sim_integration.py  –  174 Zeilen geprüft
-packages/pkg_task_manager/georg_task_manager/test/test_validator.py  –  142 Zeilen geprüft
-packages/pkg_task_manager/pib-audio/README.md  –  184 Zeilen geprüft
-packages/pkg_task_manager/pib-audio/requirements.lock.txt  –  187 Zeilen geprüft
-packages/pkg_task_manager/pib-audio/requirements.txt  –  12 Zeilen geprüft
-packages/pkg_task_manager/pib-audio/src/datatypes/CMakeLists.txt  –  21 Zeilen geprüft
-packages/pkg_task_manager/pib-audio/src/datatypes/action/Listen.action  –  19 Zeilen geprüft
-packages/pkg_task_manager/pib-audio/src/datatypes/msg/VoiceEvent.msg  –  4 Zeilen geprüft
-packages/pkg_task_manager/pib-audio/src/datatypes/msg/VoiceTask.msg  –  4 Zeilen geprüft
-packages/pkg_task_manager/pib-audio/src/datatypes/package.xml  –  24 Zeilen geprüft
-packages/pkg_task_manager/pib-audio/src/voice_assistant/Dockerfile  –  51 Zeilen geprüft
-packages/pkg_task_manager/pib-audio/src/voice_assistant/boot_scripts/ros_voice_assistant_boot.service  –  15 Zeilen geprüft
-packages/pkg_task_manager/pib-audio/src/voice_assistant/boot_scripts/ros_voice_assistant_boot.sh  –  5 Zeilen geprüft
-packages/pkg_task_manager/pib-audio/src/voice_assistant/launch/demo_doorbell_bag.launch.py  –  46 Zeilen geprüft
-packages/pkg_task_manager/pib-audio/src/voice_assistant/launch/demo_doorbell_wav.launch.py  –  42 Zeilen geprüft
-packages/pkg_task_manager/pib-audio/src/voice_assistant/launch/demo_listen_action_doorbell.launch.py  –  41 Zeilen geprüft
-packages/pkg_task_manager/pib-audio/src/voice_assistant/launch/demo_listen_action_speech.launch.py  –  53 Zeilen geprüft
-packages/pkg_task_manager/pib-audio/src/voice_assistant/package.xml  –  31 Zeilen geprüft
-packages/pkg_task_manager/pib-audio/src/voice_assistant/requirements.txt  –  70 Zeilen geprüft
-packages/pkg_task_manager/pib-audio/src/voice_assistant/resource/voice_assistant  –  1 Zeilen geprüft
-packages/pkg_task_manager/pib-audio/src/voice_assistant/setup.cfg  –  5 Zeilen geprüft
-packages/pkg_task_manager/pib-audio/src/voice_assistant/setup.py  –  40 Zeilen geprüft
-packages/pkg_task_manager/pib-audio/src/voice_assistant/voice_assistant/__init__.py  –  22 Zeilen geprüft
-packages/pkg_task_manager/pib-audio/src/voice_assistant/voice_assistant/demo_doorbell_detector.py  –  34 Zeilen geprüft
-packages/pkg_task_manager/pib-audio/src/voice_assistant/voice_assistant/doorbell_audio_stream_detector.py  –  71 Zeilen geprüft
-packages/pkg_task_manager/pib-audio/src/voice_assistant/voice_assistant/doorbell_task_manager_demo.py  –  102 Zeilen geprüft
-packages/pkg_task_manager/pib-audio/src/voice_assistant/voice_assistant/doorbell_wav_detector.py  –  93 Zeilen geprüft
-packages/pkg_task_manager/pib-audio/src/voice_assistant/voice_assistant/listen_action_server.py  –  678 Zeilen geprüft
-packages/pkg_task_manager/pib-audio/src/voice_assistant/voice_assistant/speech_task_manager_demo.py  –  142 Zeilen geprüft
-packages/pkg_task_manager/pib-audio/src/voice_assistant/voice_assistant/voice_rule_engine.py  –  42 Zeilen geprüft
-packages/pkg_task_manager/pib-audio/src/voice_assistant/voice_assistant/voice_task_dispatcher.py  –  34 Zeilen geprüft
-packages/pkg_task_manager/pib-audio/src/voice_assistant/voice_assistant/whisper_speech_transcriber.py  –  41 Zeilen geprüft
-packages/pkg_task_manager/pib-audio/src/voice_assistant/voice_assistant/yamnet_doorbell_classifier.py  –  63 Zeilen geprüft
+packages/pkg_task_manager/Dockerfile  –  50 Zeilen geprüft
+packages/pkg_task_manager/README.md  –  155 Zeilen geprüft
+packages/pkg_task_manager/config/task_manager.launch.py  –  46 Zeilen geprüft
+packages/pkg_task_manager/docker-compose.yaml  –  120 Zeilen geprüft
+packages/pkg_task_manager/task_manager/package.xml  –  31 Zeilen geprüft
+packages/pkg_task_manager/task_manager/resource/task_manager  –  1 Zeilen geprüft
+packages/pkg_task_manager/task_manager/setup.cfg  –  5 Zeilen geprüft
+packages/pkg_task_manager/task_manager/setup.py  –  34 Zeilen geprüft
+packages/pkg_task_manager/task_manager/task_manager/__init__.py  –  1 Zeilen geprüft
+packages/pkg_task_manager/task_manager/task_manager/catalog/__init__.py  –  5 Zeilen geprüft
+packages/pkg_task_manager/task_manager/task_manager/catalog/catalog.yaml  –  120 Zeilen geprüft
+packages/pkg_task_manager/task_manager/task_manager/catalog/loader.py  –  126 Zeilen geprüft
+packages/pkg_task_manager/task_manager/task_manager/catalog/validator.py  –  173 Zeilen geprüft
+packages/pkg_task_manager/task_manager/task_manager/engine/__init__.py  –  2 Zeilen geprüft
+packages/pkg_task_manager/task_manager/task_manager/engine/actions.py  –  248 Zeilen geprüft
+packages/pkg_task_manager/task_manager/task_manager/engine/builder.py  –  134 Zeilen geprüft
+packages/pkg_task_manager/task_manager/task_manager/engine/llm_actions.py  –  181 Zeilen geprüft
+packages/pkg_task_manager/task_manager/task_manager/engine/service.py  –  156 Zeilen geprüft
+packages/pkg_task_manager/task_manager/task_manager/missions/DigitalFestival.py  –  34 Zeilen geprüft
+packages/pkg_task_manager/task_manager/task_manager/missions/Mock_Test.py  –  24 Zeilen geprüft
+packages/pkg_task_manager/task_manager/task_manager/missions/Sim_Test.py  –  22 Zeilen geprüft
+packages/pkg_task_manager/task_manager/task_manager/missions/Test_Mapping.py  –  34 Zeilen geprüft
+packages/pkg_task_manager/task_manager/task_manager/missions/__init__.py  –  24 Zeilen geprüft
+packages/pkg_task_manager/task_manager/task_manager/mocks/__init__.py  –  2 Zeilen geprüft
+packages/pkg_task_manager/task_manager/task_manager/mocks/mock_packages.py  –  188 Zeilen geprüft
+packages/pkg_task_manager/task_manager/task_manager/mocks/scenarios/abort.yaml  –  3 Zeilen geprüft
+packages/pkg_task_manager/task_manager/task_manager/mocks/scenarios/all_ok.yaml  –  6 Zeilen geprüft
+packages/pkg_task_manager/task_manager/task_manager/mocks/scenarios/mcap.yaml  –  8 Zeilen geprüft
+packages/pkg_task_manager/task_manager/task_manager/mocks/scenarios/one_fails.yaml  –  3 Zeilen geprüft
+packages/pkg_task_manager/task_manager/task_manager/mocks/scenarios/retry_then_ok.yaml  –  3 Zeilen geprüft
+packages/pkg_task_manager/task_manager/task_manager/mocks/scenarios/sim_mocks.yaml  –  8 Zeilen geprüft
+packages/pkg_task_manager/task_manager/task_manager/mocks/scenarios/slow_drive.yaml  –  3 Zeilen geprüft
+packages/pkg_task_manager/task_manager/task_manager/mocks/scenarios/timeout.yaml  –  3 Zeilen geprüft
+packages/pkg_task_manager/task_manager/task_manager/mocks/scenarios/unreachable.yaml  –  3 Zeilen geprüft
+packages/pkg_task_manager/task_manager/task_manager/node.py  –  412 Zeilen geprüft
+packages/pkg_task_manager/task_manager/task_manager/planner/__init__.py  –  2 Zeilen geprüft
+packages/pkg_task_manager/task_manager/task_manager/planner/llm_client.py  –  82 Zeilen geprüft
+packages/pkg_task_manager/task_manager/task_manager/planner/planner.py  –  164 Zeilen geprüft
+packages/pkg_task_manager/task_manager/task_manager/planner/prompts.py  –  126 Zeilen geprüft
+packages/pkg_task_manager/task_manager/task_manager/robot.py  –  105 Zeilen geprüft
+packages/pkg_task_manager/task_manager/task_manager/state.py  –  100 Zeilen geprüft
+packages/pkg_task_manager/task_manager/task_manager/tasks/Gesture.py  –  50 Zeilen geprüft
+packages/pkg_task_manager/task_manager/task_manager/tasks/Listening.py  –  64 Zeilen geprüft
+packages/pkg_task_manager/task_manager/task_manager/tasks/NavigateObject.py  –  115 Zeilen geprüft
+packages/pkg_task_manager/task_manager/task_manager/tasks/NavigateRoom.py  –  100 Zeilen geprüft
+packages/pkg_task_manager/task_manager/task_manager/tasks/ReturnToIdle.py  –  34 Zeilen geprüft
+packages/pkg_task_manager/task_manager/task_manager/tasks/__init__.py  –  1 Zeilen geprüft
+packages/pkg_task_manager/task_manager/task_manager/tasks/base.py  –  21 Zeilen geprüft
+packages/pkg_task_manager/task_manager/task_manager/tasks/priority.py  –  22 Zeilen geprüft
+packages/pkg_task_manager/task_manager/task_manager/tasks/timeout_watcher.py  –  76 Zeilen geprüft
+packages/pkg_task_manager/task_manager/test/conftest.py  –  93 Zeilen geprüft
+packages/pkg_task_manager/task_manager/test/ros_helpers.py  –  217 Zeilen geprüft
+packages/pkg_task_manager/task_manager/test/test_burr_app.py  –  257 Zeilen geprüft
+packages/pkg_task_manager/task_manager/test/test_copyright.py  –  26 Zeilen geprüft
+packages/pkg_task_manager/task_manager/test/test_flake8.py  –  26 Zeilen geprüft
+packages/pkg_task_manager/task_manager/test/test_lichtblick_bridge.py  –  202 Zeilen geprüft
+packages/pkg_task_manager/task_manager/test/test_llm_integration.py  –  218 Zeilen geprüft
+packages/pkg_task_manager/task_manager/test/test_llm_real.py  –  80 Zeilen geprüft
+packages/pkg_task_manager/task_manager/test/test_mcap_integration.py  –  184 Zeilen geprüft
+packages/pkg_task_manager/task_manager/test/test_pep257.py  –  24 Zeilen geprüft
+packages/pkg_task_manager/task_manager/test/test_planner.py  –  219 Zeilen geprüft
+packages/pkg_task_manager/task_manager/test/test_ros_integration.py  –  116 Zeilen geprüft
+packages/pkg_task_manager/task_manager/test/test_sim_integration.py  –  174 Zeilen geprüft
+packages/pkg_task_manager/task_manager/test/test_validator.py  –  142 Zeilen geprüft
 packages/pkg_urdf/Dockerfile  –  25 Zeilen geprüft
 packages/pkg_urdf/README.md  –  16 Zeilen geprüft
 packages/pkg_urdf/docker-compose.yaml  –  20 Zeilen geprüft

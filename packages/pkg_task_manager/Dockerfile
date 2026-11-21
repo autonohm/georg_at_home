@@ -11,18 +11,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3-dev \
     build-essential \
     git \
-    portaudio19-dev \
     ros-jazzy-rosbag2 \
     ros-jazzy-rosbag2-storage-mcap \
     && rm -rf /var/lib/apt/lists/*
-
-RUN python3 -m pip install --no-cache-dir --break-system-packages \
-    numpy==1.26.4 \
-    tensorflow==2.16.2 \
-    tensorflow-hub==0.16.1 \
-    tf_keras==2.16.0 \
-    PyAudio==0.2.14 \
-    faster-whisper==1.2.1
 
 # Burr (P1) in its own venv. --system-site-packages keeps rclpy from Jazzy visible,
 # PYTHONPATH makes the venv visible to `ros2 run` scripts (they use /usr/bin/python3).
@@ -36,10 +27,9 @@ ENV GEORG_BURR_STORAGE_DIR=/root/.burr
 # change this variable to trick docker cache into rebuilding
 ENV REBUILD=1
 
-# Interfaces (georg_nav_msgs, georg_gesture_msgs, georg_task_manager_msgs)
+# Interfaces (georg_nav_msgs, georg_gesture_msgs, georg_task_manager_msgs, datatypes)
 # come from the base image (packages/pkg_interfaces).
-COPY ./georg_task_manager /ws/georg_task_manager
-COPY ./pib-audio /ws/pib-audio
+COPY ./task_manager /ws/task_manager
 # NavigateObject/NavigateRoom import navigate_server.grid_rasterizer directly.
 # Until that is resolved in P1 (OPEN_QUESTIONS Q4b) the package is built here too.
 COPY --from=navigation ./navigate_server_pkg /ws/navigate_server_pkg

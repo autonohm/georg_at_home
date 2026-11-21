@@ -59,8 +59,8 @@ test("responses become one line of feedback", () => {
 
 test("burr link points at the run", () => {
   assert.equal(m.burrUrl("", "mock_test", "id1"),
-    "http://localhost:7241/project/georg_task_manager/mock_test/id1");
-  assert.equal(m.burrUrl("http://x:1/", "", "id1"), "http://x:1/project/georg_task_manager/null/id1");
+    "http://localhost:7241/project/task_manager/mock_test/id1");
+  assert.equal(m.burrUrl("http://x:1/", "", "id1"), "http://x:1/project/task_manager/null/id1");
   assert.equal(m.burrUrl("", "m", ""), "");
 });
 

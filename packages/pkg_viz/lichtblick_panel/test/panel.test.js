@@ -95,7 +95,7 @@ test("panel registers, lists missions, starts, shows status and aborts", async (
   assert.equal(state.textContent, "RUNNING");
   assert.equal(abort.disabled, false);
   const link = ctx.panelElement.find((n) => n.tagName === "a");
-  assert.equal(link.attrs.href, "http://localhost:7241/project/georg_task_manager/mock_test/run-1");
+  assert.equal(link.attrs.href, "http://localhost:7241/project/task_manager/mock_test/run-1");
 
   await abort.onclick();
   assert.deepEqual(ctx.calls[2], ["/georg/task_manager/cancel", { mission_id: "" }]);
