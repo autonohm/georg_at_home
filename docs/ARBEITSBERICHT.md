@@ -267,3 +267,20 @@ Strahlauflösung 1° statt 0,33°: der zusammengeführte Scan hat ohnehin 1°, P
 
 #### Ergebnis
 - Stack-Test `sim` **8/8** (inkl. Reset und Gesten-Demo), `mock` 4/4; Unit-Tests grün.
+
+### Phase 5 – Schritt 2: Adapter `pkg_pib_bridge`
+- Ein Prozess in zwei ROS-Domains (Stack 30, pib-backend 0), einziger Container in beiden
+  Docker-Netzen, optional per `GEORG_WITH_PIB_BACKEND=1`. Freigabeliste: `speech/say` →
+  `/play_audio_from_speech`; `audio/listen` → `/speech_detected` + `/chat_messages`; Kopfkamera
+  und Erkennungen nur lesend. Keine Motor- oder Fahrbefehle.
+- **E10 – zwei Domains in einem Prozess statt `domain_bridge`:** `domain_bridge` hätte Topics
+  generisch gebrückt; für Speak/Listen braucht es aber Logik (Action ↔ Service, Ereignis →
+  Ergebnis). Ein eigener Node mit zwei rclpy-Kontexten macht beides und hält die Freigabeliste im
+  Code. Folge: neue Topics brauchen einen Eintrag in `forward_topics`.
+- **Ergebnis (Jetson, pib-backend läuft hier):** Kamerabild der echten OAK-Kamera kommt im Stack
+  an (9,7 Hz, JPEG) → in Lichtblick als Image-Panel `/oak/rgb/image_raw/compressed`.
+  `audio/listen` meldet ohne Sprache nach Ablauf korrekt „nicht erkannt“.
+  `speech/say` erreicht pib-backend, aber dessen `audio_player` antwortet nicht (Q37, kein
+  Lautsprecher, JACK fehlt) – auch bei Aufrufen aus pib-backend selbst.
+- **Am Schluss ausbessern:** Netz am echten Roboter (pib-backend auf dem Pi), Türklingel-Quelle,
+  Kamera-Frame am pib-Kopf, Speak-Test mit Lautsprecher.

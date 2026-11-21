@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>pib_bridge</name>
+  <version>0.1.0</version>
+  <description>Bridge between Georg's stack and pib-backend: speech/say, audio/listen, read-only head camera; two ROS domains, fixed allowlist</description>
+  <maintainer email="noreply@example.com">georg</maintainer>
+  <license>Apache-2.0</license>
+
+  <exec_depend>rclpy</exec_depend>
+  <exec_depend>std_msgs</exec_depend>
+  <exec_depend>sensor_msgs</exec_depend>
+  <exec_depend>rosidl_runtime_py</exec_depend>
+  <exec_depend>georg_speech_msgs</exec_depend>
+  <exec_depend>datatypes</exec_depend>
+
+  <export>
+    <build_type>ament_python</build_type>
+  </export>
+</package>

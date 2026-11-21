@@ -11,7 +11,8 @@
 # ROS_DOMAIN_ID: set by projectctl.bash, 'real' 0 (same as pib-backend), other profiles
 # GEORG_SIM_DOMAIN_ID (default 30), so a simulation never reaches the real robot.
 #
-# Optional extras: --profile viz (RViz), --profile examples, GEORG_WITH_LLM=1 (local LLM).
+# Optional extras: --profile viz (RViz), --profile examples, GEORG_WITH_LLM=1 (local LLM),
+# GEORG_WITH_PIB_BACKEND=1 (bridge to pib-backend: speech, head camera; sim and real).
 name: georg
 
 include:
@@ -23,6 +24,7 @@ include:
   - packages/pkg_llm/docker-compose.yaml
   - packages/pkg_urdf/docker-compose.yaml
   - packages/pkg_pib_model/docker-compose.yaml
+  - packages/pkg_pib_bridge/docker-compose.yaml
   - packages/pkg_drive/docker-compose.yaml
   - packages/pkg_viz/docker-compose.yaml
   - packages/pkg_examples/docker-compose.yaml
