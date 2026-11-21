@@ -66,7 +66,7 @@ chmod +x point_to.py
 
 
 
-## Terminal 4 (for Listen: 
+## Terminal 4 (for Listen): 
 source install/setup.bash
 
 ros2 run voice_assistant listen_action_server

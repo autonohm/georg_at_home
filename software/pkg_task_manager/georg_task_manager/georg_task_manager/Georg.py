@@ -4,6 +4,8 @@ from std_msgs.msg import String
 from std_msgs.msg import Bool
 from pib_gestures_action.action import PibGesturesInterface
 from datatypes.srv import PlayAudioFromSpeech
+from datatypes.srv import StartModel    #Object Detection Models
+from datatypes.srv import StopModel     #Object Detection Models
 from georg_nav_msgs.action import Navigate, DriveRoute
 from std_msgs.msg import String as StringMsg
 from .interface import RobotState
@@ -60,24 +62,18 @@ class Georg:
             "nav/drive_route"
         )
 
-        # # Vision (Placeholder)
+        # Vision 
+        self.start_model = node.create_client(
+            StartModel,
+            "/StartModel" 
+        )
 
-        # self.search_guest_pub = (
-        #     node.create_publisher(
-        #         Bool,
-        #         "vision/search_guest",
-        #         10
-        #     )
-        # )
-
-        # self.search_seat_pub = (
-        #     node.create_publisher(
-        #         Bool,
-        #         "vision/search_seat",
-        #         10
-        #     )
-        # )
-
+        self.stop_model = node.create_client(
+            StopModel,
+            "/StopModel" 
+        )
+        
+        # Odometrie
         self.odom_sub = node.create_subscription(
             Odometry,
             'odom',
