@@ -6,3 +6,8 @@ log
 __pycache__
 .pixi
 recordings/
+
+# large simulation assets (not in plain git; see packages/pkg_sim/assets/README.md)
+packages/pkg_sim/assets/arena/*.usdc
+packages/pkg_sim/assets/arena/*.blend
+packages/pkg_sim/assets/arena/*.jpg
