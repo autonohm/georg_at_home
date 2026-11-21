@@ -31,7 +31,7 @@ services:
     init: true
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", ". /opt/ros/jazzy/setup.sh && . /ws/install/setup.sh && ros2 service list | grep -q /task_manager/start$$"]
+      test: ["CMD-SHELL", ". /opt/ros/jazzy/setup.sh && . /ws/install/setup.sh && ros2 service list | grep -qx /task_manager/start"]
       interval: 30s
       timeout: 20s
       retries: 3
