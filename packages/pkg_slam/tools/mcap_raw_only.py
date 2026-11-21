@@ -23,7 +23,11 @@ from tf2_msgs.msg import TFMessage
 _NS_NAME = os.environ.get('EDU_ROBOT_NAMESPACE', '').strip('/')
 NS = f'/{_NS_NAME}' if _NS_NAME else ''
 DEFAULT_KEEP = ['/tf', '/tf_static'] + [f'{NS}/{t}' for t in (
-    'merged_scan', 'scan', 'odom', 'lidar1/scan', 'lidar2/scan', 'odom/wheel', 'imu')]
+    'merged_scan', 'scan', 'odom', 'lidar1/scan', 'lidar2/scan', 'odom/wheel', 'imu')] + [
+    # what the robot saw and did with its arms (head camera, detections of the camera,
+    # pib joint states) - shown in Lichtblick during the replay
+    '/oak/rgb/image_raw/compressed', '/joint_states', '/detections/face_detection_yunet_160x120',
+    '/detections/yolov6n_coco_640x640', '/detections/hand_tracking']
 DROP_FRAMES = {'map'}
 
 

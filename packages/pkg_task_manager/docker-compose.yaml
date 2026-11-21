@@ -56,7 +56,8 @@ services:
     restart: unless-stopped
     command: ros2 run task_manager mock_packages
 
-  # Continuous recording of task_manager/* as MCAP (plan P5), every profile.
+  # Continuous recording as MCAP: task manager, sensors, pib joint states, head camera and
+  # detections (replay in profile mcap shows what the robot saw) (plan P5), every profile.
   # burr_app_id in the status connects recording, status and Burr run.
   recorder:
     image: task_manager
@@ -71,7 +72,7 @@ services:
       - ${GEORG_RECORDINGS_DIR:-../../recordings}:/recordings
     init: true
     restart: unless-stopped
-    command: ["sh", "-c", "ros2 bag record -s mcap --max-bag-duration 3600 -o /recordings/task_manager_$$(date +%Y%m%d_%H%M%S) --regex '.*/task_manager/.*|.*/task/current_task'"]
+    command: ["sh", "-c", "ros2 bag record -s mcap --max-bag-duration 3600 -o /recordings/task_manager_$$(date +%Y%m%d_%H%M%S) --regex '.*/task_manager/.*|.*/task/current_task|/tf|/tf_static|/merged_scan|/scan|/odom|/odom/wheel|/lidar[12]/scan|/joint_states|/oak/rgb/image_raw/compressed|/detections/.*'"]
 
   # Profile mcap: replay a recording (raw sensors only, see pkg_slam/tools/mcap_raw_only.py).
   # GEORG_MCAP_FILE: bag folder or .mcap below GEORG_RECORDINGS_DIR

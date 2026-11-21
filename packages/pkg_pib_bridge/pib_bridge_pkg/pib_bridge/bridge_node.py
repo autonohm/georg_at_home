@@ -12,9 +12,9 @@ Stack side (served by this node):
                                             pib_backend_integration, leakmpf); DOORBELL:
                                             PIB_DOORBELL_TOPIC (std_msgs/Bool), none by
                                             default -> not detected
-Forwarded read-only from pib-backend to the stack, only if the domains differ (on the robot
-both are 0 and the stack sees pib-backend directly):
-    parameter forward_topics: ["topic|package/msg/Type", ...]  (default: head camera + detections)
+No sensor data crosses (camera, detections, joint states): in sim the robot must only
+see the simulation, like it can only move simulated motors. On the robot the stack and
+pib-backend share domain 0 and see each other directly; in mcap the recording plays.
 """
 import os
 import threading
@@ -29,16 +29,7 @@ from rclpy.callback_groups import ReentrantCallbackGroup
 from rclpy.context import Context
 from rclpy.executors import MultiThreadedExecutor
 from rclpy.node import Node
-from rclpy.qos import qos_profile_sensor_data
-from rosidl_runtime_py.utilities import get_message
 from std_msgs.msg import Bool
-
-DEFAULT_FORWARD = [
-    '/oak/rgb/image_raw/compressed|sensor_msgs/msg/CompressedImage',
-    '/detections/face_detection_yunet_160x120|datatypes/msg/DetectionArray',
-    '/detections/yolov6n_coco_640x640|datatypes/msg/DetectionArray',
-    '/detections/hand_tracking|datatypes/msg/DetectionArray',
-]
 
 
 class Backend:
@@ -67,9 +58,9 @@ class Backend:
 
 
 class PibBridge:
-    """Node in the stack domain: actions speech/say, audio/listen and forwarded topics."""
+    """Node in the stack domain: actions speech/say and audio/listen."""
 
-    def __init__(self, stack_ctx, backend, forward_from, same_domain):
+    def __init__(self, stack_ctx, backend):
         self.node = Node('pib_bridge', context=stack_ctx)
         p = self.node.declare_parameter
         self.gender = p('default_gender', 'M1').value
@@ -82,7 +73,6 @@ class PibBridge:
         # (values of branch pib_backend_integration)
         self.silent_after = p('listen_silent_after_s', 1.0).value
         self.stt_engine = p('stt_engine', 'local_whisper').value
-        forward = list(p('forward_topics', DEFAULT_FORWARD).value)
         self.backend = backend
         cb = ReentrantCallbackGroup()
         accept = lambda _goal: GoalResponse.ACCEPT    # noqa: E731
@@ -93,25 +83,6 @@ class PibBridge:
             ActionServer(self.node, Listen, 'audio/listen', self._on_listen,
                          goal_callback=accept, cancel_callback=cancel, callback_group=cb),
         ]
-        self._forwards = []
-        if same_domain:
-            self.node.get_logger().info('stack and pib-backend share a domain: no forwarding')
-        else:
-            for entry in forward:
-                topic, _, type_name = entry.partition('|')
-                self._forward(forward_from, topic.strip(), type_name.strip())
-
-    def _forward(self, backend_node, topic, type_name):
-        try:
-            msg_type = get_message(type_name)
-        except (AttributeError, ModuleNotFoundError, ValueError) as exc:
-            self.node.get_logger().error(f'forward {topic}: unknown type {type_name}: {exc}')
-            return
-        pub = self.node.create_publisher(msg_type, topic, qos_profile_sensor_data)
-        sub = backend_node.create_subscription(msg_type, topic, pub.publish,
-                                               qos_profile_sensor_data, raw=True)
-        self._forwards.append((pub, sub))
-        self.node.get_logger().info(f'forwarding {topic} ({type_name}) pib-backend -> stack')
 
     def _on_say(self, goal_handle):
         goal = goal_handle.request
@@ -212,7 +183,7 @@ def main():
     rclpy.init(context=backend_ctx, domain_id=backend_domain)
     doorbell = os.environ.get('PIB_DOORBELL_TOPIC', '')
     backend = Backend(backend_ctx, doorbell)
-    bridge = PibBridge(stack_ctx, backend, backend.node, stack_domain == backend_domain)
+    bridge = PibBridge(stack_ctx, backend)
     bridge.node.get_logger().info(
         f'pib_bridge ready: stack domain {stack_domain}, pib-backend domain {backend_domain}, '
         f'doorbell {doorbell or "none"}')
