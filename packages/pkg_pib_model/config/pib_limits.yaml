@@ -1,0 +1,10 @@
+# Joint limits for named poses sent to the REAL pib (pkg_pib_bridge, action pib/pose).
+# Motor names of pib-backend, angles in rad (as for /apply_joint_trajectory).
+# A pose with any angle outside these limits is REJECTED as a whole (not clipped).
+# Default for motors not listed: default_min/default_max. Tighten per motor after checking at
+# the robot (docs/OPEN_ISSUES.md G4).
+default_min: -1.5708
+default_max: 1.5708
+motors:
+  turn_head_motor: [-1.0, 1.0]
+  tilt_forward_motor: [-0.5, 0.5]

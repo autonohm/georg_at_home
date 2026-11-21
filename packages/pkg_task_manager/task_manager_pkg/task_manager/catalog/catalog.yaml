@@ -68,12 +68,14 @@ tasks:
   pib_pose:
     description: >-
       Move pib's arms/head to a named pose or sequence: ruhe (arms down), winken (wave),
-      zeigen (point forward), begruessen (greet), arm_hoch, kopf_mitte.
+      zeigen (point forward), begruessen (greet), arm_hoch; head (camera follows): kopf_links,
+      kopf_rechts, kopf_hoch, kopf_runter, kopf_mitte, umschauen (look left and right).
     class: task_manager.tasks.PibPose:PibPose
     action: pib/pose
     type: georg_gesture_msgs/action/PibPose
     args_schema:
-      pose: {type: string, enum: [ruhe, winken, zeigen, begruessen, arm_hoch, kopf_mitte]}
+      pose: {type: string, enum: [ruhe, winken, zeigen, begruessen, arm_hoch, kopf_mitte,
+                                  kopf_links, kopf_rechts, kopf_hoch, kopf_runter, umschauen]}
     timeout_s: 40
     cancelable: true
     modes: [mock, sim]      # real: only after the poses were checked on the robot

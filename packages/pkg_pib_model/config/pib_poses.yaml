@@ -2,7 +2,8 @@
 # /apply_joint_trajectory). Used by fake_pib_motors (action pib/pose) in the simulation.
 # Computed from the pib model (pib-3d v0.11.6) by target hand positions; NOT checked on
 # the real pib - check limits before sending them to real servos.
-# Motors not listed in a pose keep their position. Editable without rebuilding.
+# Head: turn_head_motor + = view to the right, tilt_forward_motor + = view up (the head
+# camera follows). Motors not listed in a pose keep their position. Editable without rebuilding.
 poses:
   ruhe:
     shoulder_vertical_left: -1.32
@@ -45,6 +46,14 @@ poses:
   kopf_mitte:
     turn_head_motor: 0.0
     tilt_forward_motor: 0.0
+  kopf_links:
+    turn_head_motor: -0.6
+  kopf_rechts:
+    turn_head_motor: 0.6
+  kopf_hoch:
+    tilt_forward_motor: 0.3
+  kopf_runter:
+    tilt_forward_motor: -0.3
 sequences:
   winken:
   - arm_hoch
@@ -53,3 +62,7 @@ sequences:
   - winken_a
   - winken_b
   - winken_a
+  umschauen:
+  - kopf_links
+  - kopf_rechts
+  - kopf_mitte

@@ -13,6 +13,9 @@
   <exec_depend>rosidl_runtime_py</exec_depend>
   <exec_depend>georg_speech_msgs</exec_depend>
   <exec_depend>datatypes</exec_depend>
+  <exec_depend>georg_gesture_msgs</exec_depend>
+  <exec_depend>trajectory_msgs</exec_depend>
+  <exec_depend>python3-yaml</exec_depend>
 
   <export>
     <build_type>ament_python</build_type>

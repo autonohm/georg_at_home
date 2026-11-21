@@ -38,7 +38,7 @@ Old numbers (Q…) from the former `OPEN_QUESTIONS.md` in brackets.
 
 | ID | Issue | Status |
 | --- | --- | --- |
-| G1 | `pib_pose` on the robot: `pib_bridge` → pib-backend `/apply_joint_trajectory` with joint limits and dry run | **next (stack)** |
+| G1 | `pib_pose` on the robot: `pib_bridge` → pib-backend `/apply_joint_trajectory`, limits (`pkg_pib_model/config/pib_limits.yaml`, pose rejected if outside), dry run unless `PIB_POSE_ENABLE=1` | implemented, untested on the robot (G4) |
 | G2 (Q34) | Gesture server reports success but sends no joint command (pib-sdk calls commented out) | open – gesture team; proposal: send `/apply_joint_trajectory` (works in sim via fake motors) |
 | G3 (Q14, Q24) | Gesture result `int8 success` instead of `bool success, error_code, message` | open – gesture team |
 | G4 | Named poses (`pib_poses.yaml`) computed from the model, not checked on the real pib | open – check at the robot before G1 is enabled |
@@ -53,7 +53,6 @@ Old numbers (Q…) from the former `OPEN_QUESTIONS.md` in brackets.
 | S4 | On the robot pib-backend runs on the Pi (LAN): `pib_bridge`/`pib_model` need the robot network (host network or macvlan) | open – before `real` |
 | S5 | Simulated camera has no detections (real ones come from the OAK chip) | open – detections from known positions in sim |
 | S6 | MuJoCo base is a cylinder, not Georg's mesh | open (low) |
-| S7 | `projectctl.bash build` exits 0 even when a build fails | open (small) |
 | S8 | `drive` container runs `privileged` with `/dev` also in sim (Sam's compose) | info |
 
 ## Task manager

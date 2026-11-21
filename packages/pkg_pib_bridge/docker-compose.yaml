@@ -11,6 +11,8 @@ services:
       - PIB_DOORBELL_TOPIC=${PIB_DOORBELL_TOPIC:-}
       # false: do not wait until spoken (machine without loudspeaker, see docs Q37)
       - PIB_SAY_JOIN=${PIB_SAY_JOIN:-true}
+      # pib/pose on the robot: dry run unless 1 (then poses go to the real servos)
+      - PIB_POSE_ENABLE=${PIB_POSE_ENABLE:-0}
     profiles: [pib]
     build:
       context: .
@@ -19,6 +21,9 @@ services:
     networks:
       - pib-network
       - pib-backend
+    volumes:
+      # named poses and joint limits (shared with the fake motors of pkg_pib_model)
+      - ../pkg_pib_model/config:/config:ro
     restart: unless-stopped
     init: true
     healthcheck:

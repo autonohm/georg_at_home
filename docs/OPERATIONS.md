@@ -49,6 +49,7 @@ comes up idle, no mission starts by itself.
 | `GEORG_SIM_DOMAIN_ID` | `30` | ROS domain of mock/sim/mcap (`real` is always 0) |
 | `GEORG_WITH_PIB_BACKEND` | `0` | `1`: start `pib_bridge` (sim/real), needs pib-backend running |
 | `PIB_SAY_JOIN` | `true` | `false`: do not wait until spoken (machine without loudspeaker) |
+| `PIB_POSE_ENABLE` | `0` | `real`: `1` sends named poses (`pib_pose`) to the real servos; otherwise dry run (logged only) |
 | `PIB_DOORBELL_TOPIC` | – | `std_msgs/Bool` topic used as doorbell for `Listening(DOORBELL)` |
 | `GEORG_WITH_LLM` | `0` | `1`: local LLM server for the planner (`pkg_llm`) |
 | `GEORG_MCAP_FILE` | – | profile `mcap`: recording below `recordings/` to replay |
@@ -89,8 +90,8 @@ docker exec georg-task_manager-1 bash -c 'source /ws/install/setup.bash && \
 | `greeting` | any | introduce, ask the name, listen, answer with the name |
 | `digital_festival` | real | the event mission |
 
-Named pib poses (`ruhe`, `winken`, `zeigen`, `begruessen`, …):
-`packages/pkg_pib_model/config/pib_poses.yaml` (edit without rebuilding, restart `pib_model`).
+Named pib poses (`ruhe`, `winken`, `zeigen`, `begruessen`, head `kopf_links`/`kopf_rechts`/`kopf_hoch`/`kopf_runter`/`umschauen` – the head camera follows):
+`packages/pkg_pib_model/config/pib_poses.yaml`, limits for the real servos in `pib_limits.yaml` (edit without rebuilding, restart `pib_model` / `pib_bridge`).
 
 ## Test
 
