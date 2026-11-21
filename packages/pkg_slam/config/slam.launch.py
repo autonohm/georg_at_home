@@ -6,8 +6,12 @@ from launch.substitutions import PathJoinSubstitution
 
 from launch_ros.substitutions import FindPackageShare
 
+from launch.substitutions import LaunchConfiguration
+
+
 
 def generate_launch_description():
+    sim_mode = LaunchConfiguration('sim_mode')
 
     rf2o_odom = Node(
         package='rf2o_laser_odometry',
@@ -15,6 +19,7 @@ def generate_launch_description():
         # no name because rf2o is weird and registers 2 Nodes
         parameters=[
             { PathJoinSubstitution([ '.', 'parameters', 'rf2o_laser_odometry.yaml' ]) },
+            { 'use_sim_time': sim_mode },
         ],
         arguments=['--ros-args', '--log-level', 'warn'],
         output='screen',
@@ -27,7 +32,7 @@ def generate_launch_description():
             'autostart': 'true',
             'use_lifecycle_manager': 'false',
             'slam_params_file': PathJoinSubstitution([ '.', 'parameters', 'slam_toolbox.yaml' ]),
-            'use_sim_time': 'false',
+            'use_sim_time': sim_mode,
         }.items()
     )
 
