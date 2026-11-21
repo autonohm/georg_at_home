@@ -11,3 +11,4 @@ recordings/
 packages/pkg_sim/assets/arena/*.usdc
 packages/pkg_sim/assets/arena/*.blend
 packages/pkg_sim/assets/arena/*.jpg
+packages/pkg_sim/assets/arena/generated/

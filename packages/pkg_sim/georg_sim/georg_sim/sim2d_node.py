@@ -52,6 +52,19 @@ def _yaw_to_quat(yaw: float):
     return 0.0, 0.0, math.sin(yaw / 2.0), math.cos(yaw / 2.0)
 
 
+def _map_start(path):
+    try:
+        import yaml
+        with open(path, encoding='utf-8') as fh:
+            objects = (yaml.safe_load(fh) or {}).get('objects') or {}
+        for obj in objects.values():
+            if obj.get('type') == 'sim_start':
+                return float(obj['position'][0]), float(obj['position'][1])
+    except (OSError, ValueError, KeyError, TypeError):
+        pass
+    return 1.0, 0.1
+
+
 # mounting poses (x, y, yaw) of laser1_frame / laser2_frame in base_link, georg_description
 LIDAR1_POSE = [0.2, -0.155, 5.497787143782138]
 LIDAR2_POSE = [-0.2, 0.155, 2.356194490192345]
@@ -63,8 +76,10 @@ class Sim2D(Node):
         super().__init__('georg_sim')
         p = self.declare_parameter
         self.map_file = p('map_file', DEFAULT_MAP).value
-        self.x = p('start_x', 1.0).value
-        self.y = p('start_y', 0.1).value
+        # start: parameters, else the object of type sim_start in the map, else (1.0, 0.1)
+        start = _map_start(self.map_file)
+        self.x = p('start_x', start[0]).value
+        self.y = p('start_y', start[1]).value
         self.yaw = p('start_yaw', 0.0).value
         # must be smaller than the planner's inflation (grid_rasterizer: 0.25 m),
         # otherwise every small controller deviation ends in a wall
@@ -319,7 +334,7 @@ class Sim2D(Node):
 
     def _rays(self, origin, angles, max_range):
         """Ranges from ``origin`` along world ``angles`` (hook for the MuJoCo simulator)."""
-        return [self.world.raycast(origin, a, max_range) for a in angles]
+        return self.world.raycast_many(origin, angles, max_range)
 
 
 def main(args=None):

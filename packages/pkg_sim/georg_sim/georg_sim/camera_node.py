@@ -57,6 +57,21 @@ def add_visuals(xml):
     return xml.replace('rgba="0.6 0.6 0.65 1"', 'rgba="0.93 0.93 0.9 1"')
 
 
+def add_meshes(xml, visuals_file):
+    """Insert the furniture meshes of the arena and hide the box walls of the 2D map."""
+    import re
+    with open(visuals_file, encoding='utf-8') as fh:
+        snippet = fh.read()
+    assets = re.search(r'<asset>(.*?)</asset>', snippet, re.S).group(1)
+    geoms = re.search(r'<worldbody>(.*?)</worldbody>', snippet, re.S).group(1)
+    meshdir = os.path.dirname(os.path.abspath(visuals_file))
+    xml = xml.replace('<compiler angle="radian"/>',
+                      f'<compiler angle="radian" meshdir="{meshdir}"/>', 1)
+    xml = xml.replace('</asset>', assets + '</asset>', 1)
+    xml = xml.replace('<worldbody>', '<worldbody>' + geoms, 1)
+    return re.sub(r'(<geom name="wall\d+"[^>]*?)rgba="[^"]*"', r'\1rgba="0 0 0 0"', xml)
+
+
 def _quat_to_matrix(x, y, z, w):
     return np.array([
         [1 - 2 * (y * y + z * z), 2 * (x * y - z * w), 2 * (x * z + y * w)],
@@ -90,12 +105,17 @@ class SimCamera(Node):
         self.frame = p('camera_frame', 'oak_rgb_camera_optical_frame').value
         self.base_frame = p('base_frame', 'base_footprint').value
         self.quality = p('jpeg_quality', 80).value
+        # MJCF snippet with the real furniture meshes (pkg_sim/tools/arena_convert.py); the
+        # box walls of the map are hidden then
+        visuals = p('visuals_file', '').value
 
         import mujoco
         self.mj = mujoco
         world = World.from_yaml(map_file)
-        self.model = mujoco.MjModel.from_xml_string(
-            add_visuals(build_mjcf(world, (0.0, 0.0, 0.0), 0.2)))
+        xml = add_visuals(build_mjcf(world, (0.0, 0.0, 0.0), 0.2))
+        if visuals and os.path.exists(visuals):
+            xml = add_meshes(xml, visuals)
+        self.model = mujoco.MjModel.from_xml_string(xml)
         self.data = mujoco.MjData(self.model)
         # the robot's own simulated body is not part of the camera image
         base = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_GEOM, 'base')

@@ -96,7 +96,26 @@ class World:
                 best = t
         return best if best <= max_range else math.inf
 
+    def raycast_many(self, origin: Point, angles, max_range: float) -> List[float]:
+        """Like raycast for many angles at once (numpy; maps with hundreds of segments)."""
+        import numpy as np
+        if not self.segments:
+            return [math.inf] * len(angles)
+        seg = np.asarray(self.segments, dtype=float)            # (S, 2, 2)
+        a = np.asarray(angles, dtype=float)[:, None]             # (A, 1)
+        dx, dy = np.cos(a), np.sin(a)
+        x1, y1 = seg[:, 0, 0][None, :], seg[:, 0, 1][None, :]
+        sx, sy = (seg[:, 1, 0] - seg[:, 0, 0])[None, :], (seg[:, 1, 1] - seg[:, 0, 1])[None, :]
+        denom = dx * sy - dy * sx
+        qx, qy = x1 - origin[0], y1 - origin[1]
+        with np.errstate(divide='ignore', invalid='ignore'):
+            t = (qx * sy - qy * sx) / denom
+            u = (qx * dy - qy * dx) / denom
+        hit = (np.abs(denom) > 1e-12) & (t > 0) & (u >= 0) & (u <= 1)
+        t = np.where(hit, t, np.inf).min(axis=1)
+        return [float(v) if v <= max_range else math.inf for v in t]
+
     def scan(self, x: float, y: float, yaw: float, n: int, max_range: float) -> List[float]:
         """Scan 360 degrees with ``n`` beams from -pi to +pi relative to ``yaw``."""
         step = 2 * math.pi / n
-        return [self.raycast((x, y), yaw - math.pi + i * step, max_range) for i in range(n)]
+        return self.raycast_many((x, y), [yaw - math.pi + i * step for i in range(n)], max_range)

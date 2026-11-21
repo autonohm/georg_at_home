@@ -15,6 +15,8 @@ MISSIONS = {
     'sim_door': ('Simulation: zur Tür fahren', Sim_Test.get_mission_door),
     'sim_gestures': ('Simulation: Gesten-Demo (winken, fahren, zeigen)',
                      Sim_Test.get_mission_gestures),
+    'arena_tour': ('Wohnung: Rundgang (GEORG_MAP=Wohnung.yaml)',
+                   Sim_Test.get_mission_arena_tour),
     'sim_reset': ('Simulation: zurücksetzen (Start, Karte leer)', Sim_Test.get_mission_reset),
     'greeting': ('Begrüßung (spricht über pib-backend)', Greeting.get_mission),
 }

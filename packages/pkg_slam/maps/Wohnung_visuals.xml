@@ -1,0 +1,41 @@
+<mujocoinclude>
+  <asset>
+  </asset>
+  <worldbody>
+    <geom name="v_Wand_0" type="box" pos="0.500 0.000 0.625" size="0.500 0.050 0.625" rgba="0.93 0.93 0.9 1" contype="0" conaffinity="0" group="1"/>
+    <geom name="v_Wand_1" type="box" pos="5.450 0.000 0.625" size="3.550 0.050 0.625" rgba="0.93 0.93 0.9 1" contype="0" conaffinity="0" group="1"/>
+    <geom name="v_Wand_2" type="box" pos="4.500 9.000 0.625" size="4.500 0.050 0.625" rgba="0.93 0.93 0.9 1" contype="0" conaffinity="0" group="1"/>
+    <geom name="v_Wand_3" type="box" pos="0.000 4.500 0.625" size="0.050 4.500 0.625" rgba="0.93 0.93 0.9 1" contype="0" conaffinity="0" group="1"/>
+    <geom name="v_Wand_4" type="box" pos="9.000 4.500 0.625" size="0.050 4.500 0.625" rgba="0.93 0.93 0.9 1" contype="0" conaffinity="0" group="1"/>
+    <geom name="v_Wand_5" type="box" pos="1.000 4.500 0.625" size="1.000 0.050 0.625" rgba="0.93 0.93 0.9 1" contype="0" conaffinity="0" group="1"/>
+    <geom name="v_Wand_6" type="box" pos="4.750 4.500 0.625" size="1.850 0.050 0.625" rgba="0.93 0.93 0.9 1" contype="0" conaffinity="0" group="1"/>
+    <geom name="v_Wand_7" type="box" pos="8.250 4.500 0.625" size="0.750 0.050 0.625" rgba="0.93 0.93 0.9 1" contype="0" conaffinity="0" group="1"/>
+    <geom name="v_Wand_8" type="box" pos="4.500 0.950 0.625" size="0.050 0.950 0.625" rgba="0.93 0.93 0.9 1" contype="0" conaffinity="0" group="1"/>
+    <geom name="v_Wand_9" type="box" pos="4.500 4.550 0.625" size="0.050 1.750 0.625" rgba="0.93 0.93 0.9 1" contype="0" conaffinity="0" group="1"/>
+    <geom name="v_Wand_10" type="box" pos="4.500 8.100 0.625" size="0.050 0.900 0.625" rgba="0.93 0.93 0.9 1" contype="0" conaffinity="0" group="1"/>
+    <geom name="v_Kuehlschrank" type="box" pos="0.450 0.450 0.900" size="0.350 0.350 0.900" rgba="0.85 0.87 0.9 1" contype="0" conaffinity="0" group="1"/>
+    <geom name="v_Kuechenzeile" type="box" pos="3.350 0.400 0.450" size="1.050 0.300 0.450" rgba="0.55 0.35 0.25 1" contype="0" conaffinity="0" group="1"/>
+    <geom name="v_Esstisch" type="box" pos="2.100 2.700 0.375" size="0.600 0.500 0.375" rgba="0.62 0.45 0.3 1" contype="0" conaffinity="0" group="1"/>
+    <geom name="v_Stuhl_1" type="box" pos="2.000 1.900 0.450" size="0.200 0.200 0.450" rgba="0.25 0.25 0.28 1" contype="0" conaffinity="0" group="1"/>
+    <geom name="v_Stuhl_2" type="box" pos="2.000 3.500 0.450" size="0.200 0.200 0.450" rgba="0.25 0.25 0.28 1" contype="0" conaffinity="0" group="1"/>
+    <geom name="v_Regal_Kueche" type="box" pos="0.300 3.900 0.800" size="0.200 0.500 0.800" rgba="0.93 0.93 0.9 1" contype="0" conaffinity="0" group="1"/>
+    <geom name="v_Sofa" type="box" pos="0.600 7.100 0.400" size="0.450 1.100 0.400" rgba="0.35 0.45 0.6 1" contype="0" conaffinity="0" group="1"/>
+    <geom name="v_Couchtisch" type="box" pos="2.000 7.100 0.225" size="0.400 0.500 0.225" rgba="0.62 0.45 0.3 1" contype="0" conaffinity="0" group="1"/>
+    <geom name="v_Fernseher" type="box" pos="2.350 8.700 0.300" size="0.850 0.200 0.300" rgba="0.25 0.25 0.28 1" contype="0" conaffinity="0" group="1"/>
+    <geom name="v_Pflanze_Wohnzimmer" type="box" pos="4.175 8.650 0.600" size="0.225 0.250 0.600" rgba="0.2 0.55 0.25 1" contype="0" conaffinity="0" group="1"/>
+    <geom name="v_Regal_Wohnzimmer" type="box" pos="4.150 5.100 0.750" size="0.250 0.500 0.750" rgba="0.93 0.93 0.9 1" contype="0" conaffinity="0" group="1"/>
+    <geom name="v_Bett" type="box" pos="7.750 2.200 0.275" size="1.150 1.000 0.275" rgba="0.8 0.8 0.85 1" contype="0" conaffinity="0" group="1"/>
+    <geom name="v_Kleiderschrank" type="box" pos="5.400 0.400 1.000" size="0.800 0.300 1.000" rgba="0.9 0.9 0.88 1" contype="0" conaffinity="0" group="1"/>
+    <geom name="v_Nachttisch" type="box" pos="8.650 3.550 0.250" size="0.250 0.250 0.250" rgba="0.62 0.45 0.3 1" contype="0" conaffinity="0" group="1"/>
+    <geom name="v_Schreibtisch" type="box" pos="8.050 8.550 0.375" size="0.850 0.350 0.375" rgba="0.62 0.45 0.3 1" contype="0" conaffinity="0" group="1"/>
+    <geom name="v_Buerostuhl" type="box" pos="8.050 7.750 0.500" size="0.250 0.250 0.500" rgba="0.25 0.25 0.28 1" contype="0" conaffinity="0" group="1"/>
+    <geom name="v_Regal_Buero" type="box" pos="4.850 8.250 0.750" size="0.250 0.650 0.750" rgba="0.93 0.93 0.9 1" contype="0" conaffinity="0" group="1"/>
+    <geom name="v_Pflanze_Buero" type="box" pos="8.700 4.800 0.600" size="0.200 0.200 0.600" rgba="0.2 0.55 0.25 1" contype="0" conaffinity="0" group="1"/>
+    <geom name="v_Person_Kueche_body" type="capsule" fromto="3.4 2.4 0.15 3.4 2.4 1.25" size="0.198" rgba="0.2 0.3 0.55 1" contype="0" conaffinity="0"/>
+    <geom name="v_Person_Kueche_head" type="sphere" pos="3.4 2.4 1.58" size="0.12" rgba="0.95 0.78 0.65 1" contype="0" conaffinity="0"/>
+    <geom name="v_Person_Wohnzimmer_body" type="capsule" fromto="2.9 6.2 0.15 2.9 6.2 1.25" size="0.198" rgba="0.2 0.3 0.55 1" contype="0" conaffinity="0"/>
+    <geom name="v_Person_Wohnzimmer_head" type="sphere" pos="2.9 6.2 1.58" size="0.12" rgba="0.95 0.78 0.65 1" contype="0" conaffinity="0"/>
+    <geom name="v_Person_Buero_body" type="capsule" fromto="6.2 6.0 0.15 6.2 6.0 1.25" size="0.198" rgba="0.2 0.3 0.55 1" contype="0" conaffinity="0"/>
+    <geom name="v_Person_Buero_head" type="sphere" pos="6.2 6.0 1.58" size="0.12" rgba="0.95 0.78 0.65 1" contype="0" conaffinity="0"/>
+  </worldbody>
+</mujocoinclude>

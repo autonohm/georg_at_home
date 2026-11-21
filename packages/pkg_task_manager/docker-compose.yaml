@@ -17,7 +17,7 @@ services:
     environment:
       - ROS_DOMAIN_ID=${ROS_DOMAIN_ID:-0}
       - GEORG_MAP_DIR=/root/georg_maps
-      - GEORG_DEFAULT_MAP=Nav_Test.yaml
+      - GEORG_DEFAULT_MAP=${GEORG_MAP:-Nav_Test.yaml}
       # set by projectctl.bash; the task manager checks the catalog modes against it
       - GEORG_PROFILE=${GEORG_PROFILE:-}
       # LLM planner (P6): endpoint of pkg_llm; LLM modes on 'real' only with approval

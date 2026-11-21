@@ -14,7 +14,7 @@ services:
     environment:
       - ROS_DOMAIN_ID=${ROS_DOMAIN_ID:-0}
       - GEORG_MAP_DIR=/root/georg_maps
-      - GEORG_DEFAULT_MAP=Nav_Test.yaml
+      - GEORG_DEFAULT_MAP=${GEORG_MAP:-Nav_Test.yaml}
       # profile real: drive commands via twist_mux / twist_limiter (navigation.launch.py)
       - GEORG_PROFILE=${GEORG_PROFILE:-}
     init: true
