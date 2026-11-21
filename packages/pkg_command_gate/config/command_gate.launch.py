@@ -13,10 +13,10 @@ def generate_launch_description():
     )
 
     gate = Node(
-        package="command_gate",
-        executable="command_gate",
-        name="command_gate",
-        output="screen",
+        package='command_gate',
+        executable='command_gate',
+        name='command_gate',
+        output='screen',
     )
 
     return LaunchDescription([
