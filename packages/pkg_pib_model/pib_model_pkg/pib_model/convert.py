@@ -34,8 +34,12 @@ def load_bundle(bundle_dir):
     return load('model.json'), load('mapping.json'), load('version.json')
 
 
-def model_to_urdf(model, package='pib_model', robot_name='pib'):
-    """Build the URDF XML string from model.json (mesh URIs package://<package>/meshes/...)."""
+def model_to_urdf(model, package='pib_model', robot_name='pib', model_dir='model'):
+    """Build the URDF XML string from model.json.
+
+    Mesh URIs: package://<package>/<model_dir>/meshes/... - setup.py installs the converted
+    model into share/<package>/<model_dir>/.
+    """
     robot = ET.Element('robot', name=robot_name)
     # some joints connect links without a mesh, which model.json does not list: add them empty
     listed = {link['name'] for link in model['links']}
@@ -51,7 +55,7 @@ def model_to_urdf(model, package='pib_model', robot_name='pib'):
             rpy = GLB_VISUAL_RPY if link['mesh'].lower().endswith('.glb') else '0 0 0'
             ET.SubElement(visual, 'origin', xyz='0 0 0', rpy=rpy)
             geom = ET.SubElement(visual, 'geometry')
-            ET.SubElement(geom, 'mesh', filename=f'package://{package}/{link["mesh"]}')
+            ET.SubElement(geom, 'mesh', filename=f'package://{package}/{model_dir}/{link["mesh"]}')
     for joint in model['joints']:
         el = ET.SubElement(robot, 'joint', name=joint['name'], type=joint['type'])
         ET.SubElement(el, 'parent', link=joint['parent'])

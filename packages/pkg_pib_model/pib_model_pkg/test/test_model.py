@@ -49,7 +49,7 @@ def test_urdf_has_all_links_joints_and_mesh_uris():
     assert shoulder.get('type') == 'revolute'
     assert shoulder.find('limit').get('lower') == '-1'
     assert root.find("link[@name='arm']/visual/geometry/mesh").get('filename') == \
-        'package://pib_model/meshes/arm.glb'
+        'package://pib_model/model/meshes/arm.glb'
 
 
 def test_zero_pose_follows_the_joint_origins():
@@ -85,7 +85,7 @@ def test_combined_description_drops_rigid_pib_and_mounts_the_model():
                                  rpy=(0, 0, math.pi / 2)))
     meshes = [m.get('filename') for m in full.iter('mesh')]
     assert not any('pib_4S.stl' in m for m in meshes)
-    assert 'package://pib_model/meshes/arm.glb' in meshes
+    assert 'package://pib_model/model/meshes/arm.glb' in meshes
     mount = full.find("joint[@name='pib_mount_joint']")
     assert mount.find('parent').get('link') == 'pib_waist_link'
     assert mount.find('child').get('link') == 'root'
