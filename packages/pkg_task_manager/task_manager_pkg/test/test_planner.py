@@ -211,7 +211,10 @@ def test_schema_limits_names_and_places(catalog):
     plan_schema = schema['oneOf'][0]['properties']['steps']['items']['anyOf']
     names = [s['properties'].get('task', s['properties'].get('block'))['const']
              for s in plan_schema]
-    assert set(names) == set(catalog.tasks) | set(catalog.blocks)
+    # only what the profile allows (e.g. reset_sim is sim-only)
+    assert set(names) == {n for n, s in catalog.tasks.items() if 'mock' in s.modes} \
+        | {n for n, b in catalog.blocks.items() if 'mock' in b.modes}
+    assert 'reset_sim' not in names
     nav = next(s for s in plan_schema if s['properties'].get('task', {}).get('const')
                == 'navigate_object')
     assert nav['properties']['args']['properties']['object_name']['enum'] == ['Door', 'Seat']
