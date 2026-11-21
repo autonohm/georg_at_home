@@ -1,6 +1,6 @@
 r"""ROS bridge of the task manager (P2): the long-running task manager node.
 
-Services (relative to the robot namespace, e.g. /georg/task_manager/start):
+Services (relative to EDU_ROBOT_NAMESPACE, default none, e.g. /task_manager/start):
 
     task_manager/start           StartMission    start a mission by id
     task_manager/cancel          CancelMission   abort the running mission
@@ -15,9 +15,9 @@ Missions run in Burr (engine/service.py) on an asyncio loop in a worker thread;
 the node itself spins in a MultiThreadedExecutor so action results arrive while
 a mission runs.
 
-    ros2 service call /georg/task_manager/start georg_task_manager_msgs/srv/StartMission \\
+    ros2 service call /task_manager/start georg_task_manager_msgs/srv/StartMission \\
         "{mission_id: digital_festival}"
-    ros2 service call /georg/task_manager/cancel georg_task_manager_msgs/srv/CancelMission "{}"
+    ros2 service call /task_manager/cancel georg_task_manager_msgs/srv/CancelMission "{}"
 """
 
 import asyncio

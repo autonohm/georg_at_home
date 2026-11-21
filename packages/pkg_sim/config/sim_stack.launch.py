@@ -27,6 +27,10 @@ def _description_launch():
         return None
 
 
+# robot namespace as in main: none by default
+ROBOT_NAMESPACE = os.getenv('EDU_ROBOT_NAMESPACE', default='')
+
+
 def _simulator_and_model(context, maps):
     simulator = LaunchConfiguration('simulator').perform(context)
     viewer = LaunchConfiguration('mujoco_viewer').perform(context).lower() == 'true'
@@ -37,13 +41,13 @@ def _simulator_and_model(context, maps):
     if model:
         # robot_state_publisher publishes base_footprint -> base_link -> ... and
         # /robot_description (Lichtblick draws Georg from it). No namespace: its own
-        # remapping /tf -> tf would otherwise end up on /georg/tf.
+        # remapping /tf -> tf would otherwise end up in the robot namespace.
         actions.append(IncludeLaunchDescription(model))
     else:
         actions.append(LogInfo(msg='georg_description not built: no robot model '
                                    '(pixi run fetch_description && pixi run build)'))
     actions.append(GroupAction(actions=[
-        PushRosNamespace('georg'),
+        PushRosNamespace(ROBOT_NAMESPACE),
         Node(package='georg_sim', executable=simulator, name='georg_sim', output='screen',
              # macOS: the MuJoCo window needs the main thread, which mjpython provides
              prefix='mjpython' if viewer else None,
@@ -66,7 +70,7 @@ def generate_launch_description():
         SetEnvironmentVariable('GEORG_PROFILE', 'sim'),
         OpaqueFunction(function=_simulator_and_model, args=[maps]),
         GroupAction(actions=[
-            PushRosNamespace('georg'),
+            PushRosNamespace(ROBOT_NAMESPACE),
             Node(package='task_manager', executable='task_manager', name='task_manager',
                  output='screen'),
             Node(package='task_manager', executable='mock_packages', name='mock_packages',

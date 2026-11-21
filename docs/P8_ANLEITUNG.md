@@ -82,7 +82,7 @@ sudo systemctl start georg          # oder: ./projectctl.bash up real
 - **Lichtblick (PC):** Datenquelle *Foxglove WebSocket* `ws://jetson:8765`, Panel
   *Georg Task Manager* (`packages/pkg_viz/lichtblick_panel`, `python3 build.py`, `.foxe` installieren)
 - **Burr-UI:** `http://jetson:7241`
-- **Aufnahmen:** `recordings/` im Repo (MCAP von `/georg/task_manager/*`, LLM-Entscheidungen
+- **Aufnahmen:** `recordings/` im Repo (MCAP von `/task_manager/*`, LLM-Entscheidungen
   in `recordings/decisions/`)
 
 ## 6. Abnahme P8
@@ -108,7 +108,7 @@ lesen und den Container gezielt neu starten (`docker restart georg-<dienst>-1`).
 | Status | `./projectctl.bash status` |
 | Anhalten | `sudo systemctl stop georg` |
 | Nicht mehr beim Booten starten | `sudo systemctl disable georg` |
-| Mission starten | Lichtblick-Panel, oder `ros2 service call /georg/task_manager/start georg_task_manager_msgs/srv/StartMission "{mission_id: digital_festival}"` |
+| Mission starten | Lichtblick-Panel, oder `ros2 service call /task_manager/start georg_task_manager_msgs/srv/StartMission "{mission_id: digital_festival}"` |
 | Abbrechen | Panel „Abort“, oder `.../task_manager/cancel` |
 | Not-Aus | Hardware-Not-Aus, unabhängig von der Software |
 

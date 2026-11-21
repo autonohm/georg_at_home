@@ -10,7 +10,7 @@ def generate_launch_description():
     # Node moved 1:1 from pkg_task_manager/config/task_manager.launch.py (P0).
     robot_namespace = LaunchConfiguration('robot_namespace')
     robot_namespace_arg = DeclareLaunchArgument(
-        'robot_namespace', default_value=os.getenv('EDU_ROBOT_NAMESPACE', default='georg')
+        'robot_namespace', default_value=os.getenv('EDU_ROBOT_NAMESPACE', default='')
     )
 
     gesture_module = Node(

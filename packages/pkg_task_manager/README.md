@@ -53,10 +53,10 @@ The task manager node starts in Idle and never starts a mission by itself.
 Missions are started and cancelled via services (namespace `georg` by default):
 
 ```bash
-ros2 service call /georg/task_manager/list_missions georg_task_manager_msgs/srv/ListMissions "{}"
-ros2 service call /georg/task_manager/start georg_task_manager_msgs/srv/StartMission "{mission_id: digital_festival}"
-ros2 service call /georg/task_manager/cancel georg_task_manager_msgs/srv/CancelMission "{}"
-ros2 topic echo /georg/task_manager/status --qos-durability transient_local
+ros2 service call /task_manager/list_missions georg_task_manager_msgs/srv/ListMissions "{}"
+ros2 service call /task_manager/start georg_task_manager_msgs/srv/StartMission "{mission_id: digital_festival}"
+ros2 service call /task_manager/cancel georg_task_manager_msgs/srv/CancelMission "{}"
+ros2 topic echo /task_manager/status --qos-durability transient_local
 ```
 
 `StartMission` is rejected with a reason if a mission is running, the mission is unknown,

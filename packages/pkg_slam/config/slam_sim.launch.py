@@ -4,6 +4,8 @@ The simulator (pkg_sim) publishes merged_scan, odom and the tf odom -> base_foot
 so the lidar drivers, the scan merger and rf2o laser odometry are not needed.
 Run from this folder (parameters are relative): ros2 launch slam_sim.launch.py
 """
+import os
+
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, GroupAction, IncludeLaunchDescription
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
@@ -25,6 +27,7 @@ def generate_launch_description():
         }.items(),
     )
     return LaunchDescription([
-        DeclareLaunchArgument('robot_namespace', default_value='georg'),
+        DeclareLaunchArgument('robot_namespace',
+                              default_value=os.getenv('EDU_ROBOT_NAMESPACE', default='')),
         GroupAction(actions=[PushRosNamespace(robot_namespace), slam_toolbox]),
     ])

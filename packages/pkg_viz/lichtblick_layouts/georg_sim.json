@@ -7,8 +7,8 @@
       "transforms": {},
       "topics": {
         "/map": { "visible": true },
-        "/georg/merged_scan": { "visible": true, "pointSize": 4, "colorField": "range" },
-        "/georg/odom": { "visible": true },
+        "/merged_scan": { "visible": true, "pointSize": 4, "colorField": "range" },
+        "/odom": { "visible": true },
         "/robot_description": { "visible": true }
       },
       "layers": {
@@ -19,8 +19,8 @@
                        "targetOffset": [0, 0, 0], "target": [0, 0, 0],
                        "targetOrientation": [0, 0, 0, 1], "fovy": 45, "near": 0.5, "far": 5000 }
     },
-    "RawMessages!georgplan": { "topicPath": "/georg/task_manager/plan.data", "diffEnabled": false },
-    "RawMessages!georgstatus": { "topicPath": "/georg/task_manager/status", "diffEnabled": false }
+    "RawMessages!georgplan": { "topicPath": "/task_manager/plan.data", "diffEnabled": false },
+    "RawMessages!georgstatus": { "topicPath": "/task_manager/status", "diffEnabled": false }
   },
   "globalVariables": {},
   "userNodes": {},

@@ -17,7 +17,7 @@ services:
     init: true
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", ". /opt/ros/jazzy/setup.sh && . /ws/install/setup.sh && ros2 node list | grep -q /georg/command_gate"]
+      test: ["CMD-SHELL", ". /opt/ros/jazzy/setup.sh && . /ws/install/setup.sh && ros2 node list | grep -q /command_gate$$"]
       interval: 30s
       timeout: 20s
       retries: 3

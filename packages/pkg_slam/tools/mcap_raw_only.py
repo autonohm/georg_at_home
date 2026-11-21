@@ -12,14 +12,18 @@ Needs rosbag2_py (ROS 2 Jazzy) with the MCAP storage plugin.
 """
 
 import argparse
+import os
 import sys
 
 from rclpy.serialization import deserialize_message, serialize_message
 import rosbag2_py
 from tf2_msgs.msg import TFMessage
 
-DEFAULT_KEEP = ['/tf', '/tf_static', '/georg/merged_scan', '/georg/scan', '/georg/odom',
-                '/georg/lidar1/scan', '/georg/lidar2/scan', '/georg/odom/wheel', '/georg/imu']
+# robot namespace: EDU_ROBOT_NAMESPACE (default none, as in main)
+_NS_NAME = os.environ.get('EDU_ROBOT_NAMESPACE', '').strip('/')
+NS = f'/{_NS_NAME}' if _NS_NAME else ''
+DEFAULT_KEEP = ['/tf', '/tf_static'] + [f'{NS}/{t}' for t in (
+    'merged_scan', 'scan', 'odom', 'lidar1/scan', 'lidar2/scan', 'odom/wheel', 'imu')]
 DROP_FRAMES = {'map'}
 
 

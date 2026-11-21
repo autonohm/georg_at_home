@@ -29,7 +29,7 @@ from nav_msgs.msg import OccupancyGrid  # noqa: E402
 from rclpy.qos import DurabilityPolicy, QoSProfile, ReliabilityPolicy  # noqa: E402
 from rclpy.serialization import deserialize_message  # noqa: E402
 import rosbag2_py  # noqa: E402
-from ros_helpers import _spawn, _stop, NS, REPO  # noqa: E402, I100
+from ros_helpers import _spawn, _stop, NS, NS_ARG, REPO  # noqa: E402, I100
 from tf2_msgs.msg import TFMessage  # noqa: E402
 
 SLAM_CONFIG = os.path.join(REPO, 'pkg_slam', 'config')
@@ -63,7 +63,7 @@ def recording(env, client):
     """Drive in the simulator for ~15 s with SLAM running and record everything."""
     tmp = env['TMP']
     maps = env['GEORG_MAP_DIR']
-    sim = _spawn(['ros2', 'run', 'georg_sim', 'sim2d', '--ros-args', '-r', f'__ns:={NS}',
+    sim = _spawn(['ros2', 'run', 'georg_sim', 'sim2d', '--ros-args', '-r', f'__ns:={NS_ARG}',
                   '-p', f'map_file:={os.path.join(maps, "Nav_Test.yaml")}'],
                  os.path.join(tmp, 'rec_sim.log'), env)
     slam = _spawn(['ros2', 'launch', 'slam_sim.launch.py'], os.path.join(tmp, 'rec_slam.log'),

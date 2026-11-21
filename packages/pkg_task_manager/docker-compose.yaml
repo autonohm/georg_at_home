@@ -24,13 +24,13 @@ services:
       - GEORG_LLM_REAL_APPROVED=${GEORG_LLM_REAL_APPROVED:-0}
       - GEORG_DECISION_LOG_DIR=/root/.georg/decisions
       # no MISSION_ID: the node starts in Idle, missions are started via
-      # ros2 service call /georg/task_manager/start (plan: boot never starts a mission)
+      # ros2 service call /task_manager/start (plan: boot never starts a mission)
 
     # P7 hardware scan: no privileged, no devices (speech recognition is not in this container)
     init: true
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", ". /opt/ros/jazzy/setup.sh && . /ws/install/setup.sh && ros2 service list | grep -q /georg/task_manager/start"]
+      test: ["CMD-SHELL", ". /opt/ros/jazzy/setup.sh && . /ws/install/setup.sh && ros2 service list | grep -q /task_manager/start$$"]
       interval: 30s
       timeout: 20s
       retries: 3
@@ -52,9 +52,9 @@ services:
       - GEORG_MOCK_SCENARIO=${GEORG_MOCK_SCENARIO:-all_ok}
     init: true
     restart: unless-stopped
-    command: ros2 run task_manager mock_packages --ros-args -r __ns:=/georg
+    command: ros2 run task_manager mock_packages
 
-  # Continuous recording of /task_manager/* as MCAP (plan P5), every profile.
+  # Continuous recording of task_manager/* as MCAP (plan P5), every profile.
   # burr_app_id in the status connects recording, status and Burr run.
   recorder:
     image: task_manager
@@ -67,7 +67,7 @@ services:
       - ${GEORG_RECORDINGS_DIR:-../../recordings}:/recordings
     init: true
     restart: unless-stopped
-    command: ["sh", "-c", "ros2 bag record -s mcap --max-bag-duration 3600 -o /recordings/task_manager_$$(date +%Y%m%d_%H%M%S) --regex '/georg/task_manager/.*|/georg/task/current_task'"]
+    command: ["sh", "-c", "ros2 bag record -s mcap --max-bag-duration 3600 -o /recordings/task_manager_$$(date +%Y%m%d_%H%M%S) --regex '.*/task_manager/.*|.*/task/current_task'"]
 
   # Profile mcap: replay a recording (raw sensors only, see pkg_slam/tools/mcap_raw_only.py).
   # GEORG_MCAP_FILE: bag folder or .mcap below GEORG_RECORDINGS_DIR

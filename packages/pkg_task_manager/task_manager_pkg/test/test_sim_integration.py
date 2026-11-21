@@ -27,7 +27,7 @@ from geometry_msgs.msg import Twist  # noqa: E402
 from georg_task_manager_msgs.msg import MissionStatus  # noqa: E402
 from nav_msgs.msg import OccupancyGrid, Odometry  # noqa: E402
 from rclpy.qos import DurabilityPolicy, QoSProfile, ReliabilityPolicy  # noqa: E402
-from ros_helpers import _spawn, _stop, NS, REPO  # noqa: E402
+from ros_helpers import _spawn, _stop, NS, NS_ARG, REPO  # noqa: E402
 
 # sim2d (stage 1) or simmj (MuJoCo, stage 2)
 SIMULATOR = os.environ.get('GEORG_SIMULATOR', 'sim2d')
@@ -45,7 +45,7 @@ def sim_stack(env, bridge):
     """Start simulator, SLAM and the real navigation servers once for the module."""
     maps = env['GEORG_MAP_DIR']
     procs = [
-        _spawn(['ros2', 'run', 'georg_sim', SIMULATOR, '--ros-args', '-r', f'__ns:={NS}',
+        _spawn(['ros2', 'run', 'georg_sim', SIMULATOR, '--ros-args', '-r', f'__ns:={NS_ARG}',
                 '-p', f'map_file:={os.path.join(maps, "Nav_Test.yaml")}'],
                os.path.join(env['TMP'], 'sim.log'), env),
         _spawn(['ros2', 'launch', 'slam_sim.launch.py'], os.path.join(env['TMP'], 'slam.log'),
@@ -160,7 +160,7 @@ def test_abort_stops_the_drive(client, mocks, robot):
 
 def test_command_gate_lets_nothing_through_in_sim(env, client, robot):
     gate = _spawn(['ros2', 'run', 'command_gate', 'command_gate', '--ros-args',
-                   '-r', f'__ns:={NS}'], os.path.join(env['TMP'], 'gate.log'), env)
+                   '-r', f'__ns:={NS_ARG}'], os.path.join(env['TMP'], 'gate.log'), env)
     try:
         received = []
         client.node.create_subscription(Twist, f'{NS}/cmd_vel/gated', received.append, 10)

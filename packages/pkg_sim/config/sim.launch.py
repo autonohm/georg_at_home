@@ -11,7 +11,7 @@ def generate_launch_description():
     map_file = LaunchConfiguration('map_file')
     return LaunchDescription([
         DeclareLaunchArgument(
-            'robot_namespace', default_value=os.getenv('EDU_ROBOT_NAMESPACE', default='georg')),
+            'robot_namespace', default_value=os.getenv('EDU_ROBOT_NAMESPACE', default='')),
         DeclareLaunchArgument(
             'map_file', default_value=os.path.join(
                 os.getenv('GEORG_MAP_DIR', '/root/georg_maps'), 'Nav_Test.yaml')),

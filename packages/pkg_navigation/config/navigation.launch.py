@@ -10,12 +10,12 @@ def generate_launch_description():
     # Nodes moved 1:1 from pkg_task_manager/config/task_manager.launch.py (P0).
     robot_namespace = LaunchConfiguration('robot_namespace')
     robot_namespace_arg = DeclareLaunchArgument(
-        'robot_namespace', default_value=os.getenv('EDU_ROBOT_NAMESPACE', default='georg')
+        'robot_namespace', default_value=os.getenv('EDU_ROBOT_NAMESPACE', default='')
     )
 
     # One planning server per action name the task manager calls (robot.py):
     # nav/navigate_object_x (NavigateObject) and nav/navigate_room_x (NavigateRoom).
-    # Relative names, so they end up in the robot namespace (/georg/nav/...).
+    # Relative names, so they end up in the robot namespace (e.g. /nav/... or /georg/nav/...).
     nav_object = Node(
         package='navigate_server',
         executable='navigate_action_server',

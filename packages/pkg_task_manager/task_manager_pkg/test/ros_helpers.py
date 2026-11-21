@@ -17,7 +17,9 @@ import rclpy
 from rclpy.executors import SingleThreadedExecutor
 from rclpy.qos import DurabilityPolicy, QoSProfile, ReliabilityPolicy
 
-NS = '/georg'
+# robot namespace as in main: none ('' -> /task_manager/start)
+NS = ''
+NS_ARG = NS or '/'  # value for -r __ns:=
 FINAL = {MissionStatus.SUCCEEDED, MissionStatus.FAILED, MissionStatus.ABORTED}
 REPO = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
 
@@ -115,7 +117,8 @@ def make_env(profile):
 
 def start_bridge(env):
     return _spawn(['ros2', 'run', 'task_manager', 'task_manager',
-                   '--ros-args', '-r', f'__ns:={NS}'], os.path.join(env['TMP'], 'bridge.log'), env)
+                   '--ros-args', '-r', f'__ns:={NS_ARG}'],
+                  os.path.join(env['TMP'], 'bridge.log'), env)
 
 
 def start_client():
@@ -140,7 +143,7 @@ class Mocks:
         self.stop()
         self.log = os.path.join(self.env['TMP'], f'mock_{scenario}.log')
         self.proc = _spawn(['ros2', 'run', 'task_manager', 'mock_packages',
-                            '--scenario', scenario, '--ros-args', '-r', f'__ns:={NS}'],
+                            '--scenario', scenario, '--ros-args', '-r', f'__ns:={NS_ARG}'],
                            self.log, self.env)
         end = time.monotonic() + 20
         while 'mock packages ready' not in open(self.log).read():

@@ -28,7 +28,7 @@ The robot radius (0.2 m) must stay below the planner's inflation (0.25 m in `gri
 
 # Mac without Docker (dev/macos)
 pixi run sim                                     # simulator + SLAM + navigation + task manager
-ros2 service call /georg/task_manager/start georg_task_manager_msgs/srv/StartMission "{mission_id: sim_seat}"
+ros2 service call /task_manager/start georg_task_manager_msgs/srv/StartMission "{mission_id: sim_seat}"
 ```
 
 In `sim`, SLAM runs `pkg_slam/config/slam_sim.launch.py` (slam_toolbox only). The map is on `/map`.

@@ -33,7 +33,7 @@ function el(tag, attrs, children) {
 function initPanel(context) {
   const saved = context.initialState || {};
   const settings = {
-    namespace: saved.namespace ?? "/georg",
+    namespace: saved.namespace ?? "",
     burrUrl: saved.burrUrl ?? "http://localhost:7241",
   };
   let names = model.serviceNames(settings.namespace);

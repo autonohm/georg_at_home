@@ -5,6 +5,8 @@ recording (merged_scan, odom, tf without map -> odom, see tools/mcap_raw_only.py
 slam_toolbox builds the map live and publishes map -> odom itself.
 Run from this folder (parameters are relative): ros2 launch slam_mcap.launch.py
 """
+import os
+
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, GroupAction, IncludeLaunchDescription
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
@@ -26,6 +28,7 @@ def generate_launch_description():
         }.items(),
     )
     return LaunchDescription([
-        DeclareLaunchArgument('robot_namespace', default_value='georg'),
+        DeclareLaunchArgument('robot_namespace',
+                              default_value=os.getenv('EDU_ROBOT_NAMESPACE', default='')),
         GroupAction(actions=[PushRosNamespace(robot_namespace), slam_toolbox]),
     ])

@@ -2,7 +2,7 @@
 
 Runs a recorded mission again and compares every decision (plan P5).
 
-A run is identified by its `burr_app_id` (in `/georg/task_manager/status`, in the Burr UI and
+A run is identified by its `burr_app_id` (in `/task_manager/status`, in the Burr UI and
 in the continuous MCAP recording). The replay rebuilds the mission, feeds the recorded task
 results back in and runs the decision logic N times. Every difference in the Burr steps, the
 decisions or the outcome is a deviation: the command exits with 1, the tests fail.
@@ -21,7 +21,7 @@ structured task sequence, not as text.
 
 | Step | How |
 | --- | --- |
-| record `/georg/task_manager/*` all the time | compose service `recorder` (every profile), `pixi run record` |
+| record `/task_manager/*` all the time | compose service `recorder` (every profile), `pixi run record` |
 | strip a recording to raw sensors | `packages/pkg_slam/tools/mcap_raw_only.py <in> <out>` (drops `/map`, `map -> odom`, task manager topics) |
 | replay with live SLAM and Burr | `GEORG_MCAP_FILE=<bag> ./projectctl.bash up mcap` (the player strips automatically) |
 
