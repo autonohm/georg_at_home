@@ -18,10 +18,11 @@ Nebenbei entfernt: 13 eingecheckte `.pyc`-Dateien in der Navigation (Kompilate, 
 ## Offen
 
 **Q1 – `pkg_speech` zurückgestellt.** Ihr arbeitet gerade daran. `pib-audio` bleibt deshalb vorerst in `pkg_task_manager`, samt `datatypes` (Listen-Action) und Voice-Node im Task-Manager-Launch. Sobald der Stand klar ist: nach `pkg_speech` verschieben und `datatypes` nach `pkg_interfaces`.
+**Stand 2026-11-21:** `pib-audio` gelöscht (Entscheidung Team). `datatypes` liegt jetzt in `packages/pkg_interfaces/datatypes` (Basis-Image). Der Task-Manager-Container startet keinen `listen_action_server` mehr und hat keine Audio-Pakete und kein `/dev/snd` mehr. **Offen:** Wer liefert auf dem Roboter den Server `audio/listen` (z.B. pib-backend-Fork)? Bis dahin schlägt der Listening-Task im Profil `real` fehl; mock/sim nutzen die Mock-Pakete.
 
 **Q4b – `navigate_server.grid_rasterizer` im Task Manager.** `NavigateObject`/`NavigateRoom` lesen die Karte selbst. Übergangslösung: `navigate_server` wird im Task-Manager-Container mitgebaut (zusätzlicher Build-Kontext). Vorschlag für P1: Task Manager schickt nur den Objektnamen, die Navigation löst ihn auf.
 
-**Q5 – erledigt durch Umbau.** Ungültige Abhängigkeiten `georg_msgs`, `georg_nav_action`, `pib-audio` in `georg_task_manager/package.xml` ersetzt durch `georg_gesture_msgs`, `datatypes`, `georg_nav_msgs`. Bitte kurz bestätigen.
+**Q5 – erledigt durch Umbau.** Ungültige Abhängigkeiten `georg_msgs`, `georg_nav_action`, `pib-audio` in `task_manager_pkg/package.xml` ersetzt durch `georg_gesture_msgs`, `datatypes`, `georg_nav_msgs`. Bitte kurz bestätigen.
 
 **Q6 – `privileged: true` und `/dev`-Mounts** in Task Manager, SLAM, Viz, Drive. Unverändert gelassen, Bewertung im Hardware-Scan P7.
 
@@ -207,3 +208,5 @@ P0 bis P8 sind umgesetzt. Geprüft auf dem Mac mit ROS 2 Jazzy (RoboStack), nich
 1. Docker-Build und `up mock`/`up sim` auf einem Rechner mit Docker (P0/P3-Kriterium im Container).
 2. Die 13 Probleme aus dem Hardware-Scan in fremden Paketen (P7) – bis dahin bleibt `real` gesperrt.
 3. Paket-Vertrag (Ergebnis/Feedback) in den echten Paketen (Q14/Q24), Robotermodell in MuJoCo (Q26), LLM-Modell und Image auf dem Jetson (Q27).
+
+**Q29 – Einheitliche Ordnerstruktur (2026-11-21).** Regeln in der Haupt-README („Aufbau eines Subsystems“): Ordnername = Paketname, Paketebene bleibt auch bei einem Paket, Paketnamen ohne `georg_` außer bei Nachrichten. Umgesetzt: `georg_task_manager` → `task_manager` (Paket, Python-Modul, Burr-Projekt; alte Burr-Läufe bleiben unter dem alten Projektnamen sichtbar). `pkg_navigation` bleibt unverändert (fremdes Paket, Ordner mit `_pkg`); Angleichung durch das Navigationsteam. Docker-Build nicht geprüft (kein Docker auf dem Mac).

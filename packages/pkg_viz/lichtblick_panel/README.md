@@ -41,6 +41,6 @@ python3 build.py && node --test test/model.test.js test/panel.test.js
 ```
 
 `panel.test.js` runs the bundled panel against a fake DOM and a fake Lichtblick context.
-`pkg_task_manager/georg_task_manager/test/test_lichtblick_bridge.py` operates the task manager
+`pkg_task_manager/task_manager/test/test_lichtblick_bridge.py` operates the task manager
 through `foxglove_bridge` with the same WebSocket protocol as Lichtblick (`pixi run test_lichtblick`).
 Not tested automatically: the panel inside a running Lichtblick window.

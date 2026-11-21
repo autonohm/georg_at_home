@@ -1,6 +1,6 @@
 """Decision replay (plan P5): run a recorded Burr mission again and compare every decision.
 
-A recorded run (Burr tracking: ~/.burr/georg_task_manager/<app_id>/) contains every step
+A recorded run (Burr tracking: ~/.burr/task_manager/<app_id>/) contains every step
 with its state. The replay rebuilds the same mission (mission id = partition key), feeds
 the recorded task results back in (``last_result`` of every task step) and runs the
 decision logic again, N times. It compares:
@@ -26,12 +26,12 @@ from typing import List
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.abspath(os.path.join(HERE, '..', '..'))
-TM = os.path.join(REPO, 'packages', 'pkg_task_manager', 'georg_task_manager')
-PROJECT = 'georg_task_manager'
+TM = os.path.join(REPO, 'packages', 'pkg_task_manager', 'task_manager')
+PROJECT = 'task_manager'
 
 
 def _import_task_manager():
-    """Make georg_task_manager importable; stand-ins for ROS modules if ROS is missing."""
+    """Make task_manager importable; stand-ins for ROS modules if ROS is missing."""
     for path in (TM, os.path.join(TM, 'test')):
         if path not in sys.path:
             sys.path.insert(0, path)
@@ -72,7 +72,7 @@ def load_recording(app_dir: str) -> Recording:
 
 def replay_once(rec: Recording, tasks) -> Recording:
     """Run the mission again with the recorded task results; record what happened."""
-    from georg_task_manager.engine.service import TaskManagerService
+    from task_manager.engine.service import TaskManagerService
 
     results = list(rec.results)
     seen = Recording(app_id='replay', mission_id=rec.mission_id)
@@ -119,7 +119,7 @@ def compare(recorded: Recording, replayed: Recording) -> List[str]:
 def replay(app_dir: str, runs: int = 3, mission_factory=None) -> List[str]:
     """Replay a recorded run ``runs`` times; return all deviations."""
     _import_task_manager()
-    from georg_task_manager.missions import get_mission
+    from task_manager.missions import get_mission
 
     rec = load_recording(app_dir)
     factory = mission_factory or get_mission
@@ -139,9 +139,9 @@ def replay_decisions(log_file: str, chat, runs: int = 3, catalog=None) -> List[s
     ``chat``: the LLM to ask (same model, temperature 0), e.g. LLMClient().chat.
     """
     _import_task_manager()
-    from georg_task_manager.catalog import load_catalog
-    from georg_task_manager.planner.planner import Planner
-    from georg_task_manager.planner.prompts import PROMPT_VERSION
+    from task_manager.catalog import load_catalog
+    from task_manager.planner.planner import Planner
+    from task_manager.planner.prompts import PROMPT_VERSION
 
     catalog = catalog or load_catalog()
     deviations = []
@@ -175,7 +175,7 @@ def main(argv=None):
     args = parser.parse_args(argv)
     if args.decisions:
         _import_task_manager()
-        from georg_task_manager.planner.llm_client import LLMClient
+        from task_manager.planner.llm_client import LLMClient
         deviations = replay_decisions(args.decisions, LLMClient().chat, args.runs)
         print('\n'.join(deviations) if deviations else
               f'{args.decisions}: {args.runs} replays per decision, no deviations')

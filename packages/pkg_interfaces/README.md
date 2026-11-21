@@ -8,6 +8,6 @@ All ROS interfaces that cross a container boundary. They are built into the base
 | `georg_gesture_msgs` | `PibGesturesInterface.action` | pkg_gestures, pkg_task_manager |
 | `georg_task_manager_msgs` | `MissionStatus.msg`, `StartMission.srv`, `CancelMission.srv`, `ListMissions.srv` | pkg_task_manager, Lichtblick (from P2) |
 
-`datatypes` (`Listen.action`, voice messages) still lives in `pkg_task_manager/pib-audio` until the state of the speech package is clear.
+`datatypes` (`Listen.action`, voice messages) came from `pib-audio` (pib-backend); the name is kept so it stays compatible with pib-backend.
 
 After changing an interface, rebuild the base image (`./projectctl.bash build_base_image`) and then the containers that use it.

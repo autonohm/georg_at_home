@@ -2,9 +2,9 @@
 
 > **Layout since P0 (2026-11-20)** – see `docs/task_manager_plan.md`
 >
-> - This package now contains only the task manager (`georg_task_manager`) and, for the time being, `pib-audio`.
+> - This package contains only the ROS package `task_manager`. `pib-audio` was removed (2026-11-21); its `Listen` action (`datatypes`) is in `packages/pkg_interfaces`.
 > - Navigation: `packages/pkg_navigation`. Gestures: `packages/pkg_gestures`. Maps: `packages/pkg_slam/maps`.
-> - Interfaces (`georg_nav_msgs`, `georg_gesture_msgs`, `georg_task_manager_msgs`): `packages/pkg_interfaces`, built into the base image.
+> - Interfaces (`georg_nav_msgs`, `georg_gesture_msgs`, `georg_task_manager_msgs`, `datatypes`): `packages/pkg_interfaces`, built into the base image.
 > - The launch file starts only `task_manager`, which runs missions with Burr (P1). The py_trees variant (`task_manager_bt`, `render_mission_bt`) was removed.
 > - Start everything with `./projectctl.bash up mock|sim|real|mcap` from the repo root.
 >
@@ -12,7 +12,8 @@
 ## Layout
 
 ```
-georg_task_manager/georg_task_manager/
+task_manager/                    ROS package task_manager (package.xml, setup.py, test/)
+task_manager/task_manager/       Python code
   node.py        ROS node: services, status topic, mode switch (entry point task_manager)
   robot.py       action clients to speech, gestures, navigation; odom
   state.py       RobotState (position, current task)
@@ -22,13 +23,13 @@ georg_task_manager/georg_task_manager/
   tasks/         one class per task (Gesture, Listening, NavigateObject, ...)
   missions/      one file per mission; registry MISSIONS in missions/__init__.py
   mocks/         fake action servers + scenarios (entry point mock_packages)
-test/            tests (unit without ROS, ROS/sim/MCAP/LLM integration with env flags)
+task_manager/test/  tests (unit without ROS, ROS/sim/MCAP/LLM integration with env flags)
 ```
 
 ## Burr engine (since P1)
 
 Missions are executed by an [Apache Burr](https://burr.apache.org/) state machine
-(`georg_task_manager/engine/`). Tasks and missions are written exactly as before;
+(`task_manager/engine/`). Tasks and missions are written exactly as before;
 only the engine that runs them changed. The priority rules below are unchanged.
 
 The Burr graph is built from the mission at every start: one node per mission step,
@@ -67,9 +68,9 @@ Missions that can be started are listed in `missions/__init__.py` (`MISSIONS`).
 
 ### Mock packages (P2)
 
-`ros2 run georg_task_manager mock_packages --scenario <name>` provides fake action servers for
+`ros2 run task_manager mock_packages --scenario <name>` provides fake action servers for
 speech, gestures and navigation (same names and types as the real packages) plus `odom`.
-Scenarios are in `georg_task_manager/mocks/scenarios/`:
+Scenarios are in `task_manager/mocks/scenarios/`:
 
 | Scenario | Effect |
 | --- | --- |
@@ -95,7 +96,7 @@ After the start the task manager is always in mode `mission`. The operator can s
 start_llm -> next -> <task or block> -> next -> ... -> finish -> idle      (star graph)
 ```
 
-- `next` asks the planner (`georg_task_manager/planner/`) after every task: new plan,
+- `next` asks the planner (`task_manager/planner/`) after every task: new plan,
   continue, done or abort. The planner talks to a local LLM over HTTP (`GEORG_LLM_URL`,
   OpenAI-compatible, see `packages/pkg_llm`).
 - Guard rails: JSON schema from the catalog (constrained decoding), then the validator
@@ -111,9 +112,9 @@ start_llm -> next -> <task or block> -> next -> ... -> finish -> idle      (star
 
 ### Add a new task
 
-1. Write the class in `georg_task_manager/tasks/`, derived from `BaseTask`, with
+1. Write the class in `task_manager/tasks/`, derived from `BaseTask`, with
    `async def run(self, robot, state) -> bool` (see `Gesture.py`).
-2. Add one entry to `georg_task_manager/catalog/catalog.yaml`: `class` (`module:Class`),
+2. Add one entry to `task_manager/catalog/catalog.yaml`: `class` (`module:Class`),
    `action`, `type`, `args_schema` (the constructor arguments), `timeout_s`, `modes`.
    **Tasks that are not in the catalog are rejected at mission start.** The catalog name plus
    the `name_arg` argument become the node name in the Burr graph (e.g. `gesture_look_at`),
@@ -122,21 +123,21 @@ start_llm -> next -> <task or block> -> next -> ... -> finish -> idle      (star
 
 ### Add a new mission
 
-1. Copy `georg_task_manager/missions/DigitalFestival.py`; `get_mission()` returns the list of tasks.
-2. Register it in `MISSIONS` in `georg_task_manager/missions/__init__.py`.
+1. Copy `task_manager/missions/DigitalFestival.py`; `get_mission()` returns the list of tasks.
+2. Register it in `MISSIONS` in `task_manager/missions/__init__.py`.
 3. Start it: Lichtblick panel or `task_manager/start` with its id.
 
 ### Burr UI
 
 Every mission run gets its own `burr_app_id` and shows up with all steps and states in the
 Burr UI: <http://localhost:7241> (service `burr_ui`, started with every profile).
-Project `georg_task_manager`, partition key = mission id.
+Project `task_manager`, partition key = mission id.
 Tracking is switched off with `GEORG_BURR_TRACKING=0`.
 
 ### Tests without ROS
 
 ```bash
-cd georg_task_manager
+cd task_manager
 pip install "apache-burr[tracking]==0.43.0" pyyaml pytest
 python -m pytest test/test_burr_app.py test/test_validator.py
 ```

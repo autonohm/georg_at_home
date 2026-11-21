@@ -122,7 +122,7 @@ function burrUrl(baseUrl, missionId, appId) {
     return "";
   }
   const base = String(baseUrl || "http://localhost:7241").replace(/\/+$/, "");
-  return `${base}/project/georg_task_manager/${encodeURIComponent(missionId || "null")}/${encodeURIComponent(appId)}`;
+  return `${base}/project/task_manager/${encodeURIComponent(missionId || "null")}/${encodeURIComponent(appId)}`;
 }
 
 module.exports = {

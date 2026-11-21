@@ -22,19 +22,37 @@ Der Plan ist den container nur bei Softwarerevisionen aktualisieren zu müssen, 
 
 ### Aufbau eines Subsystems
 
-Jedes Subsystem hat drei Ebenen, z.B. der Task Manager:
+Jedes Subsystem ist gleich aufgebaut, egal ob es ein oder mehrere ROS-Pakete enthält:
 
 ```
-packages/pkg_task_manager/          Subsystem = ein Container: Dockerfile, docker-compose.yaml, config/
-└── georg_task_manager/             ROS-Paket: package.xml, setup.py, test/
-    └── georg_task_manager/         Python-Code (node.py, engine/, ...)
+packages/pkg_<bereich>/            1 Subsystem = 1 Container
+├── README.md
+├── Dockerfile, docker-compose.yaml
+├── config/                        Launch-Dateien, Parameter (zur Laufzeit gemountet)
+└── <paketname>/                   ROS-Paket: package.xml, setup.py | CMakeLists.txt, test/
+    └── <paketname>/ | src/ | msg/ srv/ action/
+                                   Python-Code | C++ | Nachrichten
 ```
 
-- `pkg_<name>` ist der Container. Er kann mehrere ROS-Pakete enthalten (z.B. `pkg_navigation`, `pkg_interfaces`).
-- Paketordner und Python-Ordner heißen gleich, weil ROS 2 das für Python-Pakete so verlangt
-  (`from georg_task_manager.engine import ...`, `ros2 run georg_task_manager task_manager`).
-- C++-Pakete haben statt der dritten Ebene `src/` (z.B. `pkg_drive/twist_limiter`).
-- Eine leere Datei `PKG_IGNORE` im Subsystem nimmt es aus dem Bauen/Starten heraus.
+Beispiel: `packages/pkg_task_manager/task_manager/task_manager/node.py`
+
+Regeln:
+
+1. **Ordnername = Paketname** (wie in `package.xml`), ohne Zusatz wie `_pkg`. Der Python-Ordner
+   darin heißt ebenfalls so, das verlangt ROS 2 für Python-Pakete
+   (`from task_manager.engine import ...`, `ros2 run task_manager task_manager`).
+2. **Die Paketebene bleibt auch bei nur einem Paket.** Container-Dateien (Dockerfile, Compose,
+   `config/`) liegen im Subsystem, nicht im ROS-Paket. Weitere Pakete kommen daneben
+   (z.B. `pkg_navigation`).
+3. **Paketnamen ohne `georg_`**, außer bei Nachrichtenpaketen: `georg_nav_msgs`,
+   `georg_task_manager_msgs` usw. brauchen das Präfix, sonst kollidieren sie mit ROS-Standardpaketen
+   (`nav_msgs`).
+
+Bisher umgesetzt im Task Manager. Ältere Pakete weichen noch ab und werden von ihren Teams
+angepasst: `pkg_navigation/*_server_pkg` (Ordner mit `_pkg`), `georg_sim` (Präfix).
+
+Nachrichten, die zwischen Containern gebraucht werden, liegen in `pkg_interfaces` und werden ins
+Basis-Image gebaut. Eine leere Datei `PKG_IGNORE` nimmt ein Subsystem aus dem Bauen/Starten heraus.
 
 ## IP Addressen
 Es gibt einen DHCP server.  

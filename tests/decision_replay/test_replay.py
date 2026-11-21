@@ -13,9 +13,9 @@ import replay as rp  # noqa: E402
 
 rp._import_task_manager()
 
-from georg_task_manager.engine.builder import make_tracker, PROJECT  # noqa: E402, I100
-from georg_task_manager.engine.service import TaskManagerService  # noqa: E402
-from georg_task_manager.missions import get_mission  # noqa: E402
+from task_manager.engine.builder import make_tracker, PROJECT  # noqa: E402, I100
+from task_manager.engine.service import TaskManagerService  # noqa: E402
+from task_manager.missions import get_mission  # noqa: E402
 
 
 def record_run(storage, results):
@@ -79,8 +79,8 @@ def test_changed_rules_are_reported(recorded):
 
 
 def test_llm_decisions_replay_and_report_changes(tmp_path):
-    from georg_task_manager.catalog import load_catalog
-    from georg_task_manager.planner.planner import Planner
+    from task_manager.catalog import load_catalog
+    from task_manager.planner.planner import Planner
 
     answer = json.dumps({'decision': 'plan', 'steps': [{'block': 'greet_guest'}], 'reason': 'x'})
     log_dir = tmp_path / 'decisions'

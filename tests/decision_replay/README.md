@@ -28,5 +28,5 @@ structured task sequence, not as text.
 Rules (plan): open loop, recorded odometry does not react to commands; only raw sensors;
 `/clock` from the player and `use_sim_time` for SLAM; one source per topic
 (in `mcap` the mocks publish no `odom`).
-Tested in `packages/pkg_task_manager/georg_task_manager/test/test_mcap_integration.py`
+Tested in `packages/pkg_task_manager/task_manager/test/test_mcap_integration.py`
 (`pixi run test_mcap`).

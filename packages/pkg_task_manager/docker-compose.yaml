@@ -26,12 +26,7 @@ services:
       # no MISSION_ID: the node starts in Idle, missions are started via
       # ros2 service call /georg/task_manager/start (plan: boot never starts a mission)
 
-    # P7 hardware scan: no privileged; only the sound devices for the speech recognition
-    # (microphone / speaker of pib-audio), no actuators
-    devices:
-      - /dev/snd:/dev/snd
-    group_add:
-      - audio
+    # P7 hardware scan: no privileged, no devices (speech recognition is not in this container)
     init: true
     restart: unless-stopped
     healthcheck:
@@ -56,7 +51,7 @@ services:
       - GEORG_MOCK_SCENARIO=${GEORG_MOCK_SCENARIO:-all_ok}
     init: true
     restart: unless-stopped
-    command: ros2 run georg_task_manager mock_packages --ros-args -r __ns:=/georg
+    command: ros2 run task_manager mock_packages --ros-args -r __ns:=/georg
 
   # Continuous recording of /task_manager/* as MCAP (plan P5), every profile.
   # burr_app_id in the status connects recording, status and Burr run.
