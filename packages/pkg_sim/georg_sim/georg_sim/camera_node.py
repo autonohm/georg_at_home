@@ -53,7 +53,7 @@ def add_visuals(xml):
     xml = xml.replace('<compiler angle="radian"/>', '<compiler angle="radian"/>' + VISUALS, 1)
     xml = xml.replace('rgba="0.9 0.9 0.9 1"/>', 'material="floor"/>', 1)
     xml = xml.replace('<worldbody>', '<worldbody>\n    <light pos="4 0 6" dir="0 0 -1" '
-                      'diffuse="0.6 0.6 0.6" castshadow="true"/>', 1)
+                      'diffuse="0.6 0.6 0.6" castshadow="false"/>', 1)
     return xml.replace('rgba="0.6 0.6 0.65 1"', 'rgba="0.93 0.93 0.9 1"')
 
 

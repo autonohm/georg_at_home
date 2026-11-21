@@ -144,6 +144,14 @@ def build():
         polygons.append({'name': name, 'type': 'obstacle', 'frame': 'map', 'color': 'red',
                          'points': _round(_rect(b))})
         geoms.append(_box(name, b, h, rgb))
+    # ceiling and one light per room (the ceiling blocks the light from above)
+    geoms.append(f'<geom name="v_Decke" type="box" pos="{SIZE / 2} {SIZE / 2} {WALL_H + 0.03}" '
+                 f'size="{SIZE / 2} {SIZE / 2} 0.03" rgba="0.97 0.97 0.95 1" contype="0" '
+                 'conaffinity="0" group="1"/>')
+    for x in (SIZE / 4, 3 * SIZE / 4):
+        for y in (SIZE / 4, 3 * SIZE / 4):
+            geoms.append(f'<light pos="{x} {y} {WALL_H - 0.1}" dir="0 0 -1" '
+                         'diffuse="0.45 0.45 0.42" attenuation="1 0.05 0" castshadow="false"/>')
     for name, c, _ in PEOPLE:
         polygons.append({'name': name, 'type': 'obstacle', 'frame': 'map', 'color': 'purple',
                          'points': _round(_octagon(c, PERSON_R))})

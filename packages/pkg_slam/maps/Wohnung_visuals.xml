@@ -31,6 +31,11 @@
     <geom name="v_Buerostuhl" type="box" pos="8.050 7.750 0.500" size="0.250 0.250 0.500" rgba="0.25 0.25 0.28 1" contype="0" conaffinity="0" group="1"/>
     <geom name="v_Regal_Buero" type="box" pos="4.850 8.250 0.750" size="0.250 0.650 0.750" rgba="0.93 0.93 0.9 1" contype="0" conaffinity="0" group="1"/>
     <geom name="v_Pflanze_Buero" type="box" pos="8.700 4.800 0.600" size="0.200 0.200 0.600" rgba="0.2 0.55 0.25 1" contype="0" conaffinity="0" group="1"/>
+    <geom name="v_Decke" type="box" pos="4.5 4.5 2.4299999999999997" size="4.5 4.5 0.03" rgba="0.97 0.97 0.95 1" contype="0" conaffinity="0" group="1"/>
+    <light pos="2.25 2.25 2.3" dir="0 0 -1" diffuse="0.45 0.45 0.42" attenuation="1 0.05 0" castshadow="false"/>
+    <light pos="2.25 6.75 2.3" dir="0 0 -1" diffuse="0.45 0.45 0.42" attenuation="1 0.05 0" castshadow="false"/>
+    <light pos="6.75 2.25 2.3" dir="0 0 -1" diffuse="0.45 0.45 0.42" attenuation="1 0.05 0" castshadow="false"/>
+    <light pos="6.75 6.75 2.3" dir="0 0 -1" diffuse="0.45 0.45 0.42" attenuation="1 0.05 0" castshadow="false"/>
     <geom name="v_Person_Kueche_body" type="capsule" fromto="3.4 2.4 0.15 3.4 2.4 1.25" size="0.198" rgba="0.2 0.3 0.55 1" contype="0" conaffinity="0"/>
     <geom name="v_Person_Kueche_head" type="sphere" pos="3.4 2.4 1.58" size="0.12" rgba="0.95 0.78 0.65 1" contype="0" conaffinity="0"/>
     <geom name="v_Person_Wohnzimmer_body" type="capsule" fromto="2.9 6.2 0.15 2.9 6.2 1.25" size="0.198" rgba="0.2 0.3 0.55 1" contype="0" conaffinity="0"/>
