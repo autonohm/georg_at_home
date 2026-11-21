@@ -95,7 +95,8 @@ def rate(f: Finding) -> None:
         if rule == 'external code':
             return set_('offen', 'Treiber-Code (edu_robot) wird beim Bauen geklont, nicht im '
                                  'Repo geprüft; muss cmd_vel abonnieren')
-        return set_('erlaubt', 'Treiber-Paket, nur Profil real, hinter twist_mux/twist_limiter')
+        return set_('erlaubt', 'Treiber-Paket; edu_robot nur in real (sim: sim_mode ohne Treiber), '
+                               'hinter twist_mux/twist_limiter')
     if pkg == 'system-files' and rule in ('udev rule', 'tty', 'device file'):
         if 'ttyMotor' in text or '99-pib-motors' in path:
             return set_('Hinweis', 'Motor-Controller-Regel; im Repo nutzt sie kein Paket '

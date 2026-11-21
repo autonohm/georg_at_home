@@ -1,10 +1,21 @@
 """2D simulator of Georg (P3, stage 1): same topics as the robot, no physics engine.
 
 Subscribes:  cmd_vel (geometry_msgs/Twist, mecanum: linear.x, linear.y, angular.z)
-Publishes:   odom (nav_msgs/Odometry, frame odom -> base_footprint)
+Publishes:   odom and odom/wheel (nav_msgs/Odometry, frame odom -> base_footprint)
              merged_scan and scan (sensor_msgs/LaserScan, frame base_link, 360 deg)
              tf odom -> base_footprint, tf_static base_footprint -> base_link
              (off with publish_base_link_tf:=false when georg_description publishes it)
+             sim/ground_truth (nav_msgs/Odometry): true pose, for tests only
+             /clock (rosgraph_msgs/Clock) with publish_clock:=true (nodes with use_sim_time,
+             e.g. twist_mux of pkg_drive in sim_mode)
+
+Sensor realism (parameters, defaults = ideal sensors):
+  lidar_mode:=robot   two SICK TiM571 at the poses of georg_description (laser1/laser2,
+                      270 deg each) -> lidar1/scan, lidar2/scan, and merged_scan like the
+                      laser_scan_merger of pkg_slam (base_link, 360 deg, 1 deg, from 0.3 m)
+  lidar_noise_m       Gaussian range noise (TiM571: about 0.02 m)
+  odom_noise          relative velocity noise of the wheel odometry -> drift (e.g. 0.03)
+  cmd_latency_s       commands act this much later (motor controller latency)
 
 The odom frame is aligned with the map frame of the map YAML, so odom positions are
 map positions (the task manager uses them as start point for navigation). Commands
@@ -16,6 +27,7 @@ does not drive through walls: a step that would collide is not executed.
 
 import math
 import os
+import random
 import time
 
 from geometry_msgs.msg import TransformStamped, Twist
@@ -24,6 +36,7 @@ from nav_msgs.msg import Odometry
 import rclpy
 from rclpy.node import Node
 from rclpy.qos import qos_profile_sensor_data
+from rosgraph_msgs.msg import Clock
 from sensor_msgs.msg import LaserScan
 from tf2_ros import StaticTransformBroadcaster, TransformBroadcaster
 
@@ -32,6 +45,11 @@ DEFAULT_MAP = os.path.join(os.environ.get('GEORG_MAP_DIR', '/root/georg_maps'), 
 
 def _yaw_to_quat(yaw: float):
     return 0.0, 0.0, math.sin(yaw / 2.0), math.cos(yaw / 2.0)
+
+
+# mounting poses (x, y, yaw) of laser1_frame / laser2_frame in base_link, georg_description
+LIDAR1_POSE = [0.2, -0.155, 5.497787143782138]
+LIDAR2_POSE = [-0.2, 0.155, 2.356194490192345]
 
 
 class Sim2D(Node):
@@ -52,6 +70,20 @@ class Sim2D(Node):
         physics_hz = p('physics_hz', 50.0).value
         scan_hz = p('scan_hz', 10.0).value
         self.publish_base_link_tf = p('publish_base_link_tf', True).value
+        self.publish_clock = p('publish_clock', False).value
+        self.lidar_mode = p('lidar_mode', 'center').value          # center | robot
+        self.lidar_poses = [list(p('lidar1_pose', LIDAR1_POSE).value),
+                            list(p('lidar2_pose', LIDAR2_POSE).value)]
+        self.lidar_fov = math.radians(p('lidar_fov_deg', 270.0).value)
+        self.lidar_beams = p('lidar_beams', 271).value      # 1 deg, like the merged scan
+        self.lidar_range = p('lidar_range_m', 25.0).value
+        self.lidar_noise = p('lidar_noise_m', 0.0).value
+        self.odom_noise = p('odom_noise', 0.0).value
+        self.cmd_latency = p('cmd_latency_s', 0.0).value
+        self.rng = random.Random(p('random_seed', 7).value)
+        # wheel odometry (dead reckoning, drifts with odom_noise), starts at the true pose
+        self.ox, self.oy, self.oyaw = self.x, self.y, self.yaw
+        self.cmd_queue = []
 
         self.world = World.from_yaml(self.map_file)
         if not self.world.is_free((self.x, self.y), self.radius):
@@ -61,10 +93,19 @@ class Sim2D(Node):
         self.collisions = 0
         self._setup()
 
-        self.create_subscription(Twist, 'cmd_vel', self._on_cmd, 10)
-        self.odom_pub = self.create_publisher(Odometry, 'odom', 10)
+        # best effort: compatible with reliable publishers and with the twist_limiter of
+        # pkg_drive, which publishes cmd_vel best effort (a reliable subscription gets nothing)
+        self.create_subscription(Twist, 'cmd_vel', self._on_cmd, qos_profile_sensor_data)
+        self.odom_pubs = [self.create_publisher(Odometry, topic, 10)
+                          for topic in ('odom', 'odom/wheel')]
+        self.truth_pub = self.create_publisher(Odometry, 'sim/ground_truth', 10)
+        self.clock_pub = self.create_publisher(Clock, '/clock', 10) if self.publish_clock \
+            else None
         self.scan_pubs = [self.create_publisher(LaserScan, topic, qos_profile_sensor_data)
                           for topic in ('merged_scan', 'scan')]
+        self.lidar_pubs = [self.create_publisher(LaserScan, topic, qos_profile_sensor_data)
+                           for topic in ('lidar1/scan', 'lidar2/scan')] \
+            if self.lidar_mode == 'robot' else []
         self.tf = TransformBroadcaster(self)
         self.static_tf = StaticTransformBroadcaster(self)
         self._publish_static()
@@ -74,18 +115,23 @@ class Sim2D(Node):
         self.create_timer(1.0 / scan_hz, self._publish_scan)
         self.get_logger().info(
             f'georg_sim ready: map={self.map_file}, start=({self.x:.2f}, {self.y:.2f}), '
-            f'{len(self.world.segments)} wall segments')
+            f'{len(self.world.segments)} wall segments, lidar={self.lidar_mode} '
+            f'(noise {self.lidar_noise} m), odom noise {self.odom_noise}, '
+            f'cmd latency {self.cmd_latency} s, clock {"on" if self.publish_clock else "off"}')
 
     def _setup(self):
         """Prepare the simulation backend (hook for the MuJoCo simulator)."""
 
     def _command(self, now: float) -> Twist:
         """Return the current command, or zero if it is older than ``cmd_timeout_s``."""
+        # latency: a command acts cmd_latency_s after it arrived
+        while self.cmd_queue and self.cmd_queue[0][0] <= now - self.cmd_latency:
+            self.cmd_time, self.cmd = self.cmd_queue.pop(0)
+            self.cmd_time += self.cmd_latency
         return self.cmd if now - self.cmd_time <= self.cmd_timeout else Twist()
 
     def _on_cmd(self, msg: Twist):
-        self.cmd = msg
-        self.cmd_time = time.monotonic()
+        self.cmd_queue.append((time.monotonic(), msg))
 
     def _step(self):
         now = time.monotonic()
@@ -105,23 +151,47 @@ class Sim2D(Node):
         self.yaw = math.atan2(math.sin(self.yaw + wz * dt), math.cos(self.yaw + wz * dt))
         self._publish_odom(vx, vy, wz)
 
-    def _publish_odom(self, vx, vy, wz):
-        stamp = self.get_clock().now().to_msg()
-        qx, qy, qz, qw = _yaw_to_quat(self.yaw)
+    @staticmethod
+    def _odometry(stamp, x, y, yaw, vx, vy, wz):
+        qx, qy, qz, qw = _yaw_to_quat(yaw)
         odom = Odometry()
         odom.header.stamp, odom.header.frame_id = stamp, 'odom'
         odom.child_frame_id = 'base_footprint'
         pose = odom.pose.pose
-        pose.position.x, pose.position.y = self.x, self.y
+        pose.position.x, pose.position.y = x, y
         pose.orientation.x, pose.orientation.y, pose.orientation.z, pose.orientation.w = \
             qx, qy, qz, qw
         odom.twist.twist.linear.x, odom.twist.twist.linear.y = vx, vy
         odom.twist.twist.angular.z = wz
-        self.odom_pub.publish(odom)
+        return odom
 
+    def _publish_odom(self, vx, vy, wz):
+        now = self.get_clock().now()
+        stamp = now.to_msg()
+        if self.clock_pub is not None:
+            self.clock_pub.publish(Clock(clock=stamp))
+        self.truth_pub.publish(self._odometry(stamp, self.x, self.y, self.yaw, vx, vy, wz))
+        # wheel odometry: integrate the measured (noisy) velocities -> drift like on the robot
+        dt = 1.0 / 50.0 if not hasattr(self, '_last_odom') else \
+            max(0.0, (now.nanoseconds - self._last_odom) * 1e-9)
+        self._last_odom = now.nanoseconds
+        if self.odom_noise > 0.0:
+            n = self.odom_noise
+            vx, vy, wz = (v * (1.0 + self.rng.gauss(0.0, n)) for v in (vx, vy, wz))
+            c, s = math.cos(self.oyaw), math.sin(self.oyaw)
+            self.ox += (vx * c - vy * s) * dt
+            self.oy += (vx * s + vy * c) * dt
+            self.oyaw = math.atan2(math.sin(self.oyaw + wz * dt), math.cos(self.oyaw + wz * dt))
+        else:
+            self.ox, self.oy, self.oyaw = self.x, self.y, self.yaw
+        odom = self._odometry(stamp, self.ox, self.oy, self.oyaw, vx, vy, wz)
+        for pub in self.odom_pubs:
+            pub.publish(odom)
+
+        qx, qy, qz, qw = _yaw_to_quat(self.oyaw)
         t = TransformStamped()
         t.header.stamp, t.header.frame_id, t.child_frame_id = stamp, 'odom', 'base_footprint'
-        t.transform.translation.x, t.transform.translation.y = self.x, self.y
+        t.transform.translation.x, t.transform.translation.y = self.ox, self.oy
         r = t.transform.rotation
         r.x, r.y, r.z, r.w = qx, qy, qz, qw
         self.tf.sendTransform(t)
@@ -129,27 +199,92 @@ class Sim2D(Node):
     def _publish_static(self):
         if not self.publish_base_link_tf:
             return
+        stamp = self.get_clock().now().to_msg()
+        transforms = []
         t = TransformStamped()
-        t.header.stamp = self.get_clock().now().to_msg()
+        t.header.stamp = stamp
         t.header.frame_id, t.child_frame_id = 'base_footprint', 'base_link'
         t.transform.rotation.w = 1.0
-        self.static_tf.sendTransform(t)
+        transforms.append(t)
+        if self.lidar_mode == 'robot':
+            for i, (lx, ly, lyaw) in enumerate(self.lidar_poses, 1):
+                t = TransformStamped()
+                t.header.stamp = stamp
+                t.header.frame_id, t.child_frame_id = 'base_link', f'laser{i}_frame'
+                t.transform.translation.x, t.transform.translation.y = lx, ly
+                r = t.transform.rotation
+                r.x, r.y, r.z, r.w = _yaw_to_quat(lyaw)
+                transforms.append(t)
+        self.static_tf.sendTransform(transforms)
+
+    def _noisy(self, r):
+        if self.lidar_noise <= 0.0 or not math.isfinite(r):
+            return r
+        return max(0.0, r + self.rng.gauss(0.0, self.lidar_noise))
 
     def _publish_scan(self):
+        stamp = self.get_clock().now().to_msg()
+        if self.lidar_mode == 'robot':
+            self._publish_robot_lidars(stamp)
+            return
         msg = LaserScan()
-        msg.header.stamp = self.get_clock().now().to_msg()
+        msg.header.stamp = stamp
         msg.header.frame_id = 'base_link'
         msg.angle_min = -math.pi
         msg.angle_increment = 2 * math.pi / self.beams
         msg.angle_max = msg.angle_min + msg.angle_increment * (self.beams - 1)
         msg.range_min, msg.range_max = 0.1, float(self.max_range)
         msg.scan_time = 0.1
-        msg.ranges = [float(r) for r in self._ranges()]
+        msg.ranges = [float(self._noisy(r)) for r in self._ranges()]
+        for pub in self.scan_pubs:
+            pub.publish(msg)
+
+    def _publish_robot_lidars(self, stamp):
+        """Two 270 deg lidars at their mounting poses, merged like laser_scan_merger."""
+        n = self.lidar_beams
+        inc = self.lidar_fov / (n - 1)
+        c, s = math.cos(self.yaw), math.sin(self.yaw)
+        merged_bins = 360
+        merged = [math.inf] * merged_bins
+        for i, (lx, ly, lyaw) in enumerate(self.lidar_poses):
+            ox, oy = self.x + lx * c - ly * s, self.y + lx * s + ly * c
+            local = [-self.lidar_fov / 2 + k * inc for k in range(n)]
+            ranges = [self._noisy(r) for r in
+                      self._rays((ox, oy), [self.yaw + lyaw + a for a in local],
+                                 self.lidar_range)]
+            msg = LaserScan()
+            msg.header.stamp, msg.header.frame_id = stamp, f'laser{i + 1}_frame'
+            msg.angle_min, msg.angle_max, msg.angle_increment = local[0], local[-1], inc
+            msg.range_min, msg.range_max = 0.05, float(self.lidar_range)
+            msg.scan_time = 1.0 / 15.0
+            msg.ranges = [float(r) for r in ranges]
+            self.lidar_pubs[i].publish(msg)
+            # points into base_link, 1 deg bins from -pi, keep the nearest point per bin
+            for a, r in zip(local, ranges):
+                if not math.isfinite(r) or r < 0.3:
+                    continue
+                px = lx + r * math.cos(lyaw + a)
+                py = ly + r * math.sin(lyaw + a)
+                b = int((math.atan2(py, px) + math.pi) / (2 * math.pi) * merged_bins) \
+                    % merged_bins
+                merged[b] = min(merged[b], math.hypot(px, py))
+        msg = LaserScan()
+        msg.header.stamp, msg.header.frame_id = stamp, 'base_link'
+        msg.angle_increment = 2 * math.pi / merged_bins
+        msg.angle_min = -math.pi
+        msg.angle_max = msg.angle_min + msg.angle_increment * (merged_bins - 1)
+        msg.range_min, msg.range_max = 0.3, float(self.lidar_range)
+        msg.scan_time = 1.0 / 15.0
+        msg.ranges = [float(r) for r in merged]
         for pub in self.scan_pubs:
             pub.publish(msg)
 
     def _ranges(self):
         return self.world.scan(self.x, self.y, self.yaw, self.beams, self.max_range)
+
+    def _rays(self, origin, angles, max_range):
+        """Ranges from ``origin`` along world ``angles`` (hook for the MuJoCo simulator)."""
+        return [self.world.raycast(origin, a, max_range) for a in angles]
 
 
 def main(args=None):

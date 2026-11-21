@@ -86,6 +86,16 @@ class SimMuJoCo(Sim2D):
                             self._geomid, self._dist, None, self.beams, self.max_range)
         return [d if 0.0 <= d <= self.max_range else math.inf for d in self._dist.tolist()]
 
+    def _rays(self, origin, angles, max_range):
+        z = float(self.data.site_xpos[self.lidar_site][2])
+        a = np.asarray(angles, dtype=np.float64)
+        vec = np.stack([np.cos(a), np.sin(a), np.zeros_like(a)], axis=1).ravel()
+        geomid = np.zeros(len(a), dtype=np.int32)
+        dist = np.zeros(len(a), dtype=np.float64)
+        self.mj.mj_multiRay(self.model, self.data, np.array([origin[0], origin[1], z]), vec,
+                            None, True, self.base_id, geomid, dist, None, len(a), max_range)
+        return [d if 0.0 <= d <= max_range else math.inf for d in dist.tolist()]
+
 
 def main(args=None):
     rclpy.init(args=args)

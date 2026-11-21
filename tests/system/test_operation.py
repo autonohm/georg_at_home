@@ -88,11 +88,23 @@ def test_boot_never_starts_a_mission(real_services):
 
 def test_driver_only_in_profile_real():
     env = dict(os.environ, GEORG_PROFILE='mock')
-    for profile in ('mock', 'sim', 'mcap'):
+    for profile in ('mock', 'mcap'):
         out = subprocess.run(['docker', 'compose', '-f', 'compose.yaml', '--profile', profile,
                               'config', '--services'], cwd=REPO, env=env,
                              capture_output=True, text=True, timeout=120)
         assert 'drive' not in out.stdout.split(), profile
+    # sim: pkg_drive runs twist_mux/twist_limiter, the driver edu_robot only without sim_mode
+    out = subprocess.run(['docker', 'compose', '-f', 'compose.yaml', '--profile', 'sim',
+                          'config'], cwd=REPO, env=dict(env, GEORG_SIM_MODE='true'),
+                         capture_output=True, text=True, timeout=120)
+    assert '- drive.launch.py' in out.stdout and '- sim_mode:=true' in out.stdout
+    launch = open(os.path.join(REPO, 'packages', 'pkg_drive', 'config', 'drive.launch.py'),
+                  encoding='utf-8').read()
+    assert 'condition=UnlessCondition(sim_mode)' in launch
+    # projectctl.bash decides sim_mode from the profile, never from the caller's environment
+    ctl = open(os.path.join(REPO, 'projectctl.bash'), encoding='utf-8').read()
+    assert 'local sim_mode=false' in ctl and '[[ "$mode" == "sim" ]] && sim_mode=true' in ctl
+    assert 'GEORG_SIM_MODE="$sim_mode"' in ctl
 
 
 def test_systemd_unit_and_setup_scripts():

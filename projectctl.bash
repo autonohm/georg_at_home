@@ -158,7 +158,11 @@ docker_cmd() {
         if [[ "${GEORG_WITH_LLM:-0}" == "1" ]]; then
             extra=(--profile llm)
         fi
-        GEORG_PROFILE="$mode" ROS_DOMAIN_ID="$(domain_id "$mode")" \
+        # sim_mode of pkg_drive/pkg_slam (main): only in sim, never taken from the caller's
+        # env, so 'real' always starts the driver and 'sim' never does
+        local sim_mode=false
+        [[ "$mode" == "sim" ]] && sim_mode=true
+        GEORG_PROFILE="$mode" ROS_DOMAIN_ID="$(domain_id "$mode")" GEORG_SIM_MODE="$sim_mode" \
             compose --profile "$mode" ${extra[@]+"${extra[@]}"} "$@"
     else
         GEORG_PROFILE="" compose --profile '*' "$@"

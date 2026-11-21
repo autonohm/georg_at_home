@@ -34,10 +34,10 @@ def generate_launch_description():
         output='screen',
     )
 
-    # Profile real (P7): drive commands go through twist_mux (input cmd_vel/nav) and the
-    # twist_limiter of pkg_drive, then the driver. In sim the simulator listens on
-    # cmd_vel directly, there is no twist_mux.
-    real = os.environ.get('GEORG_PROFILE') == 'real'
+    # Profiles real and sim: drive commands go through twist_mux (input cmd_vel/nav) and the
+    # twist_limiter of pkg_drive, then to the driver (real) or the simulator (sim, sim_mode
+    # of pkg_drive). Without pkg_drive (mock, the Mac stack) directly on cmd_vel.
+    real = os.environ.get('GEORG_PROFILE') in ('real', 'sim')
     drive_route_module = Node(
         package='drive_route_server',
         executable='drive_route_action_server',

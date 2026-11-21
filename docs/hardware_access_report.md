@@ -1,13 +1,13 @@
 # Hardware-Zugriffs-Bericht (P7)
 
-Erzeugt am 2026-11-21 von `tools/hardware_scan.py`. 3173 Dateien einzeln geprüft, 62 Fundstellen.
+Erzeugt am 2026-11-21 von `tools/hardware_scan.py`. 3190 Dateien einzeln geprüft, 63 Fundstellen.
 
 **Profil `real`: NICHT freigegeben** – es gibt offene Probleme (unten). Funde in fremden Paketen werden gemeldet, nicht umgebaut.
 
 | Bewertung | Anzahl |
 | --- | --- |
 | Problem | 12 |
-| offen | 8 |
+| offen | 9 |
 | Hinweis | 34 |
 | erlaubt | 8 |
 
@@ -23,7 +23,7 @@ Erzeugt am 2026-11-21 von `tools/hardware_scan.py`. 3173 Dateien einzeln geprüf
 - **pkg_urdf** (Problem): privileged/Geräte-Zugriff außerhalb eines Treiber-Pakets; nicht nötig, entfernen. Stellen: `packages/pkg_urdf/docker-compose.yaml:12`
 - **pkg_urdf** (offen): beim Bauen geklonter Code, nicht im Repo geprüft. Stellen: `packages/pkg_urdf/Dockerfile:16`
 - **pkg_viz** (Problem): RViz-Container (nur Profil viz) braucht kein /dev und kein privileged außer für die GPU; einschränken. Stellen: `packages/pkg_viz/docker-compose.yaml:11`, `packages/pkg_viz/docker-compose.yaml:24`
-- **pkg_viz** (offen): beim Bauen geklonter Code, nicht im Repo geprüft. Stellen: `packages/pkg_viz/Dockerfile:26`
+- **pkg_viz** (offen): beim Bauen geklonter Code, nicht im Repo geprüft. Stellen: `packages/pkg_viz/Dockerfile:26`, `packages/pkg_viz/Dockerfile.bridge:22`
 
 ## Alle Fundstellen
 
@@ -44,9 +44,9 @@ Erzeugt am 2026-11-21 von `tools/hardware_scan.py`. 3173 Dateien einzeln geprüf
 | docker_base_image | `packages/docker_base_image/Dockerfile` | 9 | `RUN git clone https://github.com/autonohm/georg_interfaces` | external code | offen | beim Bauen geklonter Code, nicht im Repo geprüft |
 | pkg_drive | `packages/pkg_drive/Dockerfile` | 23 | `RUN git clone https://github.com/EduArt-Robotik/edu_robot.git --branch hotfix/single_channel_motor_controller && \` | external code | offen | Treiber-Code (edu_robot) wird beim Bauen geklont, nicht im Repo geprüft; muss cmd_vel abonnieren |
 | pkg_drive | `packages/pkg_drive/Dockerfile` | 24 | `git clone https://github.com/EduArt-Robotik/edu_robot_control.git` | external code | offen | Treiber-Code (edu_robot) wird beim Bauen geklont, nicht im Repo geprüft; muss cmd_vel abonnieren |
-| pkg_drive | `packages/pkg_drive/config/drive.launch.py` | 70 | `{'dev': '/dev/georg_controller'}` | device file | erlaubt | Treiber-Paket, nur Profil real, hinter twist_mux/twist_limiter |
-| pkg_drive | `packages/pkg_drive/docker-compose.yaml` | 13 | `- /dev:/dev` | device mount | erlaubt | Treiber-Paket, nur Profil real, hinter twist_mux/twist_limiter |
-| pkg_drive | `packages/pkg_drive/docker-compose.yaml` | 15 | `privileged: true` | privileged | erlaubt | Treiber-Paket, nur Profil real, hinter twist_mux/twist_limiter |
+| pkg_drive | `packages/pkg_drive/config/drive.launch.py` | 70 | `{'dev': '/dev/georg_controller'}` | device file | erlaubt | Treiber-Paket; edu_robot nur in real (sim: sim_mode ohne Treiber), hinter twist_mux/twist_limiter |
+| pkg_drive | `packages/pkg_drive/docker-compose.yaml` | 14 | `- /dev:/dev` | device mount | erlaubt | Treiber-Paket; edu_robot nur in real (sim: sim_mode ohne Treiber), hinter twist_mux/twist_limiter |
+| pkg_drive | `packages/pkg_drive/docker-compose.yaml` | 16 | `privileged: true` | privileged | erlaubt | Treiber-Paket; edu_robot nur in real (sim: sim_mode ohne Treiber), hinter twist_mux/twist_limiter |
 | pkg_gestures | `packages/pkg_gestures/Dockerfile` | 11 | `# pib-sdk is NOT installed: all pib_sdk imports in pib_gestures are commented out, and the` | controller sdk | Hinweis | nur Kommentar/Docstring |
 | pkg_gestures | `packages/pkg_gestures/Dockerfile` | 14 | `# On arm64, pib-sdk 0.9.1 -> pin -> cmeel-boost also needs numpy>=2.2, which conflicts with` | controller sdk | Hinweis | nur Kommentar/Docstring |
 | pkg_gestures | `packages/pkg_gestures/Dockerfile` | 17 | `#   RUN python3 -m pip install --no-cache-dir --break-system-packages pib-sdk==0.9.1` | controller sdk | Hinweis | nur Kommentar/Docstring |
@@ -77,6 +77,7 @@ Erzeugt am 2026-11-21 von `tools/hardware_scan.py`. 3173 Dateien einzeln geprüf
 | pkg_task_manager | `packages/pkg_task_manager/task_manager_pkg/test/test_sim_integration.py` | 75 | `self.cmd = node.create_publisher(Twist, f'{NS}/cmd_vel', 10)` | cmd_vel publisher | Hinweis | Fahrbefehl über ROS; läuft über twist_mux/twist_limiter |
 | pkg_urdf | `packages/pkg_urdf/Dockerfile` | 16 | `RUN git clone https://github.com/autonohm/georg_description.git` | external code | offen | beim Bauen geklonter Code, nicht im Repo geprüft |
 | pkg_viz | `packages/pkg_viz/Dockerfile` | 26 | `RUN git clone https://github.com/autonohm/georg_description.git` | external code | offen | beim Bauen geklonter Code, nicht im Repo geprüft |
+| pkg_viz | `packages/pkg_viz/Dockerfile.bridge` | 22 | `RUN git clone https://github.com/autonohm/georg_description.git /ws/georg_description` | external code | offen | beim Bauen geklonter Code, nicht im Repo geprüft |
 | system-files | `system-files/README.md` | 16 | `git clone https://github.com/autonohm/georg_at_home.git` | external code | Hinweis | nur Dokumentation |
 | system-files | `system-files/README.md` | 31 | `git clone https://github.com/autonohm/georg_at_home.git` | external code | Hinweis | nur Dokumentation |
 | system-files | `system-files/etc/udev/rules.d/51-autonohm-joystick.rules` | 1 | `# PS3 Controller werden auf /dev/georg_controller erwartet` | device file | Hinweis | nur Kommentar/Docstring |
@@ -94,10 +95,10 @@ Erzeugt am 2026-11-21 von `tools/hardware_scan.py`. 3173 Dateien einzeln geprüf
 
 ## Geprüfte Dateien (Beleg)
 
-3173 Dateien, jede einzeln gelesen.
+3190 Dateien, jede einzeln gelesen.
 
 ```
-compose.yaml  –  28 Zeilen geprüft
+compose.yaml  –  29 Zeilen geprüft
 packages/docker_base_image/Dockerfile  –  29 Zeilen geprüft
 packages/docker_base_image/compose.yaml  –  11 Zeilen geprüft
 packages/pkg_drive/Dockerfile  –  38 Zeilen geprüft
@@ -110,7 +111,7 @@ packages/pkg_drive/config/twist_mux/joystick.yaml  –  12 Zeilen geprüft
 packages/pkg_drive/config/twist_mux/twist_mux_launch.py  –  87 Zeilen geprüft
 packages/pkg_drive/config/twist_mux/twist_mux_locks.yaml  –  27 Zeilen geprüft
 packages/pkg_drive/config/twist_mux/twist_mux_topics.yaml  –  27 Zeilen geprüft
-packages/pkg_drive/docker-compose.yaml  –  26 Zeilen geprüft
+packages/pkg_drive/docker-compose.yaml  –  27 Zeilen geprüft
 packages/pkg_drive/twist_limiter/.gitignore  –  7 Zeilen geprüft
 packages/pkg_drive/twist_limiter/CMakeLists.txt  –  31 Zeilen geprüft
 packages/pkg_drive/twist_limiter/LICENSE  –  18 Zeilen geprüft
@@ -3141,18 +3142,34 @@ packages/pkg_object_detection/yolov8n_aug_coco_results/val_batch1_labels.jpg  �
 packages/pkg_object_detection/yolov8n_aug_coco_results/val_batch1_pred.jpg  –  binär (Bild/Modell/Archiv), kein Code
 packages/pkg_object_detection/yolov8n_aug_coco_results/val_batch2_labels.jpg  –  binär (Bild/Modell/Archiv), kein Code
 packages/pkg_object_detection/yolov8n_aug_coco_results/val_batch2_pred.jpg  –  binär (Bild/Modell/Archiv), kein Code
+packages/pkg_pib_model/Dockerfile  –  33 Zeilen geprüft
+packages/pkg_pib_model/README.md  –  58 Zeilen geprüft
+packages/pkg_pib_model/config/pib_model.launch.py  –  28 Zeilen geprüft
+packages/pkg_pib_model/docker-compose.yaml  –  28 Zeilen geprüft
+packages/pkg_pib_model/pib_model_pkg/.gitignore  –  2 Zeilen geprüft
+packages/pkg_pib_model/pib_model_pkg/package.xml  –  25 Zeilen geprüft
+packages/pkg_pib_model/pib_model_pkg/pib_model/__init__.py  –  1 Zeilen geprüft
+packages/pkg_pib_model/pib_model_pkg/pib_model/convert.py  –  180 Zeilen geprüft
+packages/pkg_pib_model/pib_model_pkg/pib_model/description.py  –  36 Zeilen geprüft
+packages/pkg_pib_model/pib_model_pkg/pib_model/fake_motors.py  –  115 Zeilen geprüft
+packages/pkg_pib_model/pib_model_pkg/pib_model/mapping.py  –  63 Zeilen geprüft
+packages/pkg_pib_model/pib_model_pkg/pib_model/model_node.py  –  123 Zeilen geprüft
+packages/pkg_pib_model/pib_model_pkg/resource/pib_model  –  1 Zeilen geprüft
+packages/pkg_pib_model/pib_model_pkg/setup.cfg  –  5 Zeilen geprüft
+packages/pkg_pib_model/pib_model_pkg/setup.py  –  41 Zeilen geprüft
+packages/pkg_pib_model/pib_model_pkg/test/test_model.py  –  114 Zeilen geprüft
 packages/pkg_sim/Dockerfile  –  28 Zeilen geprüft
 packages/pkg_sim/README.md  –  47 Zeilen geprüft
 packages/pkg_sim/assets/README.md  –  22 Zeilen geprüft
 packages/pkg_sim/config/sim.launch.py  –  24 Zeilen geprüft
 packages/pkg_sim/config/sim_stack.launch.py  –  88 Zeilen geprüft
-packages/pkg_sim/docker-compose.yaml  –  32 Zeilen geprüft
+packages/pkg_sim/docker-compose.yaml  –  45 Zeilen geprüft
 packages/pkg_sim/georg_sim/georg_sim/__init__.py  –  2 Zeilen geprüft
 packages/pkg_sim/georg_sim/georg_sim/mjcf.py  –  71 Zeilen geprüft
-packages/pkg_sim/georg_sim/georg_sim/sim2d_node.py  –  170 Zeilen geprüft
-packages/pkg_sim/georg_sim/georg_sim/simmj_node.py  –  105 Zeilen geprüft
+packages/pkg_sim/georg_sim/georg_sim/sim2d_node.py  –  305 Zeilen geprüft
+packages/pkg_sim/georg_sim/georg_sim/simmj_node.py  –  115 Zeilen geprüft
 packages/pkg_sim/georg_sim/georg_sim/world.py  –  103 Zeilen geprüft
-packages/pkg_sim/georg_sim/package.xml  –  23 Zeilen geprüft
+packages/pkg_sim/georg_sim/package.xml  –  24 Zeilen geprüft
 packages/pkg_sim/georg_sim/resource/georg_sim  –  1 Zeilen geprüft
 packages/pkg_sim/georg_sim/setup.cfg  –  5 Zeilen geprüft
 packages/pkg_sim/georg_sim/setup.py  –  27 Zeilen geprüft
@@ -3244,16 +3261,17 @@ packages/pkg_urdf/README.md  –  16 Zeilen geprüft
 packages/pkg_urdf/docker-compose.yaml  –  23 Zeilen geprüft
 packages/pkg_urdf/view_urdf.rviz  –  156 Zeilen geprüft
 packages/pkg_viz/Dockerfile  –  38 Zeilen geprüft
-packages/pkg_viz/Dockerfile.bridge  –  12 Zeilen geprüft
+packages/pkg_viz/Dockerfile.bridge  –  35 Zeilen geprüft
 packages/pkg_viz/README.md  –  37 Zeilen geprüft
+packages/pkg_viz/config/foxglove_bridge.yaml  –  10 Zeilen geprüft
 packages/pkg_viz/config/georg.rviz  –  355 Zeilen geprüft
 packages/pkg_viz/config/operator.launch.py  –  50 Zeilen geprüft
 packages/pkg_viz/config/qt5ct/colors/gruvbox-dark.conf  –  6 Zeilen geprüft
 packages/pkg_viz/config/qt5ct/colors/gruvbox-light.conf  –  6 Zeilen geprüft
 packages/pkg_viz/config/qt5ct/qt5ct.conf  –  8 Zeilen geprüft
-packages/pkg_viz/docker-compose.yaml  –  59 Zeilen geprüft
+packages/pkg_viz/docker-compose.yaml  –  62 Zeilen geprüft
 packages/pkg_viz/georg_slam.rviz  –  320 Zeilen geprüft
-packages/pkg_viz/lichtblick_layouts/georg_sim.json  –  40 Zeilen geprüft
+packages/pkg_viz/lichtblick_layouts/georg_sim.json  –  42 Zeilen geprüft
 packages/pkg_viz/lichtblick_panel/.gitignore  –  3 Zeilen geprüft
 packages/pkg_viz/lichtblick_panel/README.md  –  47 Zeilen geprüft
 packages/pkg_viz/lichtblick_panel/build.py  –  66 Zeilen geprüft
@@ -3262,7 +3280,7 @@ packages/pkg_viz/lichtblick_panel/src/extension.js  –  213 Zeilen geprüft
 packages/pkg_viz/lichtblick_panel/src/model.js  –  146 Zeilen geprüft
 packages/pkg_viz/lichtblick_panel/test/model.test.js  –  78 Zeilen geprüft
 packages/pkg_viz/lichtblick_panel/test/panel.test.js  –  149 Zeilen geprüft
-projectctl.bash  –  271 Zeilen geprüft
+projectctl.bash  –  275 Zeilen geprüft
 system-files/README.md  –  40 Zeilen geprüft
 system-files/etc/systemd/system/georg.service  –  29 Zeilen geprüft
 system-files/etc/udev/rules.d/51-autonohm-joystick.rules  –  7 Zeilen geprüft

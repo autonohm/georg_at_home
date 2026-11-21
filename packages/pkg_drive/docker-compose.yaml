@@ -3,7 +3,8 @@ services:
     image: drive
     environment:
       - ROS_DOMAIN_ID=${ROS_DOMAIN_ID:-0}
-    profiles: [real]
+    # sim: Sam's sim_mode, twist_mux + twist_limiter without the driver edu_robot
+    profiles: [sim, real]
     build:
       context: .
       dockerfile: ./Dockerfile

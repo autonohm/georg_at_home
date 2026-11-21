@@ -15,6 +15,12 @@ services:
       - GEORG_MAP_DIR=/root/georg_maps
       # sim2d (stage 1) or simmj (MuJoCo, stage 2)
       - GEORG_SIMULATOR=${GEORG_SIMULATOR:-sim2d}
+      # sensor realism (georg_sim/sim2d_node.py): robot = two TiM571 like on Georg
+      - GEORG_SIM_LIDARS=${GEORG_SIM_LIDARS:-robot}
+      - GEORG_SIM_LIDAR_NOISE=${GEORG_SIM_LIDAR_NOISE:-0.02}
+      # wheel odometry drift and command latency; 0 = off (navigation uses odom as map pose)
+      - GEORG_SIM_ODOM_NOISE=${GEORG_SIM_ODOM_NOISE:-0.0}
+      - GEORG_SIM_CMD_LATENCY=${GEORG_SIM_CMD_LATENCY:-0.0}
     init: true
     restart: unless-stopped
     healthcheck:
@@ -24,7 +30,14 @@ services:
       retries: 3
       start_period: 60s
     # headless; look at it in Lichtblick (foxglove_bridge in pkg_viz)
-    command: sh -c 'ros2 run georg_sim $${GEORG_SIMULATOR} --ros-args -p map_file:=/root/georg_maps/Nav_Test.yaml'
+    # georg_description (pkg_urdf) publishes base_footprint -> base_link and the lidar frames;
+    # /clock for the nodes of pkg_drive in sim_mode (use_sim_time)
+    command: >-
+      sh -c 'ros2 run georg_sim $${GEORG_SIMULATOR} --ros-args
+      -p map_file:=/root/georg_maps/Nav_Test.yaml -p publish_base_link_tf:=false
+      -p publish_clock:=true -p lidar_mode:=$${GEORG_SIM_LIDARS}
+      -p lidar_noise_m:=$${GEORG_SIM_LIDAR_NOISE} -p odom_noise:=$${GEORG_SIM_ODOM_NOISE}
+      -p cmd_latency_s:=$${GEORG_SIM_CMD_LATENCY}'
 
 networks:
   pib-network:
