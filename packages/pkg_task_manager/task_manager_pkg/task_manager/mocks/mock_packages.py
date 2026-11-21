@@ -31,7 +31,7 @@ import time
 
 from georg_speech_msgs.action import Listen, Say
 from geometry_msgs.msg import Point
-from georg_gesture_msgs.action import PibGesturesInterface
+from georg_gesture_msgs.action import PibGesturesInterface, PibPose
 from georg_nav_msgs.action import DriveRoute, Navigate
 from nav_msgs.msg import Odometry
 import rclpy
@@ -49,6 +49,7 @@ ACTION_TYPES = {
     'georg_speech_msgs/action/Listen': Listen,
     'georg_speech_msgs/action/Say': Say,
     'georg_gesture_msgs/action/PibGesturesInterface': PibGesturesInterface,
+    'georg_gesture_msgs/action/PibPose': PibPose,
     'georg_nav_msgs/action/Navigate': Navigate,
 }
 EXTRA_ACTION_TYPES = {'nav/drive_route': DriveRoute}
@@ -70,6 +71,9 @@ def _result(action_type, ok: bool):
     elif action_type is Say:
         r = Say.Result()
         r.success, r.message = (True, 'mock said it') if ok else (False, 'mock failure')
+    elif action_type is PibPose:
+        r = PibPose.Result()
+        r.success, r.message = (True, 'mock pose reached') if ok else (False, 'mock failure')
     elif action_type is PibGesturesInterface:
         r = PibGesturesInterface.Result()
         r.success, r.message = (0, 'mock ok') if ok else (1, 'mock failure')

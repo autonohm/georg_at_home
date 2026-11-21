@@ -23,5 +23,6 @@ def generate_launch_description():
     ]
     if os.environ.get('GEORG_PROFILE') == 'sim':
         nodes.append(Node(package='pib_model', executable='fake_pib_motors',
-                          name='fake_pib_motors', output='screen'))
+                          name='fake_pib_motors', output='screen',
+                          parameters=[{'poses_file': '/config/pib_poses.yaml'}]))
     return LaunchDescription(nodes)

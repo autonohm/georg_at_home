@@ -3,30 +3,102 @@
     "3D!georg3d": {
       "followTf": "base_footprint",
       "followMode": "follow-position",
-      "scene": {},
+      "scene": {
+        "meshUpAxis": "z_up",
+        "ignoreColladaUpAxis": true,
+        "transforms": {
+          "showLabel": false,
+          "axisScale": 0.0,
+          "lineWidth": 0.0
+        }
+      },
       "transforms": {},
       "topics": {
-        "/map": { "visible": true },
-        "/merged_scan": { "visible": true, "pointSize": 4, "colorField": "range" },
-        "/odom": { "visible": true },
-        "/robot_description": { "visible": false },
-        "/pib/robot_description": { "visible": false },
-        "/georg_full/robot_description": { "visible": true }
+        "/map": {
+          "visible": true
+        },
+        "/merged_scan": {
+          "visible": true,
+          "pointSize": 4,
+          "colorField": "range"
+        },
+        "/odom": {
+          "visible": true
+        },
+        "/robot_description": {
+          "visible": false
+        },
+        "/pib/robot_description": {
+          "visible": false
+        },
+        "/georg_full/robot_description": {
+          "visible": true
+        }
       },
       "layers": {
-        "grid": { "visible": true, "layerId": "foxglove.Grid", "frameLocked": true,
-                  "position": [0, 0, 0], "rotation": [0, 0, 0] }
+        "grid": {
+          "visible": true,
+          "layerId": "foxglove.Grid",
+          "frameLocked": true,
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ]
+        },
+        "pib-urdf": {
+          "visible": true,
+          "layerId": "foxglove.Urdf",
+          "sourceType": "topic",
+          "topic": "/georg_full/robot_description",
+          "label": "Georg + pib"
+        }
       },
-      "cameraState": { "distance": 7, "perspective": true, "phi": 55, "thetaOffset": 45,
-                       "targetOffset": [0, 0, 0], "target": [0, 0, 0],
-                       "targetOrientation": [0, 0, 0, 1], "fovy": 45, "near": 0.5, "far": 5000 }
+      "cameraState": {
+        "distance": 7,
+        "perspective": true,
+        "phi": 55,
+        "thetaOffset": 45,
+        "targetOffset": [
+          0,
+          0,
+          0
+        ],
+        "target": [
+          0,
+          0,
+          0
+        ],
+        "targetOrientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "fovy": 45,
+        "near": 0.5,
+        "far": 5000
+      }
     },
-    "RawMessages!georgplan": { "topicPath": "/task_manager/plan.data", "diffEnabled": false },
-    "RawMessages!georgstatus": { "topicPath": "/task_manager/status", "diffEnabled": false }
+    "RawMessages!georgplan": {
+      "topicPath": "/task_manager/plan.data",
+      "diffEnabled": false
+    },
+    "RawMessages!georgstatus": {
+      "topicPath": "/task_manager/status",
+      "diffEnabled": false
+    }
   },
   "globalVariables": {},
   "userNodes": {},
-  "playbackConfig": { "speed": 1 },
+  "playbackConfig": {
+    "speed": 1
+  },
   "layout": {
     "first": "3D!georg3d",
     "second": {

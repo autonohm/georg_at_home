@@ -228,3 +228,39 @@ Strahlauflösung 1° statt 0,33°: der zusammengeführte Scan hat ohnehin 1°, P
 - **Noch offen (Schritt 2):** Adapter `pkg_pib_bridge` – `speech/say` → pib-backend
   `/play_audio_from_speech`, `audio/listen` (SPEECH) → `/speech_detected` + `/chat_messages`,
   Brücke zwischen Domain 30 (Sim) und 0 (pib-backend), Türklingel ohne Quelle (Frage).
+
+### Nach dem Durchgehen – Lichtblick-Darstellung, Reset, Gesten-Demo
+
+#### Fehler gefunden und behoben
+- **pib-Meshes fehlten:** URDF zeigte auf `package://pib_model/meshes/…`, installiert ist
+  `…/model/meshes/…` (mein Fehler; der frühere Bridge-Test nutzte den richtigen Pfad von Hand).
+  Neu: `tests/stack/mesh_check.py` lädt **jede** URI aus den Beschreibungen über die Bridge (52/52).
+- **Gekippte Basis/Beine/Lidare/pib:** keine Modellfehler. Lichtblick behandelt STL/OBJ/GLB
+  standardmäßig als „y oben“ und wendet COLLADA-`<up_axis>` an; alle Meshes von Georg und pib
+  liegen aber in ROS-Ausrichtung (z oben). Lösung: 3D-Panel → Scene → **Mesh up axis = Z-up**,
+  **Ignore COLLADA up_axis** an – jetzt im Layout `georg_sim.json` (dazu Labels/Achsen aus,
+  URDF-Ebene „Georg + pib“). Eine zwischenzeitliche Gegendrehung der GLBs ist wieder raus.
+- Lichtblick erkennt nur `/robot_description` von selbst als Roboter; das kombinierte Modell kommt
+  über die Custom-URDF-Ebene (Topic `/georg_full/robot_description`).
+
+#### Reset für die Sim (Wunsch)
+- Mission **„Simulation: zurücksetzen“** (`sim_reset`), nur Profil `sim`: Georg an den Start,
+  gestoppt, Odometrie zurück, SLAM-Karte leer (`/slam_toolbox/reset`), bei MuJoCo auch der
+  Physikzustand. Neu: `georg_sim_msgs/ResetSim`, Action `sim/reset` im Simulator.
+
+#### E9 – Gesten sichtbar machen
+- **Problem:** Der Gesten-Server bewegt nichts (Q34). Wunsch: eine Mission, in der man Gesten sieht.
+- **Optionen:** (a) Gesten-Paket umbauen (fremdes Paket, Sache des Gesten-Teams); (b) eigener
+  Task für benannte Posen, in der Sim von den Fake-Motoren ausgeführt.
+- **Gewählt:** (b). Task `pib_pose` (Action `pib/pose`, `georg_gesture_msgs/PibPose`), Posen
+  `ruhe`, `winken`, `zeigen`, `begruessen`, `arm_hoch`, `kopf_mitte` in
+  `pkg_pib_model/config/pib_poses.yaml` (ohne Neubau änderbar). Mission **„Simulation:
+  Gesten-Demo“** (`sim_gestures`): winken → Sitzplatz → zeigen → begrüßen → Arme runter.
+- **Folgen:** Die Winkel sind über die Kinematik des Modells aus Ziel-Handpositionen berechnet,
+  **nicht am echten pib geprüft**, teils an der Grenze ±1,5 rad → Task nur `mock`/`sim`. Für
+  `real` später: Adapter → pib-backend `/apply_joint_trajectory`, Posen vorher am Roboter prüfen.
+  Die Fake-Motoren bieten jetzt auch `/apply_joint_trajectory` an (wie pib-backend), weil dessen
+  `datatypes` im Basis-Image ist – das Gesten-Team kann seine Ansteuerung damit in der Sim testen.
+
+#### Ergebnis
+- Stack-Test `sim` **8/8** (inkl. Reset und Gesten-Demo), `mock` 4/4; Unit-Tests grün.

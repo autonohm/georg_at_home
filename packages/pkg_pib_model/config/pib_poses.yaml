@@ -1,0 +1,55 @@
+# Named poses of pib (motor names of pib-backend, angles in rad, as for
+# /apply_joint_trajectory). Used by fake_pib_motors (action pib/pose) in the simulation.
+# Computed from the pib model (pib-3d v0.11.6) by target hand positions; NOT checked on
+# the real pib - check limits before sending them to real servos.
+# Motors not listed in a pose keep their position. Editable without rebuilding.
+poses:
+  ruhe:
+    shoulder_vertical_left: -1.32
+    shoulder_horizontal_left: 1.09
+    upper_arm_left_rotation: -0.64
+    elbow_left: -1.5
+    shoulder_vertical_right: -1.5
+    shoulder_horizontal_right: 1.23
+    upper_arm_right_rotation: -1.5
+    elbow_right: -1.5
+    turn_head_motor: 0.0
+    tilt_forward_motor: 0.0
+  arm_hoch:
+    shoulder_vertical_right: 1.45
+    shoulder_horizontal_right: 1.29
+    upper_arm_right_rotation: 1.5
+    elbow_right: -1.13
+  winken_a:
+    shoulder_vertical_right: 1.45
+    shoulder_horizontal_right: 1.29
+    upper_arm_right_rotation: 1.5
+    elbow_right: -0.7
+  winken_b:
+    shoulder_vertical_right: 1.45
+    shoulder_horizontal_right: 1.29
+    upper_arm_right_rotation: 1.5
+    elbow_right: -1.4
+  zeigen:
+    shoulder_vertical_right: -0.02
+    shoulder_horizontal_right: 1.5
+    upper_arm_right_rotation: -0.26
+    elbow_right: -1.12
+    turn_head_motor: -0.4
+  begruessen:
+    shoulder_vertical_right: 0.48
+    shoulder_horizontal_right: 1.5
+    upper_arm_right_rotation: 1.07
+    elbow_right: -1.13
+    tilt_forward_motor: 0.25
+  kopf_mitte:
+    turn_head_motor: 0.0
+    tilt_forward_motor: 0.0
+sequences:
+  winken:
+  - arm_hoch
+  - winken_a
+  - winken_b
+  - winken_a
+  - winken_b
+  - winken_a

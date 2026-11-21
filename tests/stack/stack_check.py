@@ -214,6 +214,17 @@ def main():
             return f'back at the start ({dist:.3f} m)'
         check('sim_reset puts the robot back to the start', reset)
 
+        def gestures():
+            target = seat_position()
+            st = node.run_mission('sim_gestures', timeout=240)
+            if st.state != MissionStatus.SUCCEEDED:
+                raise RuntimeError(f'state {STATE[st.state]}: {st.message}')
+            dist = math.dist(node.pose, target[:2])
+            if dist > 0.6:
+                raise RuntimeError(f'mission succeeded but robot is {dist:.2f} m from the seat')
+            return f'waved, drove, pointed; {dist:.2f} m from the seat'
+        check('sim_gestures: poses and navigation', gestures)
+
     print(f'{sum(results)}/{len(results)} checks passed', flush=True)
     # exit right away: shutting rclpy down under the spinning thread aborts or prints errors
     os._exit(0 if all(results) else 1)

@@ -2,7 +2,7 @@ from rclpy.node import Node
 from rclpy.action import ActionClient
 from std_msgs.msg import String
 from std_msgs.msg import Bool
-from georg_gesture_msgs.action import PibGesturesInterface
+from georg_gesture_msgs.action import PibGesturesInterface, PibPose
 from georg_sim_msgs.action import ResetSim
 from georg_speech_msgs.action import Listen, Say
 from georg_nav_msgs.action import Navigate, DriveRoute
@@ -46,6 +46,13 @@ class Georg:
             node,
             ResetSim,
             "sim/reset"
+        )
+
+        # named pib poses (pkg_pib_model fake motors in sim)
+        self.pib_pose_action_client = ActionClient(
+            node,
+            PibPose,
+            "pib/pose"
         )
 
         self.greet_action_client = ActionClient(

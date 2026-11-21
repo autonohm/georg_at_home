@@ -1,0 +1,11 @@
+# Move pib to a named pose or a named sequence of poses (pkg_pib_model: config/pib_poses.yaml).
+# Simulation: fake_pib_motors. Robot: later pib-backend /apply_joint_trajectory via the bridge.
+
+string pose
+
+---
+bool success
+string message
+
+---
+string state      # current step of a sequence

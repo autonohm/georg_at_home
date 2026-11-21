@@ -13,6 +13,8 @@ MISSIONS = {
     'mock_test': ('Mock Test (nur mit Mock-Paketen)', Mock_Test.get_mission),
     'sim_seat': ('Simulation: zum Sitzplatz fahren', Sim_Test.get_mission),
     'sim_door': ('Simulation: zur Tür fahren', Sim_Test.get_mission_door),
+    'sim_gestures': ('Simulation: Gesten-Demo (winken, fahren, zeigen)',
+                     Sim_Test.get_mission_gestures),
     'sim_reset': ('Simulation: zurücksetzen (Start, Karte leer)', Sim_Test.get_mission_reset),
     'greeting': ('Begrüßung (spricht über pib-backend)', Greeting.get_mission),
 }

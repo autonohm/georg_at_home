@@ -6,6 +6,7 @@ The map comes from GEORG_MAP_DIR (default /root/georg_maps).
 import os
 
 from task_manager.tasks.NavigateObject import NavigateObject
+from task_manager.tasks.PibPose import PibPose
 from task_manager.tasks.ResetSimulation import ResetSimulation
 from task_manager.tasks.ReturnToIdle import ReturnToIdle
 
@@ -25,3 +26,10 @@ def get_mission_door():
 def get_mission_reset():
     """Put the simulated robot back to the start and clear the map."""
     return [ResetSimulation(clear_map=True)]
+
+
+def get_mission_gestures():
+    """Wave at the start, drive to the seat, point at it, arms down."""
+    return [PibPose('ruhe'), PibPose('winken'), PibPose('ruhe'),
+            NavigateObject('Seat', MAP), PibPose('zeigen'), PibPose('begruessen'),
+            PibPose('ruhe'), ReturnToIdle()]
