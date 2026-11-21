@@ -75,6 +75,9 @@ class PibBridge:
         self.gender = p('default_gender', 'M1').value
         self.language = p('default_language', 'de').value
         self.say_timeout = p('say_timeout_s', 60.0).value
+        # wait until pib-backend has finished speaking (robot). false without a loudspeaker:
+        # audio_player then never finishes and blocks (Q37); missions then go on while speaking
+        self.say_join = os.environ.get('PIB_SAY_JOIN', 'true').lower() != 'false'
         # RecordAudio: pause after speech that ends the utterance, speech-to-text engine
         # (values of branch pib_backend_integration)
         self.silent_after = p('listen_silent_after_s', 1.0).value
@@ -121,7 +124,7 @@ class PibBridge:
         req.speech = goal.text
         req.gender = goal.gender or self.gender
         req.language = goal.language or self.language
-        req.join = True
+        req.join = self.say_join
         future = self.backend.say.call_async(req)
         deadline = time.monotonic() + self.say_timeout
         while not future.done():

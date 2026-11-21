@@ -9,6 +9,8 @@ services:
       - PIB_BACKEND_DOMAIN_ID=${PIB_BACKEND_DOMAIN_ID:-0}
       # optional std_msgs/Bool topic for the doorbell (pib-backend has none)
       - PIB_DOORBELL_TOPIC=${PIB_DOORBELL_TOPIC:-}
+      # false: do not wait until spoken (machine without loudspeaker, see docs Q37)
+      - PIB_SAY_JOIN=${PIB_SAY_JOIN:-true}
     profiles: [pib]
     build:
       context: .

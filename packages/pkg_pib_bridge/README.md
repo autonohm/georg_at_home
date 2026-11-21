@@ -15,6 +15,10 @@ geht nichts anderes durch – insbesondere keine Fahr- oder Motorbefehle.
 | Action `audio/listen`, DOORBELL | `PIB_DOORBELL_TOPIC` (Bool), Standard keins → „nicht erkannt“ |
 | Kopfkamera und Erkennungen (nur lesend, nur wenn Domains verschieden) | `/oak/rgb/image_raw/compressed`, `/detections/face_detection_yunet_160x120`, `/detections/yolov6n_coco_640x640`, `/detections/hand_tracking` |
 
+`PIB_SAY_JOIN=false`: nicht auf das Satzende warten – nur für Rechner ohne Lautsprecher (sonst
+hängt pib-backends `audio_player`, Q37). Am Roboter `true` lassen, sonst hört Greeting Georgs
+eigene Stimme.
+
 Weitere Topics: Parameter `forward_topics` (`"topic|paket/msg/Typ"`).
 
 Test: `tests/stack/bridge_check.py` (Kamera, Speak, Listen aus Sicht des Stacks).
