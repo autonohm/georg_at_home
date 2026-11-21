@@ -35,7 +35,8 @@ services:
       timeout: 20s
       retries: 3
       start_period: 60s
-    command: ros2 launch /config/task_manager.launch.py
+    working_dir: /config
+    command: ros2 launch task_manager.launch.py
     # command: sleep 1d
 
   # Mock packages (P2): fake action servers for speech, gestures, navigation + odom.

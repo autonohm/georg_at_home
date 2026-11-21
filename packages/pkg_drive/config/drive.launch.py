@@ -9,12 +9,19 @@ from launch_ros.substitutions import FindPackageShare
 from launch.actions import GroupAction
 from launch_ros.actions import PushRosNamespace, Node
 
+from launch.conditions import IfCondition, UnlessCondition
+from launch.actions import LogInfo
+
 
 def generate_launch_description():
     # robot namespace
     robot_namespace = LaunchConfiguration('robot_namespace')
     robot_namespace_arg = DeclareLaunchArgument(
-        'robot_namespace', default_value=os.getenv('EDU_ROBOT_NAMESPACE', default='georg')
+        'robot_namespace', default_value=os.getenv('EDU_ROBOT_NAMESPACE', default='')
+    )
+    sim_mode = LaunchConfiguration('sim_mode')
+    sim_mode_arg = DeclareLaunchArgument(
+        'sim_mode', default_value='false'
     )
     cwd_path = pathlib.Path(__file__).parent.resolve()
 
@@ -36,6 +43,7 @@ def generate_launch_description():
       #   "--log-level",
       #   "edu_robot:=debug"
       # ]
+      condition=UnlessCondition(sim_mode)
     )
 
     twist_limiter = Node(
@@ -73,13 +81,15 @@ def generate_launch_description():
             'config_topics': '/config/twist_mux/twist_mux_topics.yaml',
             'config_joy': '/config/twist_mux/joystick.yaml',
             'cmd_vel_out': 'cmd_vel/limiter',
-            'use_sim_time': 'False',
+            'use_sim_time': sim_mode,
         }.items()
     )
 
 
     return LaunchDescription([
         robot_namespace_arg,
+        sim_mode_arg,
+        LogInfo(msg='\033[96;1;4msim mode active\033[0m', condition=IfCondition(sim_mode)),
         GroupAction(
             actions=[
                 PushRosNamespace(robot_namespace),

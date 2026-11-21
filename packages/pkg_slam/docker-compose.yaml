@@ -13,11 +13,14 @@ services:
     privileged: true
     restart: unless-stopped
     init: true
+    working_dir: /config
     environment:
       - GEORG_PROFILE=${GEORG_PROFILE:-}
-    # profile sim: slam_toolbox only (slam_sim.launch.py), the simulator provides scan and odom
-    # profile mcap: slam_toolbox with use_sim_time on the replayed recording (slam_mcap.launch.py)
-    command: ["sh", "-c", "cd /config && case \"$$GEORG_PROFILE\" in sim) ros2 launch slam_sim.launch.py ;; mcap) ros2 launch slam_mcap.launch.py ;; *) ros2 launch pkg_slam.launch.py ;; esac"]
+      - GEORG_SIM_MODE=${GEORG_SIM_MODE:-false}
+    # real: pkg_slam.launch.py with sim_mode from main (GEORG_SIM_MODE).
+    # sim / mcap: own launch files for now, because the simulator (pkg_sim) publishes the
+    # odom tf itself and no /clock yet; switch to sim_mode in plan phase 4.
+    command: ["sh", "-c", "case \"$$GEORG_PROFILE\" in sim) ros2 launch slam_sim.launch.py ;; mcap) ros2 launch slam_mcap.launch.py ;; *) ros2 launch pkg_slam.launch.py sim_mode:=$$GEORG_SIM_MODE ;; esac"]
     # command: sleep 1d
 
 networks:
