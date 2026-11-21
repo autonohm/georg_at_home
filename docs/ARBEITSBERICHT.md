@@ -75,3 +75,49 @@ als `:pre-jetson-20261121` gesichert, alte `georg-*`-Container durch neue ersetz
 - **Folge für uns:** Nach einem Abbruch kann eine Sim-Session „hängen“; abhilfe heute:
   `tests/stack/run.sh sim` bzw. Simulator neu starten. Auf dem Roboter wäre das ein echtes
   Problem → wichtig für die Navigation.
+
+### Phase 3 – Georg komplett in Lichtblick (neues Paket `pkg_pib_model`)
+
+#### E3 – Welches pib-Modell
+- **Optionen:** (a) offizielles `pib.urdf` von pib-3d (351 Links, Einzelteil-Meshes, allein der
+  Brustkorb 7,8 MB); (b) Web-Modell aus dem pib-3d-Release (`model.json`, 47 Links, ein GLB je
+  Link – das, was Cerebra zeigt), selbst nach URDF umwandeln; (c) pib-sdk-URDF (nur Kinematik).
+- **Gewählt:** (b). Gleiche Quelle und Version wie Cerebra (`v0.11.6`, SHA-256 aus pib-backend),
+  sinnvoll schwer, Umrechnung der Gelenkwinkel identisch zu Cerebra.
+- **Folgen:** Das Modell wird **beim Image-Build aus dem Netz geladen** (GitHub-Release), nicht
+  ins Repo kopiert. Grund: Lizenz unklar (Repo AGPL-3.0, `package.xml` „Proprietary“) –
+  **bitte klären, bevor Images weitergegeben werden.** Ohne Internet beim Build kein Modell.
+
+#### E4 – Wie die Meshes zu Lichtblick kommen
+- **Fund:** Das Bridge-Image enthielt bisher **kein** `georg_description` → in Docker hätte
+  Lichtblick Georg ohne Meshes gezeigt (auf dem Mac fiel das nicht auf). Außerdem lässt die
+  Standard-Freigabeliste der Bridge keine Leerzeichen zu → `Mecanum Wheel.obj` wäre blockiert.
+- **Optionen:** (a) Meshes aus den Images `urdf`/`pib_model` in die Bridge kopieren (hängt von
+  Build-Reihenfolge und Profilen ab); (b) Bridge lädt/klont selbst.
+- **Gewählt:** (b): Bridge klont `georg_description` (wie `pkg_urdf`) und lädt das pib-Modell
+  (gleiche Pinnung). Freigabeliste mit Leerzeichen in `pkg_viz/config/foxglove_bridge.yaml`.
+- **Folgen:** Modell wird zweimal geladen (15 MB, Sekunden). `georg_description` in Bridge und
+  `urdf` sind beide „main“ zum Build-Zeitpunkt – bei Änderungen beide neu bauen.
+
+#### E5 – Starres pib-Mesh von Georg und Montage
+- **Problem:** `georg_description` zeigt pib als ein starres `pib_4S.stl`; doppelt mit dem
+  beweglichen pib sähe es falsch aus. `pkg_urdf` soll unverändert bleiben.
+- **Gewählt:** `pib_model_node` baut aus Georgs `/robot_description` eine zweite Beschreibung
+  `/georg_full/robot_description` (ohne `pib_4S.stl`, mit pib); das Layout zeigt nur diese.
+  Montage `pib_waist_link → root`: +90° um z, (0,103 | 0,065 | 0,613) m, **geschätzt** aus den
+  Bounding-Boxen (Kopfoberkante, Schulterhöhe). Parameter `mount_xyz`/`mount_rpy`.
+- **Folgen:** Wer ein eigenes Layout nutzt, sieht sonst beide pibs. **Die Montage bitte in
+  Lichtblick ansehen** – ich kann das Bild nicht sehen.
+
+#### Ergebnis (im Stack, Profil `sim`)
+- `pib_model` healthy; kombinierte Beschreibung ohne starren STL; tf `base_footprint →
+  d01_l_palm_left` (Hand links auf 1,45 m); Ellbogen links 60° über die Fake-Motoren →
+  URDF 1,047 rad, Hand bewegt sich 0,24 m, zurück auf 0 exakt.
+- Bridge liefert alle Meshes (`root.glb` 9,1 MB, `Basis.obj`, `Mecanum Wheel.obj`, Lidar-DAE).
+- 7 Unit-Tests (Umwandlung, Winkelformel, Kopplung, Kombination), inkl. echtem `mapping.json`.
+- **Offen:** ~50 MB Meshes beim ersten Verbinden – Verkleinern als eigener Schritt (Phase 6).
+
+#### Fund (nicht behoben, fremdes Paket): Q34 – Gesten bewegen nichts
+- Gesten-Server meldet Erfolg, sendet aber keinen Gelenkbefehl (pib-sdk auskommentiert).
+  Vorschlag: `/apply_joint_trajectory` von pib-backend nutzen – dann sieht man die Gesten sofort
+  in der Sim (Fake-Motoren) und auf dem Roboter.
