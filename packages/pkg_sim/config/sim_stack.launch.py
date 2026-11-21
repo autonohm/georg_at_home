@@ -37,6 +37,9 @@ def generate_launch_description():
         ]),
         IncludeLaunchDescription(os.path.join(PACKAGES, 'pkg_navigation', 'config',
                                               'navigation.launch.py')),
+        # Lichtblick: ws://localhost:8765 (min_qos_depth 10: no lost status updates)
+        Node(package='foxglove_bridge', executable='foxglove_bridge', name='foxglove_bridge',
+             parameters=[{'port': 8765, 'min_qos_depth': 10}], output='screen'),
         # slam_sim.launch.py loads its parameters relative to its folder
         ExecuteProcess(cmd=['ros2', 'launch', 'slam_sim.launch.py'],
                        cwd=os.path.join(PACKAGES, 'pkg_slam', 'config'), output='screen'),

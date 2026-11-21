@@ -4,12 +4,15 @@ No npm, no bundler: model.js is wrapped as an inner module, extension.js uses it
 A .foxe file is a zip with package.json and dist/extension.js.
 
     python3 build.py            # -> dist/extension.js, georg-task-manager-panel-0.1.0.foxe
+    python3 build.py --install  # also unpack into ~/.lichtblick-suite/extensions (desktop app)
 Install in Lichtblick: Extensions -> install from file, or copy the unpacked folder to
 ~/.lichtblick-suite/extensions/autonohm.georg-task-manager-panel-0.1.0/
 """
 
 import json
 import os
+import shutil
+import sys
 import zipfile
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -47,6 +50,15 @@ def main():
         if os.path.exists(readme):
             z.write(readme, 'README.md')
     print(foxe)
+    if '--install' in sys.argv:
+        # same folder name the desktop app uses: <publisher>.<name>-<version>
+        target = os.path.join(os.path.expanduser('~'), '.lichtblick-suite', 'extensions',
+                              f"{pkg['publisher']}.{pkg['name']}-{pkg['version']}")
+        os.makedirs(os.path.join(target, 'dist'), exist_ok=True)
+        shutil.copy(os.path.join(HERE, 'package.json'), target)
+        shutil.copy(out_js, os.path.join(target, 'dist', 'extension.js'))
+        shutil.copy(os.path.join(HERE, 'README.md'), target)
+        print(f'installed to {target} (restart Lichtblick)')
 
 
 if __name__ == '__main__':

@@ -1,0 +1,38 @@
+{
+  "configById": {
+    "3D!georg3d": {
+      "followTf": "base_footprint",
+      "followMode": "follow-position",
+      "scene": {},
+      "transforms": {},
+      "topics": {
+        "/map": { "visible": true },
+        "/georg/merged_scan": { "visible": true, "pointSize": 4, "colorField": "range" },
+        "/georg/odom": { "visible": true }
+      },
+      "layers": {
+        "grid": { "visible": true, "layerId": "foxglove.Grid", "frameLocked": true,
+                  "position": [0, 0, 0], "rotation": [0, 0, 0] }
+      },
+      "cameraState": { "distance": 14, "perspective": false, "phi": 0, "thetaOffset": 0,
+                       "targetOffset": [0, 0, 0], "target": [0, 0, 0],
+                       "targetOrientation": [0, 0, 0, 1], "fovy": 45, "near": 0.5, "far": 5000 }
+    },
+    "RawMessages!georgplan": { "topicPath": "/georg/task_manager/plan.data", "diffEnabled": false },
+    "RawMessages!georgstatus": { "topicPath": "/georg/task_manager/status", "diffEnabled": false }
+  },
+  "globalVariables": {},
+  "userNodes": {},
+  "playbackConfig": { "speed": 1 },
+  "layout": {
+    "first": "3D!georg3d",
+    "second": {
+      "first": "RawMessages!georgstatus",
+      "second": "RawMessages!georgplan",
+      "direction": "column",
+      "splitPercentage": 50
+    },
+    "direction": "row",
+    "splitPercentage": 62
+  }
+}
