@@ -11,6 +11,7 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
 # clone directly into ws folder, src folder is optional
 RUN git clone https://github.com/autonohm/georg_interfaces
 
+# make pib-backend available
 ARG PIB_BACKEND_REF=main
 RUN git clone https://github.com/pib-rocks/pib-backend /tmp/pib-backend \
  && git -C /tmp/pib-backend checkout ${PIB_BACKEND_REF} \
