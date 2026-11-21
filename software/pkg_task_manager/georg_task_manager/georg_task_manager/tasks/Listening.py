@@ -3,7 +3,7 @@ from .base import BaseTask
 from .timeout_watcher import wait_for_action_result
 from .priority import TaskPriority
 
-from datatypes.action import Listen
+# from datatypes.action import Listen
 
 
 class Listening(BaseTask):
@@ -60,4 +60,3 @@ class Listening(BaseTask):
             f"(confidence={result.confidence:.2f})"
             f"(Transcript={result.transcript})")
         return True
-

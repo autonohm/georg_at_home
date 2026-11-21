@@ -12,7 +12,7 @@ services:
     environment:
       - GEORG_MAP_DIR=/georg_maps
       - GEORG_DEFAULT_MAP=Nav_Test.yaml
-      - MISSION_ID=2
+      - MISSION_ID=3
 
     privileged: true
     init: true

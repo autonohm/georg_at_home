@@ -1,7 +1,7 @@
 import os
 
 import asyncio
-from georg_task_manager.tasks.Listening import Listening
+#from georg_task_manager.tasks.Listening import Listening
 from georg_task_manager.tasks.Gesture import Gesture
 from georg_task_manager.tasks.ReturnToIdle import ReturnToIdle
 from georg_task_manager.tasks.Navigate import Navigate
@@ -41,7 +41,7 @@ async def get_mission(robot, state, run_task):
     try:
 
         results = await asyncio.gather(
-            run_task(Listening("DOORBELL", timeout_sec=60.0, priority=MID)),
+            #run_task(Listening("DOORBELL", timeout_sec=60.0, priority=MID)),
             run_task(Gesture("look_at", -1000.0, 0.0, 100.0)),
         )
         if not all(succeeded(r) for r in results):
@@ -57,8 +57,8 @@ async def get_mission(robot, state, run_task):
             return
 
 
-        if not succeeded(await run_task(Listening("SPEECH"))):
-            return
+        #if not succeeded(await run_task(Listening("SPEECH"))):
+        #    return
         if not succeeded(await run_task(Gesture("look_at", -1000.0, 0.0, 100.0))):
             return
         if not succeeded(await run_task(Gesture("greet_person", -1000.0, 0.0, 100.0))):

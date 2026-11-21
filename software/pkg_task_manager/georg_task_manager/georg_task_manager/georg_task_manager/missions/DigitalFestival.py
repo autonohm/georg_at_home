@@ -1,6 +1,6 @@
 import os
 
-from georg_task_manager.tasks.Listening import Listening
+#from georg_task_manager.tasks.Listening import Listening
 from georg_task_manager.tasks.Gesture import Gesture
 from georg_task_manager.tasks.ReturnToIdle import ReturnToIdle
 from georg_task_manager.tasks.Navigate import Navigate
@@ -15,11 +15,11 @@ MAP_PATH = os.path.join(MAP_DIR, "Nav_Test_V3.yaml")
 async def get_mission(robot, state, run_task):
     print("[MISSION] TaskManagerTest started")
 
-    await run_task(Listening("DOORBELL", timeout_sec=60.0, priority=MID))
+    #await run_task(Listening("DOORBELL", timeout_sec=60.0, priority=MID))
     await run_task(Gesture("look_at", -1000.0, 0.0, 100.0))
     await run_task(Gesture("point_to", -2000.0, 0.0, 100.0))
     await run_task(Navigate("Seat", MAP_PATH, priority= HIGH))
-    await run_task(Listening("SPEECH"))
+    #await run_task(Listening("SPEECH"))
     await run_task(Gesture("look_at", -1000.0, 0.0, 100.0))
     await run_task(Gesture("greet_person", -1000.0, 0.0, 100.0))
     await run_task(Navigate("Exit", MAP_PATH))

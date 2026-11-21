@@ -3,7 +3,7 @@ from rclpy.action import ActionClient
 from std_msgs.msg import String
 from std_msgs.msg import Bool
 from pib_gestures_action.action import PibGesturesInterface
-from datatypes.action import Listen
+from datatypes.srv import PlayAudioFromSpeech
 from georg_nav_msgs.action import Navigate, DriveRoute
 from std_msgs.msg import String as StringMsg
 from .interface import RobotState
@@ -27,10 +27,9 @@ class Georg:
 
         # Voice
 
-        self.listen_action_client = ActionClient(
-            node,
-            Listen,
-            "audio/listen"
+        self.speak_service_client = node.create_client(
+            PlayAudioFromSpeech,
+            "/play_audio_from_speech"
         )
 
         self.greet_action_client = ActionClient(

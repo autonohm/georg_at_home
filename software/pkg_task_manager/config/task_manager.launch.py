@@ -55,15 +55,12 @@ def generate_launch_description():
     # Listening / Speech
 
 
-    voice_module = Node(
-        package="voice_assistant",
-        executable="listen_action_server",
-        name="listen_action_server",
-        output="screen",
-    )
-
-
-
+    #voice_module = Node(
+    #    package="voice_assistant",
+    #    executable="listen_action_server",
+    #    name="listen_action_server",
+    #    output="screen",
+    #)
 
     # Task Manager
 
@@ -89,7 +86,7 @@ def generate_launch_description():
                 nav_module,
                 drive_route_module,
                 gesture_module,
-                voice_module ,
+                #voice_module ,
                 task_manager_module,
                 task_manager_bt_module
             ]

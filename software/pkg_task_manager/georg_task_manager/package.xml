@@ -9,6 +9,7 @@
 
   <depend>rclpy</depend>
   <depend>georg_msgs</depend>
+  <depend>datatypes</depend>
   <depend>pib_gestures_action</depend>
   <depend>georg_nav_action</depend>
   <!--depend>pib-audio</depend -->
