@@ -1,7 +1,7 @@
 # Übergabe: Stand und nächste Schritte
 
 Stand 2026-11-21, Branch `pkg_task_manager_burr`. Für die nächste Arbeitssitzung (Mensch oder
-Claude Code), z.B. per SSH auf dem Windows-PC. **Zuerst diese Datei lesen**, dann
+Claude Code). Gearbeitet wird jetzt auf dem **Jetson Thor (nicht am Roboter angeschlossen)**. **Zuerst diese Datei lesen**, dann
 `docs/task_manager_plan.md` (Plan P0–P8), `docs/OPEN_QUESTIONS.md`, `docs/P8_ANLEITUNG.md`.
 
 ## Arbeitsregeln (gelten weiter)
@@ -11,6 +11,7 @@ Claude Code), z.B. per SSH auf dem Windows-PC. **Zuerst diese Datei lesen**, dan
 - Fremde Pakete (Navigation, Gesten, SLAM, …): nur Pfade, Imports, Dockerfiles, Compose anpassen,
   Funde in `docs/OPEN_QUESTIONS.md` melden statt umbauen. Ordner fremder Pakete nicht umbenennen.
 - Keine Geheimnisse/API-Keys committen. Push nur nach Rückfrage.
+- `main` wird nie direkt geändert; `main` nur in unseren Branch mergen.
 - Antworten auf Deutsch. Commit-Nachrichten enden mit
   `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`.
 
@@ -45,32 +46,47 @@ Tests: `pixi run test`, `test_ros`, `test_sim`, `test_sim_mj`, `test_lichtblick`
 `./projectctl.bash build`, dann `./projectctl.bash up mock` bzw. `up sim`,
 `./projectctl.bash status`, `./projectctl.bash down`. Lichtblick vom Mac: `ws://<PC>:8765`.
 
-## Nächste Schritte
+## Gesamtplan (vereinbart 2026-11-21)
 
-1. **Docker-Test auf dem Windows-PC** (noch nie gebaut/gestartet, wichtigster offener Punkt).
-   - PC: Windows, WSL2 `Ubuntu-22.04`, Docker Desktop **4.15 – zu alt**: `compose.yaml` nutzt
-     `include:` (braucht Docker Compose ≥ 2.20, Docker Desktop ≥ 4.22). Erst aktualisieren,
-     WSL-Integration für Ubuntu-22.04 einschalten.
-   - Erreichbar über Tailscale: `desktop-l`, `100.109.75.119`, Benutzer `Thales`.
-     OpenSSH-Server war am 2026-11-21 noch nicht installiert.
-   - PC ist amd64, der Jetson arm64: der Test prüft Dockerfiles/Compose/Netz, nicht ARM.
-   - Ablauf: im WSL-Ubuntu klonen, `./projectctl.bash build`, `up mock`, `up sim`,
-     Healthchecks (`status`), `tests/system`, Lichtblick vom Mac verbinden, `down`.
-     Fehler beheben, Ergebnis in `docs/OPEN_QUESTIONS.md` (Docker-Verifikation) eintragen.
-2. **Georg in MuJoCo (Schritt a, begonnen, noch nicht umgesetzt):** URDF aus `georg_description`
-   in die MJCF-Welt (`pkg_sim/georg_sim/georg_sim/mjcf.py`) übernehmen. Meshes nur visuell
-   (STL/OBJ; DAE der Lidare kann MuJoCo nicht → Zylinder), Kollision einfache Form.
-   Dabei realistischer machen: zwei Lidare an den URDF-Positionen (laser1/laser2) mit Rauschen,
-   zusammengeführt zu `merged_scan`; Rauschen/Drift der Odometrie und Latenz als Parameter.
-3. **Kamerabild in der Sim:** MuJoCo offscreen rendern, `sensor_msgs/Image` + `CameraInfo` auf
-   demselben Topic/Frame wie die echte Luxonis-Kamera. **Offen:** Topic, Auflösung, Bildrate und
-   Einbauposition der echten Kamera (vom Team erfragen).
-4. **Arena als Welt (Schritt b):** `packages/pkg_sim/assets/arena/` (nicht in git, siehe dortige
-   README): Blender-Export, vereinfachen, Kollision als Quader, daraus auch die Nav-Karte (YAML)
-   erzeugen, neue Zielorte für Missionen.
-5. **pylint-Aufräumen** (Vorschlag, noch nicht freigegeben): `.pylintrc` (Zeilenlänge 99,
-   Import-Reihenfolge aus wegen flake8), Docstrings, `encoding='utf-8'`, `check=` bei
-   `subprocess.run`. Score Paket 9.20, Tests 8.49.
+1. **Merge `main` → unser Branch – erledigt.** Sams `sim_mode` übernommen (in `real` aktiv,
+   `sim`/`mcap` vorerst eigene Launch-Dateien, Q30). Kein Robot-Namespace mehr, alles folgt
+   `EDU_ROBOT_NAMESPACE` (Default leer): Services heißen `/task_manager/start` usw.
+2. **Docker auf dem Jetson.** Basis-Image auf arm64 (`docker_base_image/compose.yaml` baut nur
+   amd64). Alte Container `georg-drive-1`/`georg-urdf-1` (Stand von vor 2 Wochen aus
+   `software/`, gleicher Projektname `georg`, gleiches Netz) erst stoppen, alte Images taggen.
+   Dann `build`, `up mock`, `up sim`, Healthchecks, `tests/system`, alle ROS-Tests im Container,
+   Lichtblick verbinden. Ergebnis in `OPEN_QUESTIONS.md`.
+3. **Georg komplett in Lichtblick.** Eigenes Paket (z. B. `pkg_pib_model`), `pkg_urdf` bleibt
+   unangetastet:
+   - Konverter `model.json` (Cerebra-Robotermodell aus pib-backend, `/data/robot-model` im
+     Container `pib-backend-flask-app-1`, oder `/api/robot-model/...`) → `pib.urdf`. Das Format
+     ist schon ein URDF als JSON (47 Links mit GLB, 48 Gelenke mit origin/axis/limit).
+   - An `georg_description` hängen (`pib_waist_link` → `root`), in Lichtblick abgleichen.
+   - Meshes verkleinern (1,58 Mio. Dreiecke, 36 MB), beim Build/Start holen statt ins Repo
+     kopieren (Lizenz ungeprüft, Modellversion zieht mit).
+   - Joint-State-Umsetzer: pib-backend `/joint_states` (Motornamen, Centigrad) → URDF-Gelenke
+     (Radiant) nach `mapping.json` (Richtung, Offset, gekoppelte Finger).
+   - Sim: Fake-Motors-Node (`/apply_joint_trajectory`, `/joint_trajectory` → `/joint_states`),
+     damit Gesten sichtbar werden. Isaac Sim ist verworfen (läuft nicht auf Jetson).
+4. **Fahren in MuJoCo realistischer.** Basis-Mesh, Räder, zwei Lidare an den URDF-Positionen
+   mit Rauschen → `merged_scan`, Odometrie-Drift und Latenz als Parameter. Simulator sendet
+   `/clock` und `odom/wheel`, dann `sim_mode` auch im Profil `sim` (Q30). Planer-Inflation
+   0,25 m → ca. 0,32 m an die Navigation melden.
+5. **pib-backend und Sprache – vereinbart, aber erst auf Ansage.** Branch
+   `origin/pib_backend_integration` (alter `software/`-Stand) nicht mergen, sondern portieren:
+   `Speak` (`/play_audio_from_speech`), `wait_for_service_result`, Mission „Greeting“.
+   Externes Netz `pib-network`. Namenskonflikt `datatypes`: unser Paket (Listen/VoiceEvent/
+   VoiceTask) fällt weg, das von pib-backend wird genutzt (hat keine `Listen`-Action),
+   Listening neu auf `/speech_detected` bzw. `/chat` (löst Q1).
+6. **Gesamttest** in `sim`: Fahren, Gesten, (ab 5) Sprache; Abnahmelisten P2–P8 im Container;
+   instabilen MuJoCo-Test klären.
+7. **Roboter (später, nur mit Mensch am Roboter):** 13 Hardware-Scan-Funde mit den Teams,
+   `edu_robot` und `cmd_vel` prüfen, Q31 (Navigation liest `odom`), dann erster `real`-Test.
+
+### Frühere nächste Schritte
+
+Kamerabild in der Sim (Topic/Auflösung/Einbauposition der Luxonis-Kamera offen), Arena als Welt
+(`packages/pkg_sim/assets/arena/`), pylint-Aufräumen (nicht freigegeben) – nach Phase 6.
 
 ## Offene Punkte (Auszug, Details in `docs/OPEN_QUESTIONS.md`)
 
@@ -80,3 +96,4 @@ Tests: `pixi run test`, `test_ros`, `test_sim`, `test_sim_mj`, `test_lichtblick`
 - Planer-Inflation 0,25 m ist zu klein für Georgs Basis (0,49 × 0,40 m, halbe Diagonale ≈ 0,32 m).
 - Git LFS für die Arena-Dateien: Entscheidung offen.
 - `georg_sim` und `command_gate` halten die Ordnerregel (`<paket>_pkg`) noch nicht ein.
+- Q30 (sim_mode vs. Simulator-Odometrie), Q31 (Navigation liest `odom`), fremde RViz-Konfigurationen mit `/georg/...`.

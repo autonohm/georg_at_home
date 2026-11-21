@@ -210,3 +210,15 @@ P0 bis P8 sind umgesetzt. Geprüft auf dem Mac mit ROS 2 Jazzy (RoboStack), nich
 3. Paket-Vertrag (Ergebnis/Feedback) in den echten Paketen (Q14/Q24), Robotermodell in MuJoCo (Q26), LLM-Modell und Image auf dem Jetson (Q27).
 
 **Q29 – Einheitliche Ordnerstruktur (2026-11-21).** Regeln in der Haupt-README („Aufbau eines Subsystems“): Paketordner = Paketname + `_pkg` (wie `pkg_navigation`), Paketebene bleibt auch bei einem Paket, Paketnamen ohne `georg_` außer bei Nachrichten. Umgesetzt: Ordner `pkg_task_manager/task_manager_pkg/task_manager/`, `georg_task_manager` → `task_manager` (Paket, Python-Modul, Burr-Projekt; alte Burr-Läufe bleiben unter dem alten Projektnamen sichtbar). `pkg_navigation` hält die Regel schon ein und bleibt unverändert. Docker-Build nicht geprüft (kein Docker auf dem Mac).
+
+# Merge von main und Namespace (2026-11-21, Jetson)
+
+`origin/main` (Sams `sim_mode`, Namespace abgeschaltet) in `pkg_task_manager_burr` gemergt; `main` selbst unverändert.
+
+**Entschieden:** Kein Robot-Namespace, wie auf `main` (passt zu pib-backend und Cerebra, die auch ohne arbeiten). Alle eigenen Pakete, Healthchecks, Mocks, Recorder, MCAP-Filter, Lichtblick-Panel/-Layout und Tests folgen jetzt `EDU_ROBOT_NAMESPACE` (Default leer). Zurück auf `georg` geht mit `EDU_ROBOT_NAMESPACE=georg`; dann muss das Panel in Lichtblick auf `/georg` gestellt werden. Services heißen jetzt `/task_manager/start` usw.
+
+**Q30 – `sim_mode` und unser Simulator senden beide Odometrie.** Sams `sim_mode` schaltet nur die Lidar-Treiber ab; `rf2o` läuft weiter und sendet die tf `odom → base_footprint`. Unser Simulator sendet dieselbe tf selbst. Außerdem setzt `sim_mode` `use_sim_time=true`, unser Simulator sendet aber noch kein `/clock`. Deshalb nutzt `pkg_slam` vorerst: `real` → `pkg_slam.launch.py sim_mode:=$GEORG_SIM_MODE` (aus main), `sim`/`mcap` → weiter `slam_sim`/`slam_mcap`. `projectctl.bash` setzt `GEORG_SIM_MODE` noch nicht. Umstellung in Phase 4: Simulator sendet `/clock` und Rad-Odometrie (`odom/wheel`) statt der odom-tf, dann `GEORG_SIM_MODE=true` im Profil `sim` und `drive` startet in `sim` ohne `edu_robot`.
+
+**Q31 – Navigation liest `odom`, auf dem Roboter sendet das niemand (bestehender Fehler, nicht geändert).** `drive_route_action_server.py` abonniert `ODOM_TOPIC = "odom"`. Auf dem Roboter senden `rf2o` `odom/lidar` und der Treiber `odom/wheel`; `odom` senden nur unser Simulator und die Mocks. Vermutlich wartet der Fahrserver in `real` auf Odometrie, die nie kommt. Welche Quelle soll die Navigation nutzen (`odom/lidar`, `odom/wheel` oder fusioniert)? Meldung an die Navigation.
+
+**Fremde Dateien mit `/georg/...` (nicht geändert, an die Verantwortlichen):** `pkg_slam/georg_slam.rviz`, `pkg_viz/config/georg.rviz`, `pkg_viz/georg_slam.rviz` (Topics `/georg/merged_scan`, `/georg/lidar*/scan`, `/georg/odometry`), `pkg_slam/README.md` (Diagramm), `pkg_drive/config/twist_limiter.yaml` (Kommentar). Nach dem Namespace-Wechsel auf `main` zeigen die RViz-Konfigurationen ins Leere.
