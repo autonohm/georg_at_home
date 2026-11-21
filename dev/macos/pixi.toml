@@ -27,6 +27,10 @@ ros-jazzy-slam-toolbox = "*"
 ros-jazzy-foxglove-bridge = "*"
 ros-jazzy-rosbag2 = "*"
 ros-jazzy-rosbag2-storage-mcap = "*"
+# Georg model (georg_description): URDF -> /robot_description + TF
+ros-jazzy-xacro = "*"
+ros-jazzy-robot-state-publisher = "*"
+ros-jazzy-joint-state-publisher = "*"
 colcon-common-extensions = "*"
 compilers = "*"
 cmake = "*"
@@ -56,7 +60,9 @@ GEORG_WS = "$HOME/.cache/georg-ros-ws"
 [tasks]
 # macOS strips DYLD_LIBRARY_PATH when bash starts (SIP), so every task re-sources the workspace.
 # builds every ROS package in packages/ (the audio package builds, but its TensorFlow deps are not installed)
-build = { cmd = "colcon --log-base $GEORG_WS/log build --build-base $GEORG_WS/build --install-base $GEORG_WS/install --symlink-install --cmake-args -G Ninja --base-paths ../../packages", cwd = "." }
+build = { cmd = "bash -c 'mkdir -p $GEORG_WS/ext && colcon --log-base $GEORG_WS/log build --build-base $GEORG_WS/build --install-base $GEORG_WS/install --symlink-install --cmake-args -G Ninja --base-paths ../../packages $GEORG_WS/ext'", cwd = "." }
+# Georg model, not in this repo (same source as packages/pkg_urdf/Dockerfile), pinned commit
+fetch_description = { cmd = "bash -c 'D=$GEORG_WS/ext/georg_description; [ -d $D/.git ] || git clone -q https://github.com/autonohm/georg_description.git $D; git -C $D fetch -q origin && git -C $D checkout -q 2586a94 && git -C $D log -1 --format=\"georg_description %h %s\"'", cwd = "." }
 test = { cmd = "bash -c 'source $GEORG_WS/install/setup.bash && export PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 && cd ../../packages/pkg_task_manager/task_manager_pkg && python -m pytest -q test/test_burr_app.py test/test_validator.py test/test_planner.py && cd ../../pkg_command_gate/command_gate && python -m pytest -q test && cd ../../pkg_sim/georg_sim && python -m pytest -q test'", cwd = "." }
 # P2: task manager node + mock packages over real ROS (all mandatory scenarios, ~1 min)
 test_ros = { cmd = "bash -c 'source $GEORG_WS/install/setup.bash && export PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 GEORG_ROS_TESTS=1 && cd ../../packages/pkg_task_manager/task_manager_pkg && python -m pytest -v test/test_ros_integration.py'", cwd = "." }
@@ -64,6 +70,7 @@ test_ros = { cmd = "bash -c 'source $GEORG_WS/install/setup.bash && export PYTES
 # simulator:=simmj for MuJoCo (stage 2)
 sim = { cmd = "bash -c 'source $GEORG_WS/install/setup.bash && ros2 launch ../../packages/pkg_sim/config/sim_stack.launch.py'", cwd = "." }
 sim_mj = { cmd = "bash -c 'source $GEORG_WS/install/setup.bash && ros2 launch ../../packages/pkg_sim/config/sim_stack.launch.py simulator:=simmj'", cwd = "." }
+sim_mj_view = { cmd = "bash -c 'source $GEORG_WS/install/setup.bash && ros2 launch ../../packages/pkg_sim/config/sim_stack.launch.py simulator:=simmj mujoco_viewer:=true'", cwd = "." }
 # P3: simulator + SLAM + real navigation + task manager (~2 min)
 test_sim = { cmd = "bash -c 'source $GEORG_WS/install/setup.bash && export PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 GEORG_ROS_TESTS=1 && cd ../../packages/pkg_task_manager/task_manager_pkg && python -m pytest -v test/test_sim_integration.py'", cwd = "." }
 test_sim_mj = { cmd = "bash -c 'source $GEORG_WS/install/setup.bash && export PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 GEORG_ROS_TESTS=1 GEORG_SIMULATOR=simmj && cd ../../packages/pkg_task_manager/task_manager_pkg && python -m pytest -v test/test_sim_integration.py'", cwd = "." }
