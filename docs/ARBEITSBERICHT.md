@@ -284,3 +284,34 @@ Strahlauflösung 1° statt 0,33°: der zusammengeführte Scan hat ohnehin 1°, P
   Lautsprecher, JACK fehlt) – auch bei Aufrufen aus pib-backend selbst.
 - **Am Schluss ausbessern:** Netz am echten Roboter (pib-backend auf dem Pi), Türklingel-Quelle,
   Kamera-Frame am pib-Kopf, Speak-Test mit Lautsprecher.
+
+### Phase 6 – Gesamttest (Jetson, 2026-11-21 abends)
+
+| Prüfung | Ergebnis |
+| --- | --- |
+| `tests/system` | 8/8 |
+| Unit-Tests im Container (Burr, Validator, Planer) | 18 / 27 / 17 grün |
+| ROS-Integration im Container (Mock, LLM) | 10/10, 9/9 (Stand Phase 2; danach nur Unit-Tests wiederholt) |
+| Stack `mock` (`tests/stack/run.sh mock`) | 4/4 |
+| Stack `sim` mit pib-backend-Brücke (`run.sh sim`) | 8/8: Navigation, Abbruch, Reset, Gesten-Demo |
+| Meshes über die Bridge (`mesh_check.py`) | 52/52 |
+| Profil `mcap` (neu in Docker) | Sim-Fahrt mit Sensoren aufgenommen (44 s, `recordings/sim_drive_jetson`), abgespielt, SLAM baut daraus die Karte (170×84) |
+| Brücke zu pib-backend | Kamera 9,7 Hz im Stack; Listen korrekt; Speak hängt an pib-backend (Q37) |
+
+## Am Schluss ausbessern (gesammelt)
+1. **Vorne bei Georg klären** – starrer pib in `georg_description` und Navigation
+   (`FRONT_YAW_OFFSET`) passen evtl. nicht; danach Montage-Gier des beweglichen pib anpassen.
+2. **pib-backend Sprachausgabe** (Q37): Container `pib-backend-ros-voice-assistant-1` neu starten
+   (deine Zustimmung nötig), Lautsprecher anschließen, Speak erneut testen.
+3. **Lizenz des pib-Modells** klären (AGPL vs. „Proprietary“), bevor Images weitergegeben werden.
+4. **Posen** (`pib_poses.yaml`) am echten pib prüfen, erst dann `pib_pose` für `real` freigeben.
+5. **Netz am echten Roboter:** pib-backend auf dem Pi im LAN → Brücke braucht Zugang zum
+   Roboternetz (Host-Netz oder macvlan); ebenso sieht `pib_model` sonst keine echten Gelenkwinkel.
+6. **Kamera:** Frame am pib-Kopf, Sim-Kamera (MuJoCo EGL) mit Arena und Personen, Erkennungen in
+   der Sim aus bekannten Positionen.
+7. **MuJoCo:** Georg-Mesh statt Zylinder.
+8. **S1** Namespace sauber (Variable durchreichen, Healthchecks), **S2** Tests aufräumen,
+   **S3** Meshes verkleinern (~50 MB), **S4** Q21 (Mission „succeeded“ trotz gescheitertem Task).
+9. **Fremde Pakete** (gemeldet): Q31/Q36 Navigation/Lokalisierung (wichtigster Punkt vor `real`),
+   Q33 Engstelle, Q34 Gesten, Q35 SLAM `map → odom`, Hardware-Scan (12 Probleme).
+10. Türklingel-Quelle (evtl. Home Assistant), `projectctl build` meldet bei Fehlern Exit 0.
