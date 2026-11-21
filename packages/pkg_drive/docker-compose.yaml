@@ -13,7 +13,7 @@ services:
     restart: always
     init: true
     working_dir: /config
-    command: ros2 launch drive.launch.py
+    command: ros2 launch drive.launch.py sim_mode:=${GEORG_SIM_MODE:-false}
 #    command: ros2 launch drive.launch.py robot_namespace:=georg
     # command: sleep 1d
 
