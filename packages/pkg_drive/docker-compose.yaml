@@ -1,6 +1,8 @@
 services:
   drive:
     image: drive
+    environment:
+      - ROS_DOMAIN_ID=${ROS_DOMAIN_ID:-0}
     profiles: [real]
     build:
       context: .

@@ -51,13 +51,13 @@ Pakete senden Befehle immer auf dieselben Topics (`cmd_vel`, Gelenkbefehle). Was
 | --- | --- |
 | `mock` | niemand |
 | `sim` | Simulator |
-| `real` | `command_gate` → Treiber |
+| `real` | Treiber (`command_gate` am 2026-11-21 entfernt, siehe `docs/OPEN_QUESTIONS.md` Q32) |
 | `mcap` | niemand |
 
 Zwei Sicherungen:
 
 1. Der Treiber-Container startet nur im Profil `real`.
-2. `command_gate` leitet nur weiter, wenn `/etc/georg/mode` = `real` ist; sonst verwirft es alles und loggt es.
+2. ~~`command_gate` leitet nur weiter, wenn `/etc/georg/mode` = `real` ist~~ – entfernt (Q32). Stattdessen: `up real` nur bei Modusdatei `real` und sauberem Hardware-Scan, Sams `sim_mode` startet in der Sim keinen Treiber, und `ROS_DOMAIN_ID` trennt Sim (30) und Roboter (0).
 
 Voraussetzung: Kein Paket spricht am ROS vorbei mit der Hardware (Serial, USB, Bricklets). Nur Treiber-Nodes hinter dem Gate dürfen das. Geprüft wird das Datei für Datei im Hardware-Scan (P7), bevor echte Motoren laufen.
 

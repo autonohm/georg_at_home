@@ -48,6 +48,8 @@ Tests: `pixi run test`, `test_ros`, `test_sim`, `test_sim_mj`, `test_lichtblick`
 
 ## Gesamtplan (vereinbart 2026-11-21)
 
+0. **Gate entfernt, `ROS_DOMAIN_ID` pro Profil – erledigt** (Q32): `real` 0, alle anderen
+   `GEORG_SIM_DOMAIN_ID` (Default 30).
 1. **Merge `main` → unser Branch – erledigt.** Sams `sim_mode` übernommen (in `real` aktiv,
    `sim`/`mcap` vorerst eigene Launch-Dateien, Q30). Kein Robot-Namespace mehr, alles folgt
    `EDU_ROBOT_NAMESPACE` (Default leer): Services heißen `/task_manager/start` usw.
@@ -80,7 +82,7 @@ Tests: `pixi run test`, `test_ros`, `test_sim`, `test_sim_mj`, `test_lichtblick`
    Listening neu auf `/speech_detected` bzw. `/chat` (löst Q1).
 6. **Gesamttest** in `sim`: Fahren, Gesten, (ab 5) Sprache; Abnahmelisten P2–P8 im Container;
    instabilen MuJoCo-Test klären.
-7. **Roboter (später, nur mit Mensch am Roboter):** 13 Hardware-Scan-Funde mit den Teams,
+7. **Roboter (später, nur mit Mensch am Roboter):** 12 Hardware-Scan-Funde mit den Teams,
    `edu_robot` und `cmd_vel` prüfen, Q31 (Navigation liest `odom`), dann erster `real`-Test.
 
 ### Frühere nächste Schritte
@@ -91,9 +93,9 @@ Kamerabild in der Sim (Topic/Auflösung/Einbauposition der Luxonis-Kamera offen)
 ## Offene Punkte (Auszug, Details in `docs/OPEN_QUESTIONS.md`)
 
 - Wer liefert auf dem Roboter den `audio/listen`-Server (seit `pib-audio` weg ist)? (Q1)
-- Hardware-Scan: 13 Probleme in fremden Paketen → Profil `real` gesperrt
+- Hardware-Scan: 12 Probleme in fremden Paketen → Profil `real` gesperrt
   (`docs/hardware_access_report.md`, `tools/hardware_scan.py`).
 - Planer-Inflation 0,25 m ist zu klein für Georgs Basis (0,49 × 0,40 m, halbe Diagonale ≈ 0,32 m).
 - Git LFS für die Arena-Dateien: Entscheidung offen.
-- `georg_sim` und `command_gate` halten die Ordnerregel (`<paket>_pkg`) noch nicht ein.
+- `georg_sim` hält die Ordnerregel (`<paket>_pkg`) noch nicht ein.
 - Q30 (sim_mode vs. Simulator-Odometrie), Q31 (Navigation liest `odom`), fremde RViz-Konfigurationen mit `/georg/...`.

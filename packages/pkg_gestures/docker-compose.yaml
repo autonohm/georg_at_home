@@ -1,6 +1,8 @@
 services:
   gestures:
     image: gestures
+    environment:
+      - ROS_DOMAIN_ID=${ROS_DOMAIN_ID:-0}
     profiles: [sim, real]
     build:
       context: .

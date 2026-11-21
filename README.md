@@ -50,7 +50,7 @@ Regeln:
    (`nav_msgs`).
 
 Umgesetzt in `pkg_task_manager` und `pkg_navigation`. Andere Pakete weichen noch ab und werden von
-ihren Teams angepasst (z.B. `pkg_sim/georg_sim`, `pkg_command_gate/command_gate`).
+ihren Teams angepasst (z.B. `pkg_sim/georg_sim`).
 
 Nachrichten, die zwischen Containern gebraucht werden, liegen in `pkg_interfaces` und werden ins
 Basis-Image gebaut. Eine leere Datei `PKG_IGNORE` nimmt ein Subsystem aus dem Bauen/Starten heraus.

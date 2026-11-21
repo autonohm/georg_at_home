@@ -1,56 +1,55 @@
 # Hardware-Zugriffs-Bericht (P7)
 
-Erzeugt am 2026-11-21 von `tools/hardware_scan.py`. 3185 Dateien einzeln geprüft, 63 Fundstellen.
+Erzeugt am 2026-11-21 von `tools/hardware_scan.py`. 3173 Dateien einzeln geprüft, 62 Fundstellen.
 
 **Profil `real`: NICHT freigegeben** – es gibt offene Probleme (unten). Funde in fremden Paketen werden gemeldet, nicht umgebaut.
 
 | Bewertung | Anzahl |
 | --- | --- |
-| Problem | 13 |
+| Problem | 12 |
 | offen | 8 |
-| Hinweis | 33 |
-| erlaubt | 9 |
+| Hinweis | 34 |
+| erlaubt | 8 |
 
 ## Meldungen an die Paket-Verantwortlichen
 
 - **docker_base_image** (offen): beim Bauen geklonter Code, nicht im Repo geprüft. Stellen: `packages/docker_base_image/Dockerfile:9`
-- **pkg_drive** (offen): Treiber-Code (edu_robot) wird beim Bauen geklont, nicht im Repo geprüft; muss cmd_vel/gated abonnieren. Stellen: `packages/pkg_drive/Dockerfile:23`, `packages/pkg_drive/Dockerfile:24`
-- **pkg_examples** (Problem): privileged/Geräte-Zugriff außerhalb eines Treiber-Pakets; nicht nötig, entfernen. Stellen: `packages/pkg_examples/docker-compose.yaml:12`
-- **pkg_gestures** (Problem): Aufruf heute auskommentiert (inaktiv); vor dem Aktivieren über ROS-Topics hinter dem Gate führen. Stellen: `packages/pkg_gestures/pib_gestures_action/modules/pib_gestures/src/pib_gestures/core/greet_person.py:16`, `packages/pkg_gestures/pib_gestures_action/modules/pib_gestures/src/pib_gestures/core/look_at.py:16`, `packages/pkg_gestures/pib_gestures_action/modules/pib_gestures/src/pib_gestures/core/point_to.py:16`, `packages/pkg_gestures/pib_gestures_action/modules/pib_gestures/src/pib_gestures/utils/pib_control.py:12`, `packages/pkg_gestures/pib_gestures_action/modules/pib_gestures/src/pib_gestures/utils/pib_control.py:13`
-- **pkg_gestures** (Problem): pib-sdk steuert die Servos des pib direkt (über rosbridge/roslibpy), am command_gate vorbei. Stellen: `packages/pkg_gestures/Dockerfile:15`, `packages/pkg_gestures/pib_gestures_action/modules/pib_gestures/pyproject.toml:18`
+- **pkg_drive** (offen): Treiber-Code (edu_robot) wird beim Bauen geklont, nicht im Repo geprüft; muss cmd_vel abonnieren. Stellen: `packages/pkg_drive/Dockerfile:23`, `packages/pkg_drive/Dockerfile:24`
+- **pkg_examples** (Problem): privileged/Geräte-Zugriff außerhalb eines Treiber-Pakets; nicht nötig, entfernen. Stellen: `packages/pkg_examples/docker-compose.yaml:14`
+- **pkg_gestures** (Problem): Aufruf heute auskommentiert (inaktiv); vor dem Aktivieren über ROS-Topics des Stacks führen. Stellen: `packages/pkg_gestures/pib_gestures_action/modules/pib_gestures/src/pib_gestures/core/greet_person.py:16`, `packages/pkg_gestures/pib_gestures_action/modules/pib_gestures/src/pib_gestures/core/look_at.py:16`, `packages/pkg_gestures/pib_gestures_action/modules/pib_gestures/src/pib_gestures/core/point_to.py:16`, `packages/pkg_gestures/pib_gestures_action/modules/pib_gestures/src/pib_gestures/utils/pib_control.py:12`, `packages/pkg_gestures/pib_gestures_action/modules/pib_gestures/src/pib_gestures/utils/pib_control.py:13`
+- **pkg_gestures** (Problem): pib-sdk steuert die Servos des pib direkt (über rosbridge/roslibpy), an Georgs ROS-Stack vorbei. Stellen: `packages/pkg_gestures/pib_gestures_action/modules/pib_gestures/pyproject.toml:18`
 - **pkg_slam** (Problem): SLAM braucht weder privileged noch /dev (Lidar über Netzwerk); entfernen. Stellen: `packages/pkg_slam/docker-compose.yaml:11`, `packages/pkg_slam/docker-compose.yaml:13`
 - **pkg_slam** (offen): Sensor-Treiber (sick_scan_xd, rf2o, scan merger) werden geklont; lesend, nicht im Repo geprüft. Stellen: `packages/pkg_slam/Dockerfile:15`, `packages/pkg_slam/Dockerfile:16`, `packages/pkg_slam/Dockerfile:17`
-- **pkg_urdf** (Problem): privileged/Geräte-Zugriff außerhalb eines Treiber-Pakets; nicht nötig, entfernen. Stellen: `packages/pkg_urdf/docker-compose.yaml:10`
+- **pkg_urdf** (Problem): privileged/Geräte-Zugriff außerhalb eines Treiber-Pakets; nicht nötig, entfernen. Stellen: `packages/pkg_urdf/docker-compose.yaml:12`
 - **pkg_urdf** (offen): beim Bauen geklonter Code, nicht im Repo geprüft. Stellen: `packages/pkg_urdf/Dockerfile:16`
-- **pkg_viz** (Problem): RViz-Container (nur Profil viz) braucht kein /dev und kein privileged außer für die GPU; einschränken. Stellen: `packages/pkg_viz/docker-compose.yaml:11`, `packages/pkg_viz/docker-compose.yaml:23`
+- **pkg_viz** (Problem): RViz-Container (nur Profil viz) braucht kein /dev und kein privileged außer für die GPU; einschränken. Stellen: `packages/pkg_viz/docker-compose.yaml:11`, `packages/pkg_viz/docker-compose.yaml:24`
 - **pkg_viz** (offen): beim Bauen geklonter Code, nicht im Repo geprüft. Stellen: `packages/pkg_viz/Dockerfile:26`
 
 ## Alle Fundstellen
 
 | Paket | Datei | Zeile | Fundstelle | Regel | Bewertung | Begründung |
 | --- | --- | --- | --- | --- | --- | --- |
-| pkg_examples | `packages/pkg_examples/docker-compose.yaml` | 12 | `privileged: true` | privileged | Problem | privileged/Geräte-Zugriff außerhalb eines Treiber-Pakets; nicht nötig, entfernen |
-| pkg_gestures | `packages/pkg_gestures/Dockerfile` | 15 | `pib-sdk==0.9.1` | controller sdk | Problem | pib-sdk steuert die Servos des pib direkt (über rosbridge/roslibpy), am command_gate vorbei |
-| pkg_gestures | `packages/pkg_gestures/pib_gestures_action/modules/pib_gestures/pyproject.toml` | 18 | `"pib-sdk"` | controller sdk | Problem | pib-sdk steuert die Servos des pib direkt (über rosbridge/roslibpy), am command_gate vorbei |
-| pkg_gestures | `packages/pkg_gestures/pib_gestures_action/modules/pib_gestures/src/pib_gestures/core/greet_person.py` | 16 | `###from pib_sdk.control import *` | controller sdk | Problem | Aufruf heute auskommentiert (inaktiv); vor dem Aktivieren über ROS-Topics hinter dem Gate führen |
-| pkg_gestures | `packages/pkg_gestures/pib_gestures_action/modules/pib_gestures/src/pib_gestures/core/look_at.py` | 16 | `###from pib_sdk.control import *` | controller sdk | Problem | Aufruf heute auskommentiert (inaktiv); vor dem Aktivieren über ROS-Topics hinter dem Gate führen |
-| pkg_gestures | `packages/pkg_gestures/pib_gestures_action/modules/pib_gestures/src/pib_gestures/core/point_to.py` | 16 | `###from pib_sdk.control import *` | controller sdk | Problem | Aufruf heute auskommentiert (inaktiv); vor dem Aktivieren über ROS-Topics hinter dem Gate führen |
-| pkg_gestures | `packages/pkg_gestures/pib_gestures_action/modules/pib_gestures/src/pib_gestures/utils/pib_control.py` | 12 | `###from pib_sdk.kinematics import fk, ik` | controller sdk | Problem | Aufruf heute auskommentiert (inaktiv); vor dem Aktivieren über ROS-Topics hinter dem Gate führen |
-| pkg_gestures | `packages/pkg_gestures/pib_gestures_action/modules/pib_gestures/src/pib_gestures/utils/pib_control.py` | 13 | `###from pib_sdk.control import *` | controller sdk | Problem | Aufruf heute auskommentiert (inaktiv); vor dem Aktivieren über ROS-Topics hinter dem Gate führen |
+| pkg_examples | `packages/pkg_examples/docker-compose.yaml` | 14 | `privileged: true` | privileged | Problem | privileged/Geräte-Zugriff außerhalb eines Treiber-Pakets; nicht nötig, entfernen |
+| pkg_gestures | `packages/pkg_gestures/pib_gestures_action/modules/pib_gestures/pyproject.toml` | 18 | `"pib-sdk"` | controller sdk | Problem | pib-sdk steuert die Servos des pib direkt (über rosbridge/roslibpy), an Georgs ROS-Stack vorbei |
+| pkg_gestures | `packages/pkg_gestures/pib_gestures_action/modules/pib_gestures/src/pib_gestures/core/greet_person.py` | 16 | `###from pib_sdk.control import *` | controller sdk | Problem | Aufruf heute auskommentiert (inaktiv); vor dem Aktivieren über ROS-Topics des Stacks führen |
+| pkg_gestures | `packages/pkg_gestures/pib_gestures_action/modules/pib_gestures/src/pib_gestures/core/look_at.py` | 16 | `###from pib_sdk.control import *` | controller sdk | Problem | Aufruf heute auskommentiert (inaktiv); vor dem Aktivieren über ROS-Topics des Stacks führen |
+| pkg_gestures | `packages/pkg_gestures/pib_gestures_action/modules/pib_gestures/src/pib_gestures/core/point_to.py` | 16 | `###from pib_sdk.control import *` | controller sdk | Problem | Aufruf heute auskommentiert (inaktiv); vor dem Aktivieren über ROS-Topics des Stacks führen |
+| pkg_gestures | `packages/pkg_gestures/pib_gestures_action/modules/pib_gestures/src/pib_gestures/utils/pib_control.py` | 12 | `###from pib_sdk.kinematics import fk, ik` | controller sdk | Problem | Aufruf heute auskommentiert (inaktiv); vor dem Aktivieren über ROS-Topics des Stacks führen |
+| pkg_gestures | `packages/pkg_gestures/pib_gestures_action/modules/pib_gestures/src/pib_gestures/utils/pib_control.py` | 13 | `###from pib_sdk.control import *` | controller sdk | Problem | Aufruf heute auskommentiert (inaktiv); vor dem Aktivieren über ROS-Topics des Stacks führen |
 | pkg_slam | `packages/pkg_slam/docker-compose.yaml` | 11 | `- /dev:/dev` | device mount | Problem | SLAM braucht weder privileged noch /dev (Lidar über Netzwerk); entfernen |
 | pkg_slam | `packages/pkg_slam/docker-compose.yaml` | 13 | `privileged: true` | privileged | Problem | SLAM braucht weder privileged noch /dev (Lidar über Netzwerk); entfernen |
-| pkg_urdf | `packages/pkg_urdf/docker-compose.yaml` | 10 | `privileged: true` | privileged | Problem | privileged/Geräte-Zugriff außerhalb eines Treiber-Pakets; nicht nötig, entfernen |
+| pkg_urdf | `packages/pkg_urdf/docker-compose.yaml` | 12 | `privileged: true` | privileged | Problem | privileged/Geräte-Zugriff außerhalb eines Treiber-Pakets; nicht nötig, entfernen |
 | pkg_viz | `packages/pkg_viz/docker-compose.yaml` | 11 | `- /dev:/dev # hwaccel hopefully` | device mount | Problem | RViz-Container (nur Profil viz) braucht kein /dev und kein privileged außer für die GPU; einschränken |
-| pkg_viz | `packages/pkg_viz/docker-compose.yaml` | 23 | `privileged: true` | privileged | Problem | RViz-Container (nur Profil viz) braucht kein /dev und kein privileged außer für die GPU; einschränken |
+| pkg_viz | `packages/pkg_viz/docker-compose.yaml` | 24 | `privileged: true` | privileged | Problem | RViz-Container (nur Profil viz) braucht kein /dev und kein privileged außer für die GPU; einschränken |
 | docker_base_image | `packages/docker_base_image/Dockerfile` | 9 | `RUN git clone https://github.com/autonohm/georg_interfaces` | external code | offen | beim Bauen geklonter Code, nicht im Repo geprüft |
-| pkg_command_gate | `packages/pkg_command_gate/command_gate/command_gate/command_gate_node.py` | 25 | `self._pub = self.create_publisher(Twist, 'cmd_vel/gated', 10)` | cmd_vel publisher | erlaubt | Gate bzw. Simulator selbst |
-| pkg_drive | `packages/pkg_drive/Dockerfile` | 23 | `RUN git clone https://github.com/EduArt-Robotik/edu_robot.git --branch hotfix/single_channel_motor_controller && \` | external code | offen | Treiber-Code (edu_robot) wird beim Bauen geklont, nicht im Repo geprüft; muss cmd_vel/gated abonnieren |
-| pkg_drive | `packages/pkg_drive/Dockerfile` | 24 | `git clone https://github.com/EduArt-Robotik/edu_robot_control.git` | external code | offen | Treiber-Code (edu_robot) wird beim Bauen geklont, nicht im Repo geprüft; muss cmd_vel/gated abonnieren |
-| pkg_drive | `packages/pkg_drive/config/drive.launch.py` | 64 | `{'dev': '/dev/georg_controller'}` | device file | erlaubt | Treiber-Paket, nur Profil real, hinter dem command_gate |
-| pkg_drive | `packages/pkg_drive/docker-compose.yaml` | 11 | `- /dev:/dev` | device mount | erlaubt | Treiber-Paket, nur Profil real, hinter dem command_gate |
-| pkg_drive | `packages/pkg_drive/docker-compose.yaml` | 13 | `privileged: true` | privileged | erlaubt | Treiber-Paket, nur Profil real, hinter dem command_gate |
-| pkg_gestures | `packages/pkg_gestures/Dockerfile` | 11 | `# pib-sdk replaces the former broken git submodule modules/pib_sdk.` | controller sdk | Hinweis | nur Kommentar/Docstring |
-| pkg_gestures | `packages/pkg_gestures/Dockerfile` | 12 | `# Note: all pib_sdk imports in pib_gestures are commented out at the moment.` | controller sdk | Hinweis | nur Kommentar/Docstring |
+| pkg_drive | `packages/pkg_drive/Dockerfile` | 23 | `RUN git clone https://github.com/EduArt-Robotik/edu_robot.git --branch hotfix/single_channel_motor_controller && \` | external code | offen | Treiber-Code (edu_robot) wird beim Bauen geklont, nicht im Repo geprüft; muss cmd_vel abonnieren |
+| pkg_drive | `packages/pkg_drive/Dockerfile` | 24 | `git clone https://github.com/EduArt-Robotik/edu_robot_control.git` | external code | offen | Treiber-Code (edu_robot) wird beim Bauen geklont, nicht im Repo geprüft; muss cmd_vel abonnieren |
+| pkg_drive | `packages/pkg_drive/config/drive.launch.py` | 70 | `{'dev': '/dev/georg_controller'}` | device file | erlaubt | Treiber-Paket, nur Profil real, hinter twist_mux/twist_limiter |
+| pkg_drive | `packages/pkg_drive/docker-compose.yaml` | 13 | `- /dev:/dev` | device mount | erlaubt | Treiber-Paket, nur Profil real, hinter twist_mux/twist_limiter |
+| pkg_drive | `packages/pkg_drive/docker-compose.yaml` | 15 | `privileged: true` | privileged | erlaubt | Treiber-Paket, nur Profil real, hinter twist_mux/twist_limiter |
+| pkg_gestures | `packages/pkg_gestures/Dockerfile` | 11 | `# pib-sdk is NOT installed: all pib_sdk imports in pib_gestures are commented out, and the` | controller sdk | Hinweis | nur Kommentar/Docstring |
+| pkg_gestures | `packages/pkg_gestures/Dockerfile` | 14 | `# On arm64, pib-sdk 0.9.1 -> pin -> cmeel-boost also needs numpy>=2.2, which conflicts with` | controller sdk | Hinweis | nur Kommentar/Docstring |
+| pkg_gestures | `packages/pkg_gestures/Dockerfile` | 17 | `#   RUN python3 -m pip install --no-cache-dir --break-system-packages pib-sdk==0.9.1` | controller sdk | Hinweis | nur Kommentar/Docstring |
 | pkg_gestures | `packages/pkg_gestures/README.md` | 13 | `'pib-sdk' is installed with pip in the 'Dockerfile'. It replaces the former git submodule 'modules/pib_sdk', which had n` | controller sdk | Hinweis | nur Dokumentation |
 | pkg_gestures | `packages/pkg_gestures/pib_gestures_action/modules/pib_gestures/README.md` | 1 | `# pib-sdk` | controller sdk | Hinweis | nur Dokumentation |
 | pkg_gestures | `packages/pkg_gestures/pib_gestures_action/modules/pib_gestures/README.md` | 18 | `pip install pib-sdk` | controller sdk | Hinweis | nur Dokumentation |
@@ -64,7 +63,7 @@ Erzeugt am 2026-11-21 von `tools/hardware_scan.py`. 3185 Dateien einzeln geprüf
 | pkg_gestures | `packages/pkg_gestures/pib_gestures_action/modules/pib_gestures/README.md` | 170 | `- **ERROR: Could not find a version that satisfies the requirement mediapipe (from pib-sdk) (from versions: none)**` | controller sdk | Hinweis | nur Dokumentation |
 | pkg_gestures | `packages/pkg_gestures/pib_gestures_action/modules/pib_gestures/README.md` | 173 | `- **roslibpy.core.RosTimeoutError: Failed to connect to ROS**` | controller sdk | Hinweis | nur Dokumentation |
 | pkg_gestures | `packages/pkg_gestures/pib_gestures_action/modules/pib_gestures/src/pib_gestures/utils/pib_control.py` | 5 | `more detailed description on pibrocks github / pib-sdk / branch-978` | controller sdk | Hinweis | nur Kommentar/Docstring |
-| pkg_navigation | `packages/pkg_navigation/drive_route_server_pkg/drive_route_server/drive_route_action_server.py` | 177 | `self._cmd_vel_pub = self.create_publisher(Twist, CMD_VEL_TOPIC, 10)` | cmd_vel publisher | Hinweis | Fahrbefehl über ROS (cmd_vel). Im Profil real per Launch auf cmd_vel/nav umgeleitet -> twist_mux -> twist_limiter -> command_gate |
+| pkg_navigation | `packages/pkg_navigation/drive_route_server_pkg/drive_route_server/drive_route_action_server.py` | 177 | `self._cmd_vel_pub = self.create_publisher(Twist, CMD_VEL_TOPIC, 10)` | cmd_vel publisher | Hinweis | Fahrbefehl über ROS (cmd_vel). Im Profil real per Launch auf cmd_vel/nav umgeleitet -> twist_mux -> twist_limiter -> Treiber |
 | pkg_object_detection | `packages/pkg_object_detection/README.md` | 5 | `'''git clone --depth 1 https://github.com/luxonis/oak-examples.git` | external code | Hinweis | nur Dokumentation |
 | pkg_slam | `packages/pkg_slam/Dockerfile` | 15 | `RUN git clone https://github.com/SICKAG/sick_scan_xd.git --branch 3.8.0 && \` | external code | offen | Sensor-Treiber (sick_scan_xd, rf2o, scan merger) werden geklont; lesend, nicht im Repo geprüft |
 | pkg_slam | `packages/pkg_slam/Dockerfile` | 16 | `git clone https://github.com/MAPIRlab/rf2o_laser_odometry.git && \` | external code | offen | Sensor-Treiber (sick_scan_xd, rf2o, scan merger) werden geklont; lesend, nicht im Repo geprüft |
@@ -74,8 +73,8 @@ Erzeugt am 2026-11-21 von `tools/hardware_scan.py`. 3185 Dateien einzeln geprüf
 | pkg_speech | `packages/pkg_speech/README.md` | 45 | `# - ALSA_CARD=ArrayUAC10 #  <-- remove this line` | audio device | Hinweis | nur Dokumentation |
 | pkg_speech | `packages/pkg_speech/README.md` | 46 | `- PULSE_SERVER=unix:${XDG_RUNTIME_DIR:-/run/user/1000}/pulse/native` | audio device | Hinweis | nur Dokumentation |
 | pkg_task_manager | `packages/pkg_task_manager/Dockerfile` | 38 | `#RUN git clone https://github.com/Giusaurus/pkg_navigation.git` | external code | Hinweis | nur Kommentar/Docstring |
-| pkg_task_manager | `packages/pkg_task_manager/task_manager_pkg/test/test_mcap_integration.py` | 77 | `cmd = client.node.create_publisher(Twist, f'{NS}/cmd_vel', 10)` | cmd_vel publisher | Hinweis | Fahrbefehl über ROS; läuft über das command_gate |
-| pkg_task_manager | `packages/pkg_task_manager/task_manager_pkg/test/test_sim_integration.py` | 75 | `self.cmd = node.create_publisher(Twist, f'{NS}/cmd_vel', 10)` | cmd_vel publisher | Hinweis | Fahrbefehl über ROS; läuft über das command_gate |
+| pkg_task_manager | `packages/pkg_task_manager/task_manager_pkg/test/test_mcap_integration.py` | 77 | `cmd = client.node.create_publisher(Twist, f'{NS}/cmd_vel', 10)` | cmd_vel publisher | Hinweis | Fahrbefehl über ROS; läuft über twist_mux/twist_limiter |
+| pkg_task_manager | `packages/pkg_task_manager/task_manager_pkg/test/test_sim_integration.py` | 75 | `self.cmd = node.create_publisher(Twist, f'{NS}/cmd_vel', 10)` | cmd_vel publisher | Hinweis | Fahrbefehl über ROS; läuft über twist_mux/twist_limiter |
 | pkg_urdf | `packages/pkg_urdf/Dockerfile` | 16 | `RUN git clone https://github.com/autonohm/georg_description.git` | external code | offen | beim Bauen geklonter Code, nicht im Repo geprüft |
 | pkg_viz | `packages/pkg_viz/Dockerfile` | 26 | `RUN git clone https://github.com/autonohm/georg_description.git` | external code | offen | beim Bauen geklonter Code, nicht im Repo geprüft |
 | system-files | `system-files/README.md` | 16 | `git clone https://github.com/autonohm/georg_at_home.git` | external code | Hinweis | nur Dokumentation |
@@ -95,27 +94,15 @@ Erzeugt am 2026-11-21 von `tools/hardware_scan.py`. 3185 Dateien einzeln geprüf
 
 ## Geprüfte Dateien (Beleg)
 
-3185 Dateien, jede einzeln gelesen.
+3173 Dateien, jede einzeln gelesen.
 
 ```
-compose.yaml  –  26 Zeilen geprüft
-packages/docker_base_image/Dockerfile  –  27 Zeilen geprüft
+compose.yaml  –  28 Zeilen geprüft
+packages/docker_base_image/Dockerfile  –  29 Zeilen geprüft
 packages/docker_base_image/compose.yaml  –  11 Zeilen geprüft
-packages/pkg_command_gate/Dockerfile  –  23 Zeilen geprüft
-packages/pkg_command_gate/README.md  –  25 Zeilen geprüft
-packages/pkg_command_gate/command_gate/command_gate/__init__.py  –  1 Zeilen geprüft
-packages/pkg_command_gate/command_gate/command_gate/command_gate_node.py  –  65 Zeilen geprüft
-packages/pkg_command_gate/command_gate/command_gate/gate.py  –  29 Zeilen geprüft
-packages/pkg_command_gate/command_gate/package.xml  –  19 Zeilen geprüft
-packages/pkg_command_gate/command_gate/resource/command_gate  –  1 Zeilen geprüft
-packages/pkg_command_gate/command_gate/setup.cfg  –  5 Zeilen geprüft
-packages/pkg_command_gate/command_gate/setup.py  –  26 Zeilen geprüft
-packages/pkg_command_gate/command_gate/test/test_gate.py  –  27 Zeilen geprüft
-packages/pkg_command_gate/config/command_gate.launch.py  –  26 Zeilen geprüft
-packages/pkg_command_gate/docker-compose.yaml  –  30 Zeilen geprüft
 packages/pkg_drive/Dockerfile  –  38 Zeilen geprüft
 packages/pkg_drive/README.md  –  18 Zeilen geprüft
-packages/pkg_drive/config/drive.launch.py  –  94 Zeilen geprüft
+packages/pkg_drive/config/drive.launch.py  –  102 Zeilen geprüft
 packages/pkg_drive/config/edu_robot.yaml  –  158 Zeilen geprüft
 packages/pkg_drive/config/edu_robot_control.yaml  –  25 Zeilen geprüft
 packages/pkg_drive/config/twist_limiter.yaml  –  23 Zeilen geprüft
@@ -123,7 +110,7 @@ packages/pkg_drive/config/twist_mux/joystick.yaml  –  12 Zeilen geprüft
 packages/pkg_drive/config/twist_mux/twist_mux_launch.py  –  87 Zeilen geprüft
 packages/pkg_drive/config/twist_mux/twist_mux_locks.yaml  –  27 Zeilen geprüft
 packages/pkg_drive/config/twist_mux/twist_mux_topics.yaml  –  27 Zeilen geprüft
-packages/pkg_drive/docker-compose.yaml  –  22 Zeilen geprüft
+packages/pkg_drive/docker-compose.yaml  –  26 Zeilen geprüft
 packages/pkg_drive/twist_limiter/.gitignore  –  7 Zeilen geprüft
 packages/pkg_drive/twist_limiter/CMakeLists.txt  –  31 Zeilen geprüft
 packages/pkg_drive/twist_limiter/LICENSE  –  18 Zeilen geprüft
@@ -133,8 +120,8 @@ packages/pkg_drive/twist_limiter/src/dynamic_signal_generator.cpp  –  62 Zeile
 packages/pkg_drive/twist_limiter/src/main.cpp  –  107 Zeilen geprüft
 packages/pkg_examples/Dockerfile  –  23 Zeilen geprüft
 packages/pkg_examples/README.md  –  17 Zeilen geprüft
-packages/pkg_examples/config/examples.launch.py  –  49 Zeilen geprüft
-packages/pkg_examples/docker-compose.yaml  –  20 Zeilen geprüft
+packages/pkg_examples/config/examples.launch.py  –  64 Zeilen geprüft
+packages/pkg_examples/docker-compose.yaml  –  23 Zeilen geprüft
 packages/pkg_examples/pib_action_template/CMakeLists.txt  –  24 Zeilen geprüft
 packages/pkg_examples/pib_action_template/LICENSE  –  203 Zeilen geprüft
 packages/pkg_examples/pib_action_template/README_demo.md  –  39 Zeilen geprüft
@@ -155,10 +142,10 @@ packages/pkg_examples/pib_topic_template/modules/topic_template_triggered_publis
 packages/pkg_examples/pib_topic_template/package.xml  –  22 Zeilen geprüft
 packages/pkg_examples/pib_topic_template/setup.cfg  –  5 Zeilen geprüft
 packages/pkg_examples/pib_topic_template/setup.py  –  31 Zeilen geprüft
-packages/pkg_gestures/Dockerfile  –  36 Zeilen geprüft
+packages/pkg_gestures/Dockerfile  –  38 Zeilen geprüft
 packages/pkg_gestures/README.md  –  14 Zeilen geprüft
 packages/pkg_gestures/config/gestures.launch.py  –  30 Zeilen geprüft
-packages/pkg_gestures/docker-compose.yaml  –  25 Zeilen geprüft
+packages/pkg_gestures/docker-compose.yaml  –  27 Zeilen geprüft
 packages/pkg_gestures/pib_gestures_action/CMakeLists.txt  –  16 Zeilen geprüft
 packages/pkg_gestures/pib_gestures_action/LICENSE  –  203 Zeilen geprüft
 packages/pkg_gestures/pib_gestures_action/README.md  –  252 Zeilen geprüft
@@ -225,7 +212,7 @@ packages/pkg_llm/docker-compose.yaml  –  25 Zeilen geprüft
 packages/pkg_navigation/Dockerfile  –  25 Zeilen geprüft
 packages/pkg_navigation/README.md  –  186 Zeilen geprüft
 packages/pkg_navigation/config/navigation.launch.py  –  58 Zeilen geprüft
-packages/pkg_navigation/docker-compose.yaml  –  32 Zeilen geprüft
+packages/pkg_navigation/docker-compose.yaml  –  33 Zeilen geprüft
 packages/pkg_navigation/drive_route_server_pkg/drive_route_server/__init__.py  –  1 Zeilen geprüft
 packages/pkg_navigation/drive_route_server_pkg/drive_route_server/drive_route_action_server.py  –  557 Zeilen geprüft
 packages/pkg_navigation/drive_route_server_pkg/drive_route_server/drive_route_client.py  –  114 Zeilen geprüft
@@ -3158,12 +3145,12 @@ packages/pkg_sim/Dockerfile  –  28 Zeilen geprüft
 packages/pkg_sim/README.md  –  47 Zeilen geprüft
 packages/pkg_sim/assets/README.md  –  22 Zeilen geprüft
 packages/pkg_sim/config/sim.launch.py  –  24 Zeilen geprüft
-packages/pkg_sim/config/sim_stack.launch.py  –  47 Zeilen geprüft
-packages/pkg_sim/docker-compose.yaml  –  31 Zeilen geprüft
+packages/pkg_sim/config/sim_stack.launch.py  –  88 Zeilen geprüft
+packages/pkg_sim/docker-compose.yaml  –  32 Zeilen geprüft
 packages/pkg_sim/georg_sim/georg_sim/__init__.py  –  2 Zeilen geprüft
 packages/pkg_sim/georg_sim/georg_sim/mjcf.py  –  71 Zeilen geprüft
-packages/pkg_sim/georg_sim/georg_sim/sim2d_node.py  –  166 Zeilen geprüft
-packages/pkg_sim/georg_sim/georg_sim/simmj_node.py  –  89 Zeilen geprüft
+packages/pkg_sim/georg_sim/georg_sim/sim2d_node.py  –  170 Zeilen geprüft
+packages/pkg_sim/georg_sim/georg_sim/simmj_node.py  –  105 Zeilen geprüft
 packages/pkg_sim/georg_sim/georg_sim/world.py  –  103 Zeilen geprüft
 packages/pkg_sim/georg_sim/package.xml  –  23 Zeilen geprüft
 packages/pkg_sim/georg_sim/resource/georg_sim  –  1 Zeilen geprüft
@@ -3177,21 +3164,21 @@ packages/pkg_slam/config/lidars.launch.py  –  61 Zeilen geprüft
 packages/pkg_slam/config/parameters/rf2o_laser_odometry.yaml  –  18 Zeilen geprüft
 packages/pkg_slam/config/parameters/scan_merger.yaml  –  30 Zeilen geprüft
 packages/pkg_slam/config/parameters/slam_toolbox.yaml  –  79 Zeilen geprüft
-packages/pkg_slam/config/pkg_slam.launch.py  –  38 Zeilen geprüft
-packages/pkg_slam/config/slam.launch.py  –  79 Zeilen geprüft
-packages/pkg_slam/config/slam_mcap.launch.py  –  32 Zeilen geprüft
-packages/pkg_slam/config/slam_sim.launch.py  –  31 Zeilen geprüft
-packages/pkg_slam/docker-compose.yaml  –  26 Zeilen geprüft
+packages/pkg_slam/config/pkg_slam.launch.py  –  49 Zeilen geprüft
+packages/pkg_slam/config/slam.launch.py  –  84 Zeilen geprüft
+packages/pkg_slam/config/slam_mcap.launch.py  –  35 Zeilen geprüft
+packages/pkg_slam/config/slam_sim.launch.py  –  34 Zeilen geprüft
+packages/pkg_slam/docker-compose.yaml  –  30 Zeilen geprüft
 packages/pkg_slam/georg_slam.rviz  –  320 Zeilen geprüft
 packages/pkg_slam/maps/Nav_Test.yaml  –  180 Zeilen geprüft
 packages/pkg_slam/maps/README.md  –  101 Zeilen geprüft
-packages/pkg_slam/tools/mcap_raw_only.py  –  83 Zeilen geprüft
+packages/pkg_slam/tools/mcap_raw_only.py  –  87 Zeilen geprüft
 packages/pkg_speech/PKG_IGNORE  –  1 Zeilen geprüft
 packages/pkg_speech/README.md  –  54 Zeilen geprüft
 packages/pkg_task_manager/Dockerfile  –  50 Zeilen geprüft
 packages/pkg_task_manager/README.md  –  155 Zeilen geprüft
 packages/pkg_task_manager/config/task_manager.launch.py  –  46 Zeilen geprüft
-packages/pkg_task_manager/docker-compose.yaml  –  120 Zeilen geprüft
+packages/pkg_task_manager/docker-compose.yaml  –  127 Zeilen geprüft
 packages/pkg_task_manager/task_manager_pkg/package.xml  –  31 Zeilen geprüft
 packages/pkg_task_manager/task_manager_pkg/resource/task_manager  –  1 Zeilen geprüft
 packages/pkg_task_manager/task_manager_pkg/setup.cfg  –  5 Zeilen geprüft
@@ -3239,7 +3226,7 @@ packages/pkg_task_manager/task_manager_pkg/task_manager/tasks/base.py  –  21 Z
 packages/pkg_task_manager/task_manager_pkg/task_manager/tasks/priority.py  –  22 Zeilen geprüft
 packages/pkg_task_manager/task_manager_pkg/task_manager/tasks/timeout_watcher.py  –  76 Zeilen geprüft
 packages/pkg_task_manager/task_manager_pkg/test/conftest.py  –  93 Zeilen geprüft
-packages/pkg_task_manager/task_manager_pkg/test/ros_helpers.py  –  217 Zeilen geprüft
+packages/pkg_task_manager/task_manager_pkg/test/ros_helpers.py  –  220 Zeilen geprüft
 packages/pkg_task_manager/task_manager_pkg/test/test_burr_app.py  –  257 Zeilen geprüft
 packages/pkg_task_manager/task_manager_pkg/test/test_copyright.py  –  26 Zeilen geprüft
 packages/pkg_task_manager/task_manager_pkg/test/test_flake8.py  –  26 Zeilen geprüft
@@ -3250,11 +3237,11 @@ packages/pkg_task_manager/task_manager_pkg/test/test_mcap_integration.py  –  1
 packages/pkg_task_manager/task_manager_pkg/test/test_pep257.py  –  24 Zeilen geprüft
 packages/pkg_task_manager/task_manager_pkg/test/test_planner.py  –  219 Zeilen geprüft
 packages/pkg_task_manager/task_manager_pkg/test/test_ros_integration.py  –  116 Zeilen geprüft
-packages/pkg_task_manager/task_manager_pkg/test/test_sim_integration.py  –  174 Zeilen geprüft
+packages/pkg_task_manager/task_manager_pkg/test/test_sim_integration.py  –  160 Zeilen geprüft
 packages/pkg_task_manager/task_manager_pkg/test/test_validator.py  –  142 Zeilen geprüft
 packages/pkg_urdf/Dockerfile  –  25 Zeilen geprüft
 packages/pkg_urdf/README.md  –  16 Zeilen geprüft
-packages/pkg_urdf/docker-compose.yaml  –  20 Zeilen geprüft
+packages/pkg_urdf/docker-compose.yaml  –  23 Zeilen geprüft
 packages/pkg_urdf/view_urdf.rviz  –  156 Zeilen geprüft
 packages/pkg_viz/Dockerfile  –  38 Zeilen geprüft
 packages/pkg_viz/Dockerfile.bridge  –  12 Zeilen geprüft
@@ -3264,9 +3251,9 @@ packages/pkg_viz/config/operator.launch.py  –  50 Zeilen geprüft
 packages/pkg_viz/config/qt5ct/colors/gruvbox-dark.conf  –  6 Zeilen geprüft
 packages/pkg_viz/config/qt5ct/colors/gruvbox-light.conf  –  6 Zeilen geprüft
 packages/pkg_viz/config/qt5ct/qt5ct.conf  –  8 Zeilen geprüft
-packages/pkg_viz/docker-compose.yaml  –  55 Zeilen geprüft
+packages/pkg_viz/docker-compose.yaml  –  59 Zeilen geprüft
 packages/pkg_viz/georg_slam.rviz  –  320 Zeilen geprüft
-packages/pkg_viz/lichtblick_layouts/georg_sim.json  –  39 Zeilen geprüft
+packages/pkg_viz/lichtblick_layouts/georg_sim.json  –  40 Zeilen geprüft
 packages/pkg_viz/lichtblick_panel/.gitignore  –  3 Zeilen geprüft
 packages/pkg_viz/lichtblick_panel/README.md  –  47 Zeilen geprüft
 packages/pkg_viz/lichtblick_panel/build.py  –  66 Zeilen geprüft
@@ -3275,7 +3262,7 @@ packages/pkg_viz/lichtblick_panel/src/extension.js  –  213 Zeilen geprüft
 packages/pkg_viz/lichtblick_panel/src/model.js  –  146 Zeilen geprüft
 packages/pkg_viz/lichtblick_panel/test/model.test.js  –  78 Zeilen geprüft
 packages/pkg_viz/lichtblick_panel/test/panel.test.js  –  149 Zeilen geprüft
-projectctl.bash  –  261 Zeilen geprüft
+projectctl.bash  –  271 Zeilen geprüft
 system-files/README.md  –  40 Zeilen geprüft
 system-files/etc/systemd/system/georg.service  –  29 Zeilen geprüft
 system-files/etc/udev/rules.d/51-autonohm-joystick.rules  –  7 Zeilen geprüft

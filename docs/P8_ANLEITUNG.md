@@ -4,7 +4,7 @@ Diese Anleitung bringt die Software auf den Jetson Thor, sodass Georg nach dem E
 von selbst startet, in **Idle** steht und abgestürzte Container von allein wieder hochkommen.
 
 > **Vorab, wichtig:** Das Profil `real` ist gesperrt, solange der Hardware-Scan (P7)
-> Probleme findet. Stand 2026-11-21 sind es 13, alle in Paketen anderer Verantwortlicher
+> Probleme findet. Stand 2026-11-21 sind es 12, alle in Paketen anderer Verantwortlicher
 > (Abschnitt 1). Bis sie behoben sind, schlägt der Start mit `real` absichtlich fehl,
 > und es bewegt sich nichts.
 
@@ -19,14 +19,14 @@ Offene Probleme laut Bericht (Abschnitt „Meldungen an die Paket-Verantwortlich
 
 | Paket | Was zu tun ist |
 | --- | --- |
-| `pkg_gestures` | `pib-sdk` steuert die Servos des pib per rosbridge am `command_gate` vorbei. Servobefehle über ROS-Topics hinter einem Gate führen, erst dann die SDK-Aufrufe aktivieren. |
+| `pkg_gestures` | `pib-sdk` steuert die Servos des pib direkt per rosbridge, an Georgs ROS-Stack vorbei (heute auskommentiert, im Image nicht mehr installiert). Servobefehle über ROS-Topics des Stacks führen, erst dann die SDK-Aufrufe aktivieren. |
 | `pkg_slam` | `privileged: true` und `/dev:/dev` entfernen (Lidar läuft über Netzwerk). |
 | `pkg_viz` | `/dev:/dev` und `privileged` auf das Nötige für die GPU einschränken. |
 | `pkg_urdf`, `pkg_examples` | `privileged: true` entfernen. |
 
 Zusätzlich „offen“ (nicht im Repo prüfbar): beim Bauen geklonter Code, vor allem der
-Fahrtreiber `edu_robot`. Prüfen, dass er Fahrbefehle auf `cmd_vel` abonniert. Nur dann greift
-die Umleitung auf `cmd_vel/gated` hinter dem `command_gate` (`pkg_drive/config/drive.launch.py`).
+Fahrtreiber `edu_robot`. Prüfen, dass er Fahrbefehle auf `cmd_vel` abonniert (Ausgang des
+`twist_limiter`, `pkg_drive/config/drive.launch.py`).
 
 Nach jeder Korrektur den Scan erneut laufen lassen. Erst wenn `--check` mit 0 endet,
 startet `projectctl.bash up real`.
@@ -125,4 +125,4 @@ Für die ersten Fahrten mit LLM die Betriebsart **LLM + Freigabe** nehmen.
 | `georg.service` schlägt beim Booten fehl | `journalctl -u georg`. Meist ist der Hardware-Scan nicht sauber (Abschnitt 1) oder `/etc/georg/mode` steht nicht auf `real`. |
 | `StartMission` abgelehnt: „action server not reachable“ | Das genannte Paket läuft nicht: `./projectctl.bash status`, Logs des Pakets |
 | Lichtblick verbindet nicht | Lichtblick 1.30.0 verwenden. `foxglove_bridge` 3.x spricht nur `foxglove.sdk.v1`. |
-| Roboter fährt nicht in `real` | Fahrbefehle laufen `cmd_vel/nav` → `twist_mux` → `twist_limiter` → `cmd_vel` → `command_gate` → `cmd_vel/gated` → Treiber. `ros2 topic hz` auf jeder Stufe prüfen. Log des Gates: „gate OPEN“ nur, wenn Modusdatei **und** Profil `real` sind. |
+| Roboter fährt nicht in `real` | Fahrbefehle laufen `cmd_vel/nav` → `twist_mux` → `twist_limiter` → `cmd_vel` → Treiber. `ros2 topic hz` auf jeder Stufe prüfen. `ROS_DOMAIN_ID` muss in `real` 0 sein (`docker exec <container> env`). |

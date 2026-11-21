@@ -12,6 +12,7 @@ services:
       # maps live in pkg_slam (debug fallback, the map is built by SLAM)
       - ../pkg_slam/maps:/root/georg_maps:ro
     environment:
+      - ROS_DOMAIN_ID=${ROS_DOMAIN_ID:-0}
       - GEORG_MAP_DIR=/root/georg_maps
       - GEORG_DEFAULT_MAP=Nav_Test.yaml
       # profile real: drive commands via twist_mux / twist_limiter (navigation.launch.py)

@@ -1,6 +1,8 @@
 services:
   urdf:
     image: urdf
+    environment:
+      - ROS_DOMAIN_ID=${ROS_DOMAIN_ID:-0}
     profiles: [sim, real, mcap]
     build:
       context: .

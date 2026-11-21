@@ -128,10 +128,19 @@ check_mode() {
     fi
 }
 
+domain_id() {
+    # ROS_DOMAIN_ID per profile: 'real' 0 (same as pib-backend and Cerebra), every other
+    # profile its own domain, so a simulation can never reach the real robot
+    if [[ "$1" == "real" ]]; then
+        printf '0\n'
+    else
+        printf '%s\n' "${GEORG_SIM_DOMAIN_ID:-30}"
+    fi
+}
+
 compose() {
     # all compose calls go through the root compose file
-    GEORG_DEVICE_MODE="$(device_mode)" \
-        docker compose -p "$PROJECT_NAME" -f "$COMPOSE_FILE" "$@"
+    docker compose -p "$PROJECT_NAME" -f "$COMPOSE_FILE" "$@"
 }
 
 docker_cmd() {
@@ -149,7 +158,8 @@ docker_cmd() {
         if [[ "${GEORG_WITH_LLM:-0}" == "1" ]]; then
             extra=(--profile llm)
         fi
-        GEORG_PROFILE="$mode" compose --profile "$mode" ${extra[@]+"${extra[@]}"} "$@"
+        GEORG_PROFILE="$mode" ROS_DOMAIN_ID="$(domain_id "$mode")" \
+            compose --profile "$mode" ${extra[@]+"${extra[@]}"} "$@"
     else
         GEORG_PROFILE="" compose --profile '*' "$@"
     fi

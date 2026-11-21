@@ -15,6 +15,7 @@ services:
     init: true
     working_dir: /config
     environment:
+      - ROS_DOMAIN_ID=${ROS_DOMAIN_ID:-0}
       - GEORG_PROFILE=${GEORG_PROFILE:-}
       - GEORG_SIM_MODE=${GEORG_SIM_MODE:-false}
     # real: pkg_slam.launch.py with sim_mode from main (GEORG_SIM_MODE).

@@ -157,17 +157,3 @@ def test_abort_stops_the_drive(client, mocks, robot):
     assert _dist(robot.pose, stopped) < 0.02, 'robot still moves after abort'
     assert _dist(robot.pose, DOOR) > 1.0         # it really stopped on the way
 
-
-def test_command_gate_lets_nothing_through_in_sim(env, client, robot):
-    gate = _spawn(['ros2', 'run', 'command_gate', 'command_gate', '--ros-args',
-                   '-r', f'__ns:={NS_ARG}'], os.path.join(env['TMP'], 'gate.log'), env)
-    try:
-        received = []
-        client.node.create_subscription(Twist, f'{NS}/cmd_vel/gated', received.append, 10)
-        time.sleep(3.0)
-        robot.drive(vx=0.05, seconds=1.5)
-        time.sleep(0.5)
-        assert received == []
-        assert 'CLOSED' in open(os.path.join(env['TMP'], 'gate.log')).read()
-    finally:
-        _stop(gate)

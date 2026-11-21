@@ -8,12 +8,14 @@
 # | real    | real sensors             | pkg_drive   | yes, Jetson only |
 # | mcap    | MCAP playback            | none        | no               |
 #
+# ROS_DOMAIN_ID: set by projectctl.bash, 'real' 0 (same as pib-backend), other profiles
+# GEORG_SIM_DOMAIN_ID (default 30), so a simulation never reaches the real robot.
+#
 # Optional extras: --profile viz (RViz), --profile examples, GEORG_WITH_LLM=1 (local LLM).
 name: georg
 
 include:
   - packages/pkg_task_manager/docker-compose.yaml
-  - packages/pkg_command_gate/docker-compose.yaml
   - packages/pkg_navigation/docker-compose.yaml
   - packages/pkg_gestures/docker-compose.yaml
   - packages/pkg_slam/docker-compose.yaml

@@ -9,10 +9,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # pib-sdk is NOT installed: all pib_sdk imports in pib_gestures are commented out, and the
-# SDK drives the pib servos via rosbridge past the command_gate (hardware scan P7).
+# SDK drives the pib servos directly via rosbridge, outside of Georg's ROS stack (hardware
+# scan P7).
 # On arm64, pib-sdk 0.9.1 -> pin -> cmeel-boost also needs numpy>=2.2, which conflicts with
 # the system numpy 1.26.4 of ROS Jazzy. numpy itself comes with the base image.
-# Before re-enabling: route servo commands through ROS topics behind a gate, then e.g.
+# Before re-enabling: route servo commands through ROS topics of the stack, then e.g.
 #   RUN python3 -m pip install --no-cache-dir --break-system-packages pib-sdk==0.9.1
 
 # change this variable to trick docker cache into rebuilding

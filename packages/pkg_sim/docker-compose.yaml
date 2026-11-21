@@ -11,6 +11,7 @@ services:
       - ./config:/config:ro
       - ../pkg_slam/maps:/root/georg_maps:ro
     environment:
+      - ROS_DOMAIN_ID=${ROS_DOMAIN_ID:-0}
       - GEORG_MAP_DIR=/root/georg_maps
       # sim2d (stage 1) or simmj (MuJoCo, stage 2)
       - GEORG_SIMULATOR=${GEORG_SIMULATOR:-sim2d}

@@ -1,6 +1,8 @@
 services:
   examples:
     image: examples
+    environment:
+      - ROS_DOMAIN_ID=${ROS_DOMAIN_ID:-0}
     profiles: [examples]
     build:
       context: .

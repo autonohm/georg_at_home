@@ -85,7 +85,7 @@ def rate(f: Finding) -> None:
     if pkg == 'pkg_gestures' and rule == 'controller sdk' and f.comment \
             and ('import' in text) and path.endswith('.py'):
         return set_('Problem', 'Aufruf heute auskommentiert (inaktiv); vor dem Aktivieren '
-                               'über ROS-Topics hinter dem Gate führen')
+                               'über ROS-Topics des Stacks führen')
     if path.endswith('.md'):
         return set_('Hinweis', 'nur Dokumentation')
     if f.comment:
@@ -94,8 +94,8 @@ def rate(f: Finding) -> None:
     if pkg in DRIVER_PACKAGES:
         if rule == 'external code':
             return set_('offen', 'Treiber-Code (edu_robot) wird beim Bauen geklont, nicht im '
-                                 'Repo geprüft; muss cmd_vel/gated abonnieren')
-        return set_('erlaubt', 'Treiber-Paket, nur Profil real, hinter dem command_gate')
+                                 'Repo geprüft; muss cmd_vel abonnieren')
+        return set_('erlaubt', 'Treiber-Paket, nur Profil real, hinter twist_mux/twist_limiter')
     if pkg == 'system-files' and rule in ('udev rule', 'tty', 'device file'):
         if 'ttyMotor' in text or '99-pib-motors' in path:
             return set_('Hinweis', 'Motor-Controller-Regel; im Repo nutzt sie kein Paket '
@@ -113,11 +113,11 @@ def rate(f: Finding) -> None:
     if pkg == 'pkg_gestures' and rule == 'controller sdk':
         if path.endswith('Dockerfile') or path.endswith('pyproject.toml') or 'README' in path:
             return set_('Problem', 'pib-sdk steuert die Servos des pib direkt (über '
-                                   'rosbridge/roslibpy), am command_gate vorbei')
+                                   'rosbridge/roslibpy), an Georgs ROS-Stack vorbei')
         if text.lstrip().startswith('#'):
             return set_('Problem', 'Aufruf heute auskommentiert (inaktiv); vor dem '
-                                   'Aktivieren über ROS-Topics hinter dem Gate führen')
-        return set_('Problem', 'Servo-Ansteuerung am command_gate vorbei')
+                                   'Aktivieren über ROS-Topics des Stacks führen')
+        return set_('Problem', 'Servo-Ansteuerung an Georgs ROS-Stack vorbei')
     if pkg == 'pkg_task_manager' and rule == 'usb' and 'voice_assistant' in path:
         return set_('Hinweis', 'USB-Bibliothek für das Mikrofon-Array der Spracherkennung, '
                                'kein Bewegungsaktor')
@@ -130,10 +130,10 @@ def rate(f: Finding) -> None:
         if pkg == 'pkg_navigation':
             return set_('Hinweis', 'Fahrbefehl über ROS (cmd_vel). Im Profil real per Launch '
                                    'auf cmd_vel/nav umgeleitet -> twist_mux -> twist_limiter '
-                                   '-> command_gate')
-        if pkg in ('pkg_command_gate', 'pkg_sim'):
-            return set_('erlaubt', 'Gate bzw. Simulator selbst')
-        return set_('Hinweis', 'Fahrbefehl über ROS; läuft über das command_gate')
+                                   '-> Treiber')
+        if pkg == 'pkg_sim':
+            return set_('erlaubt', 'Simulator selbst')
+        return set_('Hinweis', 'Fahrbefehl über ROS; läuft über twist_mux/twist_limiter')
     if pkg == 'pkg_task_manager' and rule in ('device mount', 'device file') \
             and ('/dev/snd' in text or rule == 'device mount'):
         return set_('Hinweis', 'nur Audio-Geräte (/dev/snd) für die Spracherkennung, '

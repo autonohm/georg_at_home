@@ -16,6 +16,7 @@ services:
     # hardware acceleration
     runtime: nvidia
     environment:
+      - ROS_DOMAIN_ID=${ROS_DOMAIN_ID:-0}
       - NVIDIA_VISIBLE_DEVICES=all
       - DISPLAY=${DISPLAY:-}
       - QT_QPA_PLATFORMTHEME=qt5ct
@@ -30,6 +31,8 @@ services:
   # Lichtblick connects here: ws://<robot>:8765. Panel: lichtblick_panel/ (plan P4)
   foxglove_bridge:
     image: foxglove_bridge
+    environment:
+      - ROS_DOMAIN_ID=${ROS_DOMAIN_ID:-0}
     profiles: [mock, sim, real, mcap]
     build:
       context: .

@@ -75,8 +75,6 @@ def generate_launch_description():
                  output='screen'),
             Node(package='task_manager', executable='mock_packages', name='mock_packages',
                  arguments=['--scenario', 'sim_mocks'], output='screen'),
-            Node(package='command_gate', executable='command_gate', name='command_gate',
-                 output='screen'),
         ]),
         IncludeLaunchDescription(os.path.join(PACKAGES, 'pkg_navigation', 'config',
                                               'navigation.launch.py')),

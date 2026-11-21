@@ -73,7 +73,7 @@ def test_every_service_restarts_by_itself(real_services):
 
 
 def test_core_services_have_health_checks(real_services):
-    for name in ('task_manager', 'command_gate', 'navigation', 'gestures', 'foxglove_bridge',
+    for name in ('task_manager', 'navigation', 'gestures', 'foxglove_bridge',
                  'burr_ui'):
         assert real_services[name].get('healthcheck', {}).get('test'), name
 

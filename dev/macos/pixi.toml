@@ -55,6 +55,8 @@ ROS_VERSION = "2"
 ROS_PYTHON_VERSION = "3"
 # local only: no DDS traffic to the robot network from a laptop
 ROS_AUTOMATIC_DISCOVERY_RANGE = "LOCALHOST"
+# own domain like the sim profiles in projectctl.bash (real = 0)
+ROS_DOMAIN_ID = "30"
 GEORG_WS = "$HOME/.cache/georg-ros-ws"
 
 [tasks]
@@ -63,7 +65,7 @@ GEORG_WS = "$HOME/.cache/georg-ros-ws"
 build = { cmd = "bash -c 'mkdir -p $GEORG_WS/ext && colcon --log-base $GEORG_WS/log build --build-base $GEORG_WS/build --install-base $GEORG_WS/install --symlink-install --cmake-args -G Ninja --base-paths ../../packages $GEORG_WS/ext'", cwd = "." }
 # Georg model, not in this repo (same source as packages/pkg_urdf/Dockerfile), pinned commit
 fetch_description = { cmd = "bash -c 'D=$GEORG_WS/ext/georg_description; [ -d $D/.git ] || git clone -q https://github.com/autonohm/georg_description.git $D; git -C $D fetch -q origin && git -C $D checkout -q 2586a94 && git -C $D log -1 --format=\"georg_description %h %s\"'", cwd = "." }
-test = { cmd = "bash -c 'source $GEORG_WS/install/setup.bash && export PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 && cd ../../packages/pkg_task_manager/task_manager_pkg && python -m pytest -q test/test_burr_app.py test/test_validator.py test/test_planner.py && cd ../../pkg_command_gate/command_gate && python -m pytest -q test && cd ../../pkg_sim/georg_sim && python -m pytest -q test'", cwd = "." }
+test = { cmd = "bash -c 'source $GEORG_WS/install/setup.bash && export PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 && cd ../../packages/pkg_task_manager/task_manager_pkg && python -m pytest -q test/test_burr_app.py test/test_validator.py test/test_planner.py && cd ../../pkg_sim/georg_sim && python -m pytest -q test'", cwd = "." }
 # P2: task manager node + mock packages over real ROS (all mandatory scenarios, ~1 min)
 test_ros = { cmd = "bash -c 'source $GEORG_WS/install/setup.bash && export PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 GEORG_ROS_TESTS=1 && cd ../../packages/pkg_task_manager/task_manager_pkg && python -m pytest -v test/test_ros_integration.py'", cwd = "." }
 # P3: whole profile sim in one command (simulator, SLAM, navigation, task manager, mocks, gate)
