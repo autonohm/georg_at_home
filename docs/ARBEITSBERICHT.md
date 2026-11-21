@@ -239,7 +239,10 @@ Strahlauflösung 1° statt 0,33°: der zusammengeführte Scan hat ohnehin 1°, P
   standardmäßig als „y oben“ und wendet COLLADA-`<up_axis>` an; alle Meshes von Georg und pib
   liegen aber in ROS-Ausrichtung (z oben). Lösung: 3D-Panel → Scene → **Mesh up axis = Z-up**,
   **Ignore COLLADA up_axis** an – jetzt im Layout `georg_sim.json` (dazu Labels/Achsen aus,
-  URDF-Ebene „Georg + pib“). Eine zwischenzeitliche Gegendrehung der GLBs ist wieder raus.
+  URDF-Ebene „Georg + pib“). **Korrektur:** „Mesh up axis“ gilt nur für STL/OBJ – GLB dreht
+  Lichtblick immer um +90° um x. Die pib-Meshes behalten deshalb ihre Gegendrehung (−90° um x);
+  ohne sie flog der Oberkörper auseinander (Explosionsansicht). Kurz entfernt, weil ich deine
+  Rückmeldung falsch gedeutet hatte, dann wieder eingebaut.
 - Lichtblick erkennt nur `/robot_description` von selbst als Roboter; das kombinierte Modell kommt
   über die Custom-URDF-Ebene (Topic `/georg_full/robot_description`).
 

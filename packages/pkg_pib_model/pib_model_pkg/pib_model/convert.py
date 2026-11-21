@@ -18,6 +18,8 @@ import struct
 import xml.etree.ElementTree as ET
 
 ROOT_LINK = 'root'
+# visual origin of GLB meshes: undoes the y-up -> z-up turn of glTF viewers (Lichtblick)
+GLB_VISUAL_RPY = f'{-math.pi / 2:.9g} 0 0'
 
 
 def _fmt(values):
@@ -47,10 +49,13 @@ def model_to_urdf(model, package='pib_model', robot_name='pib', model_dir='model
         el = ET.SubElement(robot, 'link', name=link['name'])
         if link.get('mesh'):
             visual = ET.SubElement(el, 'visual')
-            # The GLBs of pib-3d hold ROS coordinates (z up), like the meshes of
-            # georg_description. Lichtblick needs 3D panel -> Scene -> Mesh up axis = Z-up
-            # (set in pkg_viz/lichtblick_layouts/georg_sim.json); no correction here.
-            ET.SubElement(visual, 'origin', xyz='0 0 0', rpy='0 0 0')
+            # The GLBs of pib-3d hold ROS coordinates (z up; Cerebra turns the whole robot by
+            # -90 deg about x into its y-up three.js scene). Lichtblick treats GLB as glTF
+            # (y up) and turns every GLB by +90 deg about x - always, its setting "Mesh up
+            # axis" only applies to STL/OBJ. Undo that here; without it the parts that lie
+            # away from their link origin fly apart (seen in Lichtblick 1.30 on 2026-11-21).
+            rpy = GLB_VISUAL_RPY if link['mesh'].lower().endswith('.glb') else '0 0 0'
+            ET.SubElement(visual, 'origin', xyz='0 0 0', rpy=rpy)
             geom = ET.SubElement(visual, 'geometry')
             ET.SubElement(geom, 'mesh', filename=f'package://{package}/{model_dir}/{link["mesh"]}')
     for joint in model['joints']:
