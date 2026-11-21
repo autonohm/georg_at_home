@@ -203,6 +203,17 @@ def main():
         check('sim_seat: real navigation reaches the seat', seat)
         check('abort stops the drive', abort_stops)
 
+        def reset():
+            st = node.run_mission('sim_reset', timeout=30)
+            if st.state != MissionStatus.SUCCEEDED:
+                raise RuntimeError(f'state {STATE[st.state]}: {st.message}')
+            time.sleep(1.0)
+            dist = math.dist(node.pose, (1.0, 0.1))
+            if dist > 0.05:
+                raise RuntimeError(f'robot is {dist:.2f} m from the start after the reset')
+            return f'back at the start ({dist:.3f} m)'
+        check('sim_reset puts the robot back to the start', reset)
+
     print(f'{sum(results)}/{len(results)} checks passed', flush=True)
     # exit right away: shutting rclpy down under the spinning thread aborts or prints errors
     os._exit(0 if all(results) else 1)

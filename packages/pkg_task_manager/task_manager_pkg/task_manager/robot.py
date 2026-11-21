@@ -3,6 +3,7 @@ from rclpy.action import ActionClient
 from std_msgs.msg import String
 from std_msgs.msg import Bool
 from georg_gesture_msgs.action import PibGesturesInterface
+from georg_sim_msgs.action import ResetSim
 from georg_speech_msgs.action import Listen, Say
 from georg_nav_msgs.action import Navigate, DriveRoute
 from std_msgs.msg import String as StringMsg
@@ -38,6 +39,13 @@ class Georg:
             node,
             Say,
             "speech/say"
+        )
+
+        # simulator reset (profile sim, pkg_sim)
+        self.reset_sim_action_client = ActionClient(
+            node,
+            ResetSim,
+            "sim/reset"
         )
 
         self.greet_action_client = ActionClient(

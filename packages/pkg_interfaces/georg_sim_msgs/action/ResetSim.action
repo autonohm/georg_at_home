@@ -1,0 +1,11 @@
+# Reset the simulator (pkg_sim): robot back to the start pose, stopped, odometry reset.
+# Only in profile sim. Served by georg_sim.
+
+bool clear_map    # also reset slam_toolbox (the map would not fit the jumped pose)
+
+---
+bool success
+string message
+
+---
+string state

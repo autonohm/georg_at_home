@@ -10,6 +10,7 @@
   <depend>rclpy</depend>
   <depend>georg_gesture_msgs</depend>
   <depend>georg_speech_msgs</depend>
+  <depend>georg_sim_msgs</depend>
   <depend>georg_nav_msgs</depend>
   <depend>navigate_server</depend>
   <depend>nav_msgs</depend>

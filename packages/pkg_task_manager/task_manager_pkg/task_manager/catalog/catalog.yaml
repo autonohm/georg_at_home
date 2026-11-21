@@ -53,6 +53,18 @@ tasks:
     modes: [mock, sim, real, mcap]
     requires: []
 
+  reset_sim:
+    description: Simulation only - put Georg back to the start pose and clear the SLAM map.
+    class: task_manager.tasks.ResetSimulation:ResetSimulation
+    action: sim/reset
+    type: georg_sim_msgs/action/ResetSim
+    args_schema:
+      clear_map: {type: boolean, required: false}
+    timeout_s: 15
+    cancelable: false
+    modes: [sim]
+    requires: []
+
   gesture:
     description: >-
       Arm/head gesture towards a camera vector (vx, vy, vz in mm, robot frame):

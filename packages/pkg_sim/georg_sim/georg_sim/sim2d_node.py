@@ -6,6 +6,8 @@ Publishes:   odom and odom/wheel (nav_msgs/Odometry, frame odom -> base_footprin
              tf odom -> base_footprint, tf_static base_footprint -> base_link
              (off with publish_base_link_tf:=false when georg_description publishes it)
              sim/ground_truth (nav_msgs/Odometry): true pose, for tests only
+Action:      sim/reset (georg_sim_msgs/ResetSim): back to the start pose, stopped, odometry
+             reset; with clear_map also /slam_toolbox/reset (mission sim_reset)
              /clock (rosgraph_msgs/Clock) with publish_clock:=true (nodes with use_sim_time,
              e.g. twist_mux of pkg_drive in sim_mode)
 
@@ -31,13 +33,16 @@ import random
 import time
 
 from geometry_msgs.msg import TransformStamped, Twist
+from georg_sim_msgs.action import ResetSim
 from georg_sim.world import World
 from nav_msgs.msg import Odometry
 import rclpy
+from rclpy.action import ActionServer
 from rclpy.node import Node
 from rclpy.qos import qos_profile_sensor_data
 from rosgraph_msgs.msg import Clock
 from sensor_msgs.msg import LaserScan
+from slam_toolbox.srv import Reset as SlamReset
 from tf2_ros import StaticTransformBroadcaster, TransformBroadcaster
 
 DEFAULT_MAP = os.path.join(os.environ.get('GEORG_MAP_DIR', '/root/georg_maps'), 'Nav_Test.yaml')
@@ -85,6 +90,7 @@ class Sim2D(Node):
         self.ox, self.oy, self.oyaw = self.x, self.y, self.yaw
         self.cmd_queue = []
 
+        self.start_pose = (self.x, self.y, self.yaw)
         self.world = World.from_yaml(self.map_file)
         if not self.world.is_free((self.x, self.y), self.radius):
             self.get_logger().warn(f'start pose ({self.x}, {self.y}) is not free')
@@ -110,6 +116,9 @@ class Sim2D(Node):
         self.static_tf = StaticTransformBroadcaster(self)
         self._publish_static()
 
+        self.slam_reset = self.create_client(SlamReset, '/slam_toolbox/reset')
+        self._reset_server = ActionServer(self, ResetSim, 'sim/reset', self._on_reset)
+
         self.last_step = time.monotonic()
         self.create_timer(1.0 / physics_hz, self._step)
         self.create_timer(1.0 / scan_hz, self._publish_scan)
@@ -121,6 +130,32 @@ class Sim2D(Node):
 
     def _setup(self):
         """Prepare the simulation backend (hook for the MuJoCo simulator)."""
+
+    def _reset_backend(self):
+        """Put the backend back to the start pose (hook for the MuJoCo simulator)."""
+
+    async def _on_reset(self, goal_handle):
+        """Action sim/reset: start pose, stopped, odometry reset, optionally a fresh map."""
+        self.x, self.y, self.yaw = self.start_pose
+        self.ox, self.oy, self.oyaw = self.start_pose
+        self.cmd_queue.clear()
+        self.cmd, self.cmd_time = Twist(), 0.0
+        self._reset_backend()
+        message = f'robot at the start pose ({self.x:.2f}, {self.y:.2f})'
+        ok = True
+        if goal_handle.request.clear_map:
+            if self.slam_reset.wait_for_service(timeout_sec=2.0):
+                response = await self.slam_reset.call_async(SlamReset.Request())
+                ok = response is not None and response.result == SlamReset.Response.RESULT_SUCCESS
+                message += ', map reset' if ok else ', map reset FAILED'
+            else:
+                ok = False
+                message += ', /slam_toolbox/reset not available'
+        self.get_logger().info(f'sim reset: {message}')
+        goal_handle.succeed()
+        result = ResetSim.Result()
+        result.success, result.message = ok, message
+        return result
 
     def _command(self, now: float) -> Twist:
         """Return the current command, or zero if it is older than ``cmd_timeout_s``."""

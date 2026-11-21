@@ -48,6 +48,10 @@ class SimMuJoCo(Sim2D):
             f'MuJoCo {mujoco.__version__}: {self.model.ngeom} geoms, '
             f'timestep {self.model.opt.timestep}s, viewer {"on" if self.viewer else "off"}')
 
+    def _reset_backend(self):
+        self.mj.mj_resetDataKeyframe(self.model, self.data, 0)
+        self.mj.mj_forward(self.model, self.data)
+
     def _step(self):
         now = time.monotonic()
         dt, self.last_step = now - self.last_step, now
