@@ -29,7 +29,7 @@ ENV REBUILD=1
 
 COPY ./georg_task_manager /ws/georg_task_manager
 COPY ./pib_gestures_action /ws/pib_gestures_action
-COPY ./pib-audio /ws/pib-audio
+# COPY ./pib-audio /ws/pib-audio
 COPY ./pkg_navigation /ws/pkg_navigation
 COPY ./maps /root/georg_maps
 

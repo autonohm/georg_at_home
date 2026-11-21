@@ -21,4 +21,5 @@ services:
 
 networks:
   pib-network:
-    driver: bridge
+    external: true
+    name: pib-network
