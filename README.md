@@ -20,6 +20,22 @@ Sowie einen `launch-content` Ordner der auf Laufzeit in den container verlinkt w
 Die Pakete eines Containers werden im Bauprozess kompiliert und ihre dependencies installiert.  
 Der Plan ist den container nur bei Softwarerevisionen aktualisieren zu müssen, damit auf dem Roboter eine "production"-Version der Software laufen kann.
 
+### Aufbau eines Subsystems
+
+Jedes Subsystem hat drei Ebenen, z.B. der Task Manager:
+
+```
+packages/pkg_task_manager/          Subsystem = ein Container: Dockerfile, docker-compose.yaml, config/
+└── georg_task_manager/             ROS-Paket: package.xml, setup.py, test/
+    └── georg_task_manager/         Python-Code (node.py, engine/, ...)
+```
+
+- `pkg_<name>` ist der Container. Er kann mehrere ROS-Pakete enthalten (z.B. `pkg_navigation`, `pkg_interfaces`).
+- Paketordner und Python-Ordner heißen gleich, weil ROS 2 das für Python-Pakete so verlangt
+  (`from georg_task_manager.engine import ...`, `ros2 run georg_task_manager task_manager`).
+- C++-Pakete haben statt der dritten Ebene `src/` (z.B. `pkg_drive/twist_limiter`).
+- Eine leere Datei `PKG_IGNORE` im Subsystem nimmt es aus dem Bauen/Starten heraus.
+
 ## IP Addressen
 Es gibt einen DHCP server.  
 Jedoch benötigen viele Teilnehmer statische Addressen.  
