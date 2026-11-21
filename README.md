@@ -29,18 +29,19 @@ packages/pkg_<bereich>/            1 Subsystem = 1 Container
 ├── README.md
 ├── Dockerfile, docker-compose.yaml
 ├── config/                        Launch-Dateien, Parameter (zur Laufzeit gemountet)
-└── <paketname>/                   ROS-Paket: package.xml, setup.py | CMakeLists.txt, test/
+└── <paketname>_pkg/               ROS-Paket: package.xml, setup.py | CMakeLists.txt, test/
     └── <paketname>/ | src/ | msg/ srv/ action/
                                    Python-Code | C++ | Nachrichten
 ```
 
-Beispiel: `packages/pkg_task_manager/task_manager/task_manager/node.py`
+Beispiel: `packages/pkg_task_manager/task_manager_pkg/task_manager/node.py`
 
 Regeln:
 
-1. **Ordnername = Paketname** (wie in `package.xml`), ohne Zusatz wie `_pkg`. Der Python-Ordner
-   darin heißt ebenfalls so, das verlangt ROS 2 für Python-Pakete
+1. **Paketordner = Paketname + `_pkg`** (Paketname wie in `package.xml`), wie in `pkg_navigation`.
+   Der Python-Ordner darin heißt genau wie das Paket, das verlangt ROS 2 für Python-Pakete
    (`from task_manager.engine import ...`, `ros2 run task_manager task_manager`).
+   So ist auf einen Blick klar: `…_pkg/` = ROS-Paket, Ordner darin = Code.
 2. **Die Paketebene bleibt auch bei nur einem Paket.** Container-Dateien (Dockerfile, Compose,
    `config/`) liegen im Subsystem, nicht im ROS-Paket. Weitere Pakete kommen daneben
    (z.B. `pkg_navigation`).
@@ -48,8 +49,8 @@ Regeln:
    `georg_task_manager_msgs` usw. brauchen das Präfix, sonst kollidieren sie mit ROS-Standardpaketen
    (`nav_msgs`).
 
-Bisher umgesetzt im Task Manager. Ältere Pakete weichen noch ab und werden von ihren Teams
-angepasst: `pkg_navigation/*_server_pkg` (Ordner mit `_pkg`), `georg_sim` (Präfix).
+Umgesetzt in `pkg_task_manager` und `pkg_navigation`. Andere Pakete weichen noch ab und werden von
+ihren Teams angepasst (z.B. `pkg_sim/georg_sim`, `pkg_command_gate/command_gate`).
 
 Nachrichten, die zwischen Containern gebraucht werden, liegen in `pkg_interfaces` und werden ins
 Basis-Image gebaut. Eine leere Datei `PKG_IGNORE` nimmt ein Subsystem aus dem Bauen/Starten heraus.

@@ -26,7 +26,7 @@ from typing import List
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.abspath(os.path.join(HERE, '..', '..'))
-TM = os.path.join(REPO, 'packages', 'pkg_task_manager', 'task_manager')
+TM = os.path.join(REPO, 'packages', 'pkg_task_manager', 'task_manager_pkg')
 PROJECT = 'task_manager'
 
 
