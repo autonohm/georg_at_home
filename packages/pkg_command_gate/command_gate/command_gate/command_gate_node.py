@@ -20,6 +20,7 @@ class CommandGate(Node):
         super().__init__('command_gate')
         self._profile = os.environ.get('GEORG_PROFILE', '')
         self._open = False
+        self._announced = False
         self._dropped = 0
         self._pub = self.create_publisher(Twist, 'cmd_vel/gated', 10)
         self.create_subscription(Twist, 'cmd_vel', self._on_cmd_vel, 10)
@@ -29,7 +30,8 @@ class CommandGate(Node):
     def _refresh(self):
         device = device_mode()
         now_open = is_open(device, self._profile)
-        if now_open != self._open or self._dropped == 0:
+        if now_open != self._open or not self._announced:
+            self._announced = True
             state = 'OPEN (forwarding)' if now_open else 'CLOSED (dropping)'
             self.get_logger().info(
                 f"gate {state}: device_mode='{device}' profile='{self._profile}'")
