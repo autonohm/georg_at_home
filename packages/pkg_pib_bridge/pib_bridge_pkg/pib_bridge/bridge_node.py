@@ -6,10 +6,12 @@ drive or motor commands.
 
 Stack side (served by this node):
     speech/say    georg_speech_msgs/Say     -> pib-backend /play_audio_from_speech (join=true)
-    audio/listen  georg_speech_msgs/Listen  SPEECH: /speech_detected (std_msgs/Bool) of
-                                            pib-backend, transcript from /chat_messages
-                                            (is_user); DOORBELL: parameter doorbell_topic
-                                            (std_msgs/Bool), none by default -> not detected
+    audio/listen  georg_speech_msgs/Listen  SPEECH: pib-backend action /record_audio
+                                            (RecordAudio: waits for speech, stops after a
+                                            pause, speech-to-text) -> transcript (as in branch
+                                            pib_backend_integration, leakmpf); DOORBELL:
+                                            PIB_DOORBELL_TOPIC (std_msgs/Bool), none by
+                                            default -> not detected
 Forwarded read-only from pib-backend to the stack, only if the domains differ (on the robot
 both are 0 and the stack sees pib-backend directly):
     parameter forward_topics: ["topic|package/msg/Type", ...]  (default: head camera + detections)
@@ -18,11 +20,11 @@ import os
 import threading
 import time
 
-from datatypes.msg import ChatMessage
+from datatypes.action import RecordAudio
 from datatypes.srv import PlayAudioFromSpeech
 from georg_speech_msgs.action import Listen, Say
 import rclpy
-from rclpy.action import ActionServer, CancelResponse, GoalResponse
+from rclpy.action import ActionClient, ActionServer, CancelResponse, GoalResponse
 from rclpy.callback_groups import ReentrantCallbackGroup
 from rclpy.context import Context
 from rclpy.executors import MultiThreadedExecutor
@@ -47,41 +49,21 @@ class Backend:
         cb = ReentrantCallbackGroup()
         self.say = self.node.create_client(PlayAudioFromSpeech, '/play_audio_from_speech',
                                            callback_group=cb)
+        self.record = ActionClient(self.node, RecordAudio, '/record_audio', callback_group=cb)
         self.lock = threading.Lock()
-        self.speech_events = []          # monotonic times of speech_detected == True
         self.doorbell_events = []
-        self.user_messages = []          # (monotonic time, text)
-        self.node.create_subscription(Bool, '/speech_detected', self._on_speech, 10,
-                                      callback_group=cb)
-        self.node.create_subscription(ChatMessage, '/chat_messages', self._on_chat, 10,
-                                      callback_group=cb)
         if doorbell_topic:
             self.node.create_subscription(Bool, doorbell_topic, self._on_doorbell, 10,
                                           callback_group=cb)
-
-    def _on_speech(self, msg):
-        if msg.data:
-            with self.lock:
-                self.speech_events.append(time.monotonic())
 
     def _on_doorbell(self, msg):
         if msg.data:
             with self.lock:
                 self.doorbell_events.append(time.monotonic())
 
-    def _on_chat(self, msg):
-        if msg.is_user and msg.content:
-            with self.lock:
-                self.user_messages.append((time.monotonic(), msg.content))
-
     def first_event_after(self, events, since):
         with self.lock:
             return next((t for t in events if t >= since), None)
-
-    def transcript_after(self, since):
-        with self.lock:
-            texts = [text for t, text in self.user_messages if t >= since]
-        return texts[-1] if texts else ''
 
 
 class PibBridge:
@@ -93,7 +75,10 @@ class PibBridge:
         self.gender = p('default_gender', 'M1').value
         self.language = p('default_language', 'de').value
         self.say_timeout = p('say_timeout_s', 60.0).value
-        self.transcript_wait = p('transcript_wait_s', 6.0).value
+        # RecordAudio: pause after speech that ends the utterance, speech-to-text engine
+        # (values of branch pib_backend_integration)
+        self.silent_after = p('listen_silent_after_s', 1.0).value
+        self.stt_engine = p('stt_engine', 'local_whisper').value
         forward = list(p('forward_topics', DEFAULT_FORWARD).value)
         self.backend = backend
         cb = ReentrantCallbackGroup()
@@ -155,28 +140,63 @@ class PibBridge:
 
     def _on_listen(self, goal_handle):
         goal = goal_handle.request
+        if goal.mode == Listen.Goal.MODE_SPEECH:
+            return self._listen_speech(goal_handle)
         start = time.monotonic()
         deadline = start + (goal.timeout_sec if goal.timeout_sec > 0 else 60.0)
-        speech = goal.mode == Listen.Goal.MODE_SPEECH
-        events = self.backend.speech_events if speech else self.backend.doorbell_events
         result = Listen.Result()
         while time.monotonic() < deadline:
             if goal_handle.is_cancel_requested:
                 goal_handle.canceled()
                 return result
-            if self.backend.first_event_after(events, start) is not None:
+            if self.backend.first_event_after(self.backend.doorbell_events, start) is not None:
                 result.detected, result.confidence = True, 1.0
-                if speech:
-                    # the transcript comes as a chat message once speech-to-text is done
-                    end = time.monotonic() + self.transcript_wait
-                    while time.monotonic() < end and not result.transcript:
-                        result.transcript = self.backend.transcript_after(start)
-                        time.sleep(0.1)
                 goal_handle.succeed()
                 return result
             time.sleep(0.05)
         goal_handle.succeed()
-        result.detected, result.confidence = False, 0.0
+        return result
+
+    def _listen_speech(self, goal_handle):
+        """Speech -> pib-backend /record_audio; detected if it understood any text."""
+        result = Listen.Result()
+        if not self.backend.record.wait_for_server(timeout_sec=3.0):
+            self.node.get_logger().error('/record_audio of pib-backend not available')
+            goal_handle.abort()
+            return result
+        before = goal_handle.request.timeout_sec if goal_handle.request.timeout_sec > 0 else 8.0
+        rec = RecordAudio.Goal()
+        rec.max_silent_seconds_before = float(before)
+        rec.max_silent_seconds_after = float(self.silent_after)
+        if 'stt_engine' in rec.get_fields_and_field_types():
+            rec.stt_engine = self.stt_engine
+        send = self.backend.record.send_goal_async(rec)
+        # speech may start at the end of the wait and last a while, then speech-to-text
+        deadline = time.monotonic() + before + 40.0
+        handle, result_future = None, None
+        while time.monotonic() < deadline:
+            if goal_handle.is_cancel_requested:
+                if handle is not None:
+                    handle.cancel_goal_async()
+                goal_handle.canceled()
+                return result
+            if handle is None and send.done():
+                handle = send.result()
+                if not handle.accepted:
+                    goal_handle.abort()
+                    return result
+                result_future = handle.get_result_async()
+            if result_future is not None and result_future.done():
+                text = (result_future.result().result.transcribed_text or '').strip()
+                result.detected, result.confidence = bool(text), 1.0 if text else 0.0
+                result.transcript = text
+                self.node.get_logger().info(f'heard: {text!r}')
+                goal_handle.succeed()
+                return result
+            time.sleep(0.05)
+        if handle is not None:
+            handle.cancel_goal_async()
+        goal_handle.abort()
         return result
 
 

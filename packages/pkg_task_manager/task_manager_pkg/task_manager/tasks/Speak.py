@@ -28,10 +28,24 @@ class Speak(BaseTask):
         self.language = language
         self.timeout = float(timeout)
 
+    def _resolve_text(self, state) -> str:
+        # text can be a function of the state, e.g. a name heard by an earlier Listening task
+        # (branch pib_backend_integration, leakmpf)
+        value = self.text(state) if callable(self.text) else self.text
+        return "" if value is None else str(value).strip()
+
     async def run(self, robot, state):
-        print(f"[TASK] Speak: '{self.text}'")
+        try:
+            text = self._resolve_text(state)
+        except Exception as exc:  # noqa: BLE001 - a broken text function fails the task
+            print(f"[TASK] Speak: could not build text: {exc!r}")
+            return False
+        if not text:
+            print("[TASK] Speak: nothing to say")
+            return False
+        print(f"[TASK] Speak: '{text}'")
         goal = Say.Goal()
-        goal.text = self.text
+        goal.text = text
         goal.gender = self.gender
         goal.language = self.language
         result = await wait_for_action_result(

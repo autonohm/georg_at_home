@@ -315,3 +315,17 @@ Strahlauflösung 1° statt 0,33°: der zusammengeführte Scan hat ohnehin 1°, P
 9. **Fremde Pakete** (gemeldet): Q31/Q36 Navigation/Lokalisierung (wichtigster Punkt vor `real`),
    Q33 Engstelle, Q34 Gesten, Q35 SLAM `map → odom`, Hardware-Scan (12 Probleme).
 10. Türklingel-Quelle (evtl. Home Assistant), `projectctl build` meldet bei Fehlern Exit 0.
+
+### Nachtrag: Branch `pib_backend_integration` erweitert (leakmpf, 2 Commits) – eingebaut
+- **Zuhören:** neu über die pib-backend-Action `/record_audio` (`RecordAudio`: wartet auf
+  Sprechbeginn, endet nach 1 s Pause, Speech-to-Text). Eingebaut in der Brücke: `audio/listen`
+  SPEECH ruft jetzt `/record_audio` (vorher mein Umweg über `/speech_detected` +
+  `/chat_messages`, entfernt). Task Manager unverändert über `Listening` (Text in `transcript`),
+  Listening merkt sich den Text (`.text`, `state.last_heard_text`).
+- **Speak mit Text aus dem Zustand** (Funktion statt String), Burr-UI zeigt dafür einen Hinweis
+  statt `<function …>`.
+- **Greeting:** Begrüßung → „Wie ist dein Name?“ → zuhören → „Schön, dich kennenzulernen
+  \<Name>!“ mit `extract_name` aus dem Branch. 8 neue Unit-Tests (Namenserkennung, Text).
+- **Getestet:** Mock-Stack 4/4 (Greeting mit Listening). Am Jetson über die Brücke: Aufnahme bei
+  pib-backend läuft, Whisper erkennt lokal in 166 ms; ohne Sprecher korrekt „nichts erkannt“.
+  Sprechen weiter durch Q37 blockiert.

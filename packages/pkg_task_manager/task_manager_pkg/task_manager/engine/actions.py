@@ -99,6 +99,8 @@ def _plain(value):
         return value
     if isinstance(value, TaskPriority):
         return value.value
+    if callable(value):
+        return '(text from the state at run time)'
     return str(value)
 
 

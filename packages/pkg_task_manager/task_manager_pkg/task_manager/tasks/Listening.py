@@ -13,6 +13,8 @@ class Listening(BaseTask):
         super().__init__(f"Listening({sound})", priority)
         self.sound = sound
         self.timeout_sec = timeout_sec
+        # what was understood (SPEECH), for later tasks, e.g. Speak(lambda state: ...)
+        self.text = None
 
     async def run(self, robot, state):
 
@@ -56,6 +58,8 @@ class Listening(BaseTask):
             return False
 
 
+        self.text = (result.transcript or "").strip()
+        state.last_heard_text = self.text
         print(f"[TASK] Listening to {self.sound}: Finished successfully "
             f"(confidence={result.confidence:.2f})"
             f"(Transcript={result.transcript})")
