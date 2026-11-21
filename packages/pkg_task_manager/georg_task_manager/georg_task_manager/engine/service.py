@@ -1,6 +1,6 @@
 """Long-running task manager service: Idle -> Mission -> Idle, without restart.
 
-No ROS in here. The ROS side (``ros_adapter.py`` now, ``ros_bridge.py`` in P2)
+No ROS in here. The ROS side (``node.py``)
 only passes in how a task is run and how the current task is published.
 """
 
@@ -10,10 +10,10 @@ import threading
 from typing import Awaitable, Callable, List, Optional
 import uuid
 
-from georg_task_manager.burr_app import actions as a
-from georg_task_manager.burr_app.builder import build_mission_app, make_tracker
 from georg_task_manager.catalog import load_catalog
-from georg_task_manager.validator import check_mission
+from georg_task_manager.catalog.validator import check_mission
+from georg_task_manager.engine import actions as a
+from georg_task_manager.engine.builder import build_mission_app, make_tracker
 
 IDLE = 'idle'
 
@@ -117,8 +117,8 @@ class TaskManagerService:
                       approve=None, feedback=None, robot=None, places=None,
                       on_plan=None) -> MissionResult:
         """LLM mode: the planner chooses tasks and blocks step by step (plan P6)."""
-        from georg_task_manager.burr_app.builder import build_llm_app
-        from georg_task_manager.burr_app.llm_actions import LLMContext
+        from georg_task_manager.engine.builder import build_llm_app
+        from georg_task_manager.engine.llm_actions import LLMContext
 
         with self._lock:
             if self._running:

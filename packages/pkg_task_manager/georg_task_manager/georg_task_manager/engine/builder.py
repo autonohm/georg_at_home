@@ -20,7 +20,7 @@ from typing import List, Optional, Set, Tuple
 import uuid
 
 from burr.core import ApplicationBuilder, when
-from georg_task_manager.burr_app import actions as a
+from georg_task_manager.engine import actions as a
 from georg_task_manager.tasks.priority import TaskPriority
 
 PROJECT = 'georg_task_manager'
@@ -107,7 +107,7 @@ def build_mission_app(ctx: a.MissionContext, mission_id: str,
 
 def build_llm_app(ctx, goal_id: str, app_id: Optional[str] = None, tracker=None):
     """Star graph of the LLM mode: next -> one node per catalog task and mission block."""
-    from georg_task_manager.burr_app import llm_actions as la
+    from georg_task_manager.engine import llm_actions as la
 
     nodes = {name: la.run_llm_task.bind(ctx=ctx, task_type=name) for name in ctx.catalog.tasks}
     nodes.update({name: la.run_block.bind(ctx=ctx, block_name=name)

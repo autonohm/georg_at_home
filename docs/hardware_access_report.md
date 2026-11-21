@@ -1,6 +1,6 @@
 # Hardware-Zugriffs-Bericht (P7)
 
-Erzeugt am 2026-11-21 von `tools/hardware_scan.py`. 3218 Dateien einzeln geprüft, 86 Fundstellen.
+Erzeugt am 2026-11-21 von `tools/hardware_scan.py`. 3210 Dateien einzeln geprüft, 86 Fundstellen.
 
 **Profil `real`: NICHT freigegeben** – es gibt offene Probleme (unten). Funde in fremden Paketen werden gemeldet, nicht umgebaut.
 
@@ -43,7 +43,7 @@ Erzeugt am 2026-11-21 von `tools/hardware_scan.py`. 3218 Dateien einzeln geprüf
 | pkg_viz | `packages/pkg_viz/docker-compose.yaml` | 11 | `- /dev:/dev # hwaccel hopefully` | device mount | Problem | RViz-Container (nur Profil viz) braucht kein /dev und kein privileged außer für die GPU; einschränken |
 | pkg_viz | `packages/pkg_viz/docker-compose.yaml` | 23 | `privileged: true` | privileged | Problem | RViz-Container (nur Profil viz) braucht kein /dev und kein privileged außer für die GPU; einschränken |
 | docker_base_image | `packages/docker_base_image/Dockerfile` | 9 | `RUN git clone https://github.com/autonohm/georg_interfaces` | external code | offen | beim Bauen geklonter Code, nicht im Repo geprüft |
-| pkg_command_gate | `packages/pkg_command_gate/command_gate/command_gate/command_gate_node.py` | 24 | `self._pub = self.create_publisher(Twist, 'cmd_vel/gated', 10)` | cmd_vel publisher | erlaubt | Gate bzw. Simulator selbst |
+| pkg_command_gate | `packages/pkg_command_gate/command_gate/command_gate/command_gate_node.py` | 25 | `self._pub = self.create_publisher(Twist, 'cmd_vel/gated', 10)` | cmd_vel publisher | erlaubt | Gate bzw. Simulator selbst |
 | pkg_drive | `packages/pkg_drive/Dockerfile` | 23 | `RUN git clone https://github.com/EduArt-Robotik/edu_robot.git --branch hotfix/single_channel_motor_controller && \` | external code | offen | Treiber-Code (edu_robot) wird beim Bauen geklont, nicht im Repo geprüft; muss cmd_vel/gated abonnieren |
 | pkg_drive | `packages/pkg_drive/Dockerfile` | 24 | `git clone https://github.com/EduArt-Robotik/edu_robot_control.git` | external code | offen | Treiber-Code (edu_robot) wird beim Bauen geklont, nicht im Repo geprüft; muss cmd_vel/gated abonnieren |
 | pkg_drive | `packages/pkg_drive/config/drive.launch.py` | 64 | `{'dev': '/dev/georg_controller'}` | device file | erlaubt | Treiber-Paket, nur Profil real, hinter dem command_gate |
@@ -118,7 +118,7 @@ Erzeugt am 2026-11-21 von `tools/hardware_scan.py`. 3218 Dateien einzeln geprüf
 
 ## Geprüfte Dateien (Beleg)
 
-3218 Dateien, jede einzeln gelesen.
+3210 Dateien, jede einzeln gelesen.
 
 ```
 compose.yaml  –  26 Zeilen geprüft
@@ -127,7 +127,7 @@ packages/docker_base_image/compose.yaml  –  11 Zeilen geprüft
 packages/pkg_command_gate/Dockerfile  –  23 Zeilen geprüft
 packages/pkg_command_gate/README.md  –  25 Zeilen geprüft
 packages/pkg_command_gate/command_gate/command_gate/__init__.py  –  1 Zeilen geprüft
-packages/pkg_command_gate/command_gate/command_gate/command_gate_node.py  –  63 Zeilen geprüft
+packages/pkg_command_gate/command_gate/command_gate/command_gate_node.py  –  65 Zeilen geprüft
 packages/pkg_command_gate/command_gate/command_gate/gate.py  –  29 Zeilen geprüft
 packages/pkg_command_gate/command_gate/package.xml  –  19 Zeilen geprüft
 packages/pkg_command_gate/command_gate/resource/command_gate  –  1 Zeilen geprüft
@@ -3174,8 +3174,9 @@ packages/pkg_object_detection/yolov8n_aug_coco_results/val_batch2_labels.jpg  �
 packages/pkg_object_detection/yolov8n_aug_coco_results/val_batch2_pred.jpg  –  binär (Bild/Modell/Archiv), kein Code
 packages/pkg_sim/Dockerfile  –  28 Zeilen geprüft
 packages/pkg_sim/README.md  –  47 Zeilen geprüft
+packages/pkg_sim/assets/README.md  –  22 Zeilen geprüft
 packages/pkg_sim/config/sim.launch.py  –  24 Zeilen geprüft
-packages/pkg_sim/config/sim_stack.launch.py  –  44 Zeilen geprüft
+packages/pkg_sim/config/sim_stack.launch.py  –  47 Zeilen geprüft
 packages/pkg_sim/docker-compose.yaml  –  31 Zeilen geprüft
 packages/pkg_sim/georg_sim/georg_sim/__init__.py  –  2 Zeilen geprüft
 packages/pkg_sim/georg_sim/georg_sim/mjcf.py  –  71 Zeilen geprüft
@@ -3206,31 +3207,23 @@ packages/pkg_slam/tools/mcap_raw_only.py  –  83 Zeilen geprüft
 packages/pkg_speech/PKG_IGNORE  –  1 Zeilen geprüft
 packages/pkg_speech/README.md  –  54 Zeilen geprüft
 packages/pkg_task_manager/Dockerfile  –  60 Zeilen geprüft
-packages/pkg_task_manager/README.md  –  213 Zeilen geprüft
+packages/pkg_task_manager/README.md  –  154 Zeilen geprüft
 packages/pkg_task_manager/config/task_manager.launch.py  –  54 Zeilen geprüft
 packages/pkg_task_manager/docker-compose.yaml  –  125 Zeilen geprüft
-packages/pkg_task_manager/georg_task_manager/README.md  –  91 Zeilen geprüft
-packages/pkg_task_manager/georg_task_manager/demo_burr.py  –  66 Zeilen geprüft
-packages/pkg_task_manager/georg_task_manager/georg_task_manager/Georg.py  –  105 Zeilen geprüft
 packages/pkg_task_manager/georg_task_manager/georg_task_manager/__init__.py  –  1 Zeilen geprüft
-packages/pkg_task_manager/georg_task_manager/georg_task_manager/burr_app/__init__.py  –  2 Zeilen geprüft
-packages/pkg_task_manager/georg_task_manager/georg_task_manager/burr_app/actions.py  –  248 Zeilen geprüft
-packages/pkg_task_manager/georg_task_manager/georg_task_manager/burr_app/builder.py  –  134 Zeilen geprüft
-packages/pkg_task_manager/georg_task_manager/georg_task_manager/burr_app/llm_actions.py  –  181 Zeilen geprüft
-packages/pkg_task_manager/georg_task_manager/georg_task_manager/burr_app/ros_adapter.py  –  69 Zeilen geprüft
-packages/pkg_task_manager/georg_task_manager/georg_task_manager/burr_app/service.py  –  156 Zeilen geprüft
-packages/pkg_task_manager/georg_task_manager/georg_task_manager/catalog.py  –  126 Zeilen geprüft
-packages/pkg_task_manager/georg_task_manager/georg_task_manager/catalog.yaml  –  120 Zeilen geprüft
-packages/pkg_task_manager/georg_task_manager/georg_task_manager/interface.py  –  100 Zeilen geprüft
-packages/pkg_task_manager/georg_task_manager/georg_task_manager/main.py  –  146 Zeilen geprüft
-packages/pkg_task_manager/georg_task_manager/georg_task_manager/mission_selector.py  –  56 Zeilen geprüft
-packages/pkg_task_manager/georg_task_manager/georg_task_manager/missions/Comparison.py  –  73 Zeilen geprüft
-packages/pkg_task_manager/georg_task_manager/georg_task_manager/missions/ComparisonNav.py  –  51 Zeilen geprüft
+packages/pkg_task_manager/georg_task_manager/georg_task_manager/catalog/catalog.yaml  –  120 Zeilen geprüft
+packages/pkg_task_manager/georg_task_manager/georg_task_manager/catalog/loader.py  –  126 Zeilen geprüft
+packages/pkg_task_manager/georg_task_manager/georg_task_manager/catalog/validator.py  –  173 Zeilen geprüft
+packages/pkg_task_manager/georg_task_manager/georg_task_manager/engine/__init__.py  –  2 Zeilen geprüft
+packages/pkg_task_manager/georg_task_manager/georg_task_manager/engine/actions.py  –  248 Zeilen geprüft
+packages/pkg_task_manager/georg_task_manager/georg_task_manager/engine/builder.py  –  134 Zeilen geprüft
+packages/pkg_task_manager/georg_task_manager/georg_task_manager/engine/llm_actions.py  –  181 Zeilen geprüft
+packages/pkg_task_manager/georg_task_manager/georg_task_manager/engine/service.py  –  156 Zeilen geprüft
 packages/pkg_task_manager/georg_task_manager/georg_task_manager/missions/DigitalFestival.py  –  34 Zeilen geprüft
 packages/pkg_task_manager/georg_task_manager/georg_task_manager/missions/Mock_Test.py  –  24 Zeilen geprüft
 packages/pkg_task_manager/georg_task_manager/georg_task_manager/missions/Sim_Test.py  –  22 Zeilen geprüft
 packages/pkg_task_manager/georg_task_manager/georg_task_manager/missions/Test_Mapping.py  –  34 Zeilen geprüft
-packages/pkg_task_manager/georg_task_manager/georg_task_manager/missions/__init__.py  –  1 Zeilen geprüft
+packages/pkg_task_manager/georg_task_manager/georg_task_manager/missions/__init__.py  –  24 Zeilen geprüft
 packages/pkg_task_manager/georg_task_manager/georg_task_manager/mocks/__init__.py  –  2 Zeilen geprüft
 packages/pkg_task_manager/georg_task_manager/georg_task_manager/mocks/mock_packages.py  –  188 Zeilen geprüft
 packages/pkg_task_manager/georg_task_manager/georg_task_manager/mocks/scenarios/abort.yaml  –  3 Zeilen geprüft
@@ -3242,16 +3235,15 @@ packages/pkg_task_manager/georg_task_manager/georg_task_manager/mocks/scenarios/
 packages/pkg_task_manager/georg_task_manager/georg_task_manager/mocks/scenarios/slow_drive.yaml  –  3 Zeilen geprüft
 packages/pkg_task_manager/georg_task_manager/georg_task_manager/mocks/scenarios/timeout.yaml  –  3 Zeilen geprüft
 packages/pkg_task_manager/georg_task_manager/georg_task_manager/mocks/scenarios/unreachable.yaml  –  3 Zeilen geprüft
+packages/pkg_task_manager/georg_task_manager/georg_task_manager/node.py  –  412 Zeilen geprüft
 packages/pkg_task_manager/georg_task_manager/georg_task_manager/planner/__init__.py  –  2 Zeilen geprüft
 packages/pkg_task_manager/georg_task_manager/georg_task_manager/planner/llm_client.py  –  82 Zeilen geprüft
 packages/pkg_task_manager/georg_task_manager/georg_task_manager/planner/planner.py  –  164 Zeilen geprüft
 packages/pkg_task_manager/georg_task_manager/georg_task_manager/planner/prompts.py  –  126 Zeilen geprüft
-packages/pkg_task_manager/georg_task_manager/georg_task_manager/ros_bridge.py  –  412 Zeilen geprüft
-packages/pkg_task_manager/georg_task_manager/georg_task_manager/task_manager.py  –  120 Zeilen geprüft
+packages/pkg_task_manager/georg_task_manager/georg_task_manager/robot.py  –  105 Zeilen geprüft
+packages/pkg_task_manager/georg_task_manager/georg_task_manager/state.py  –  100 Zeilen geprüft
 packages/pkg_task_manager/georg_task_manager/georg_task_manager/tasks/Gesture.py  –  50 Zeilen geprüft
-packages/pkg_task_manager/georg_task_manager/georg_task_manager/tasks/GraspPlanning.py  –  90 Zeilen geprüft
 packages/pkg_task_manager/georg_task_manager/georg_task_manager/tasks/Listening.py  –  64 Zeilen geprüft
-packages/pkg_task_manager/georg_task_manager/georg_task_manager/tasks/Navigate.py  –  155 Zeilen geprüft
 packages/pkg_task_manager/georg_task_manager/georg_task_manager/tasks/NavigateObject.py  –  115 Zeilen geprüft
 packages/pkg_task_manager/georg_task_manager/georg_task_manager/tasks/NavigateRoom.py  –  100 Zeilen geprüft
 packages/pkg_task_manager/georg_task_manager/georg_task_manager/tasks/ReturnToIdle.py  –  34 Zeilen geprüft
@@ -3259,14 +3251,13 @@ packages/pkg_task_manager/georg_task_manager/georg_task_manager/tasks/__init__.p
 packages/pkg_task_manager/georg_task_manager/georg_task_manager/tasks/base.py  –  21 Zeilen geprüft
 packages/pkg_task_manager/georg_task_manager/georg_task_manager/tasks/priority.py  –  22 Zeilen geprüft
 packages/pkg_task_manager/georg_task_manager/georg_task_manager/tasks/timeout_watcher.py  –  76 Zeilen geprüft
-packages/pkg_task_manager/georg_task_manager/georg_task_manager/validator.py  –  173 Zeilen geprüft
 packages/pkg_task_manager/georg_task_manager/package.xml  –  31 Zeilen geprüft
 packages/pkg_task_manager/georg_task_manager/resource/georg_task_manager  –  1 Zeilen geprüft
 packages/pkg_task_manager/georg_task_manager/setup.cfg  –  5 Zeilen geprüft
-packages/pkg_task_manager/georg_task_manager/setup.py  –  36 Zeilen geprüft
+packages/pkg_task_manager/georg_task_manager/setup.py  –  34 Zeilen geprüft
 packages/pkg_task_manager/georg_task_manager/test/conftest.py  –  93 Zeilen geprüft
 packages/pkg_task_manager/georg_task_manager/test/ros_helpers.py  –  217 Zeilen geprüft
-packages/pkg_task_manager/georg_task_manager/test/test_burr_app.py  –  292 Zeilen geprüft
+packages/pkg_task_manager/georg_task_manager/test/test_burr_app.py  –  257 Zeilen geprüft
 packages/pkg_task_manager/georg_task_manager/test/test_copyright.py  –  26 Zeilen geprüft
 packages/pkg_task_manager/georg_task_manager/test/test_flake8.py  –  26 Zeilen geprüft
 packages/pkg_task_manager/georg_task_manager/test/test_lichtblick_bridge.py  –  202 Zeilen geprüft
@@ -3309,7 +3300,6 @@ packages/pkg_task_manager/pib-audio/src/voice_assistant/voice_assistant/voice_ru
 packages/pkg_task_manager/pib-audio/src/voice_assistant/voice_assistant/voice_task_dispatcher.py  –  34 Zeilen geprüft
 packages/pkg_task_manager/pib-audio/src/voice_assistant/voice_assistant/whisper_speech_transcriber.py  –  41 Zeilen geprüft
 packages/pkg_task_manager/pib-audio/src/voice_assistant/voice_assistant/yamnet_doorbell_classifier.py  –  63 Zeilen geprüft
-packages/pkg_task_manager/wiki/Create-a-New-Task.md  –  454 Zeilen geprüft
 packages/pkg_urdf/Dockerfile  –  25 Zeilen geprüft
 packages/pkg_urdf/README.md  –  16 Zeilen geprüft
 packages/pkg_urdf/docker-compose.yaml  –  20 Zeilen geprüft
@@ -3324,16 +3314,18 @@ packages/pkg_viz/config/qt5ct/colors/gruvbox-light.conf  –  6 Zeilen geprüft
 packages/pkg_viz/config/qt5ct/qt5ct.conf  –  8 Zeilen geprüft
 packages/pkg_viz/docker-compose.yaml  –  55 Zeilen geprüft
 packages/pkg_viz/georg_slam.rviz  –  320 Zeilen geprüft
+packages/pkg_viz/lichtblick_layouts/georg_sim.json  –  39 Zeilen geprüft
 packages/pkg_viz/lichtblick_panel/.gitignore  –  3 Zeilen geprüft
 packages/pkg_viz/lichtblick_panel/README.md  –  47 Zeilen geprüft
-packages/pkg_viz/lichtblick_panel/build.py  –  54 Zeilen geprüft
+packages/pkg_viz/lichtblick_panel/build.py  –  66 Zeilen geprüft
 packages/pkg_viz/lichtblick_panel/package.json  –  18 Zeilen geprüft
 packages/pkg_viz/lichtblick_panel/src/extension.js  –  213 Zeilen geprüft
 packages/pkg_viz/lichtblick_panel/src/model.js  –  146 Zeilen geprüft
 packages/pkg_viz/lichtblick_panel/test/model.test.js  –  78 Zeilen geprüft
 packages/pkg_viz/lichtblick_panel/test/panel.test.js  –  149 Zeilen geprüft
 projectctl.bash  –  261 Zeilen geprüft
-system-files/README.md  –  34 Zeilen geprüft
+system-files/README.md  –  40 Zeilen geprüft
+system-files/etc/systemd/system/georg.service  –  29 Zeilen geprüft
 system-files/etc/udev/rules.d/51-autonohm-joystick.rules  –  7 Zeilen geprüft
 system-files/etc/udev/rules.d/99-pib-motors.rules  –  12 Zeilen geprüft
 system-files/projectctl-completion.bash  –  51 Zeilen geprüft

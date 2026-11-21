@@ -31,7 +31,7 @@ def projectctl(*args, mode_file=None):
 def test_up_real_is_refused_on_a_pc(tmp_path):
     out = projectctl('up', 'real', mode_file=tmp_path / 'missing')
     assert out.returncode != 0
-    assert "refused" in out.stderr and "only runs on the robot" in out.stderr
+    assert 'refused' in out.stderr and 'only runs on the robot' in out.stderr
     (tmp_path / 'mode').write_text('sim\n')
     out = projectctl('up', 'real', mode_file=tmp_path / 'mode')
     assert out.returncode != 0 and 'only runs on the robot' in out.stderr
@@ -82,7 +82,7 @@ def test_boot_never_starts_a_mission(real_services):
     env = real_services['task_manager'].get('environment') or {}
     assert 'MISSION_ID' not in env
     bridge = open(os.path.join(REPO, 'packages', 'pkg_task_manager', 'georg_task_manager',
-                               'georg_task_manager', 'ros_bridge.py'), encoding='utf-8').read()
+                               'georg_task_manager', 'node.py'), encoding='utf-8').read()
     assert "self._mode = 'mission'" in bridge
 
 

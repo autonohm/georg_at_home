@@ -16,7 +16,7 @@ Python task objects are not put into the Burr state (the state is serialized
 for the Burr UI). The state holds indices, names and arguments; the task
 objects live in the ``MissionContext`` that is bound to the actions.
 
-Priority rules (unchanged from ``task_manager.py``):
+Priority rules (same as the previous loop):
 
 - LOW:      failure -> task is discarded, mission continues
 - MID:      failure -> retried once, after the next task

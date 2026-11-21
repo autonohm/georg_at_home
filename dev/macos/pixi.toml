@@ -83,7 +83,6 @@ test_llm_real = { cmd = "bash -c 'source $GEORG_WS/install/setup.bash && export 
 task_manager = { cmd = "bash -c 'source $GEORG_WS/install/setup.bash && ros2 run georg_task_manager task_manager --ros-args -r __ns:=/georg'", cwd = "." }
 # mock packages; scenario via GEORG_MOCK_SCENARIO (all_ok, one_fails, timeout, abort, unreachable, retry_then_ok)
 mock_packages = { cmd = "bash -c 'source $GEORG_WS/install/setup.bash && ros2 run georg_task_manager mock_packages --ros-args -r __ns:=/georg'", cwd = "." }
-demo = { cmd = "bash -c 'source $GEORG_WS/install/setup.bash && cd ../../packages/pkg_task_manager/georg_task_manager && python demo_burr.py'", cwd = "." }
 # shell with ROS and the workspace loaded
 ros = { cmd = "bash --rcfile $GEORG_WS/install/setup.bash -i", cwd = "." }
 

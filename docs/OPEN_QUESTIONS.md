@@ -44,6 +44,7 @@ Nebenbei entfernt: 13 eingecheckte `.pyc`-Dateien in der Navigation (Kompilate, 
 # Offene Fragen – P1
 
 **Q16 – py_trees-Code löschen?** Burr ersetzt die Ausführung, `main.py` nutzt jetzt `BurrTaskManager`. Noch im Repo, aber ungenutzt: `bt/`, `tasks_bt/`, die Entry-Points `task_manager_bt` und `render_mission_bt` in `setup.py`, die apt-Pakete `ros-jazzy-py-trees*` im Dockerfile und die Abhängigkeiten in `package.xml`. Ebenso die alte Schleife `task_manager.py`; sie dient in `test_burr_app.py` als Referenz für die gleiche Reihenfolge. Löschen erst nach deiner Freigabe (Regel 5).
+**Erledigt (2026-11-21):** py_trees-Code gelöscht (P1), `task_manager.py`, `main.py`, `ros_adapter.py`, `demo_burr.py`, `Navigate.py`, `GraspPlanning.py`, `Comparison*.py` und der Vergleichstest gelöscht; Modul umbenannt (`burr_app`→`engine`, `ros_bridge.py`→`node.py`, `Georg.py`→`robot.py`, `interface.py`→`state.py`, Katalog nach `catalog/`, `mission_selector.py`→`missions/__init__.py`).
 
 **Q17 – Abweichung von der Zielstruktur.** Der Plan nennt `burr_app/missions/digital_festival.py`. Die Missionen bleiben in `missions/`, weil der Plan auch sagt, dass Tasks und Missionen so angelegt werden wie bisher. Ein zweiter Ort für Missionen würde das verdoppeln.
 
@@ -89,7 +90,7 @@ Auf dem Mac (RoboStack) umgesetzt und geprüft:
 
 **Q22 – Neuer Code im ROS-Stil.** Der neue Code (Burr, Katalog, Validator, Brücke, Mocks, Tests, Gate) ist auf den ROS-Stil umgestellt: einfache Anführungszeichen, Google-Importreihenfolge. `ament_flake8` meldet dafür keine Probleme. Der Altbestand des Task Managers ist weiter rot (Q19), deshalb ist `colcon test` für dieses Paket noch nicht grün.
 
-**Q23 – `MISSION_ID` entfernt.** Der Node `task_manager` ist jetzt die Brücke und startet nach dem Booten nichts. Die alte Variante mit `MISSION_ID` heißt `task_manager_cli`. Im Compose ist `MISSION_ID` entfernt.
+**Q23 – `MISSION_ID` entfernt.** Der Node `task_manager` ist jetzt die Brücke und startet nach dem Booten nichts. Die alte Variante `task_manager_cli` ist seit 2026-11-21 gelöscht. Im Compose ist `MISSION_ID` entfernt.
 
 **Q24 – Paket-Vertrag noch nicht umgesetzt.** Die echten Actions haben noch nicht das vereinbarte Ergebnis (`success`, `error_code`, `message`) und Feedback (`phase`, `progress`). Die Mocks bilden die heutigen Actions nach. Die Anpassung betrifft die Pakete selbst, siehe Q14.
 

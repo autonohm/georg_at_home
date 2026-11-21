@@ -13,7 +13,7 @@ No ROS imports here.
 from dataclasses import dataclass, field
 from typing import Iterable, List, Tuple
 
-from georg_task_manager.catalog import Catalog, TaskSpec
+from georg_task_manager.catalog.loader import Catalog, TaskSpec
 
 PRIORITIES = ('low', 'mid', 'high', 'critical')
 DEFAULT_MAX_STEPS = 20

@@ -17,8 +17,8 @@ import os
 from typing import Callable, List, Optional
 
 from georg_task_manager.catalog import Catalog
+from georg_task_manager.catalog.validator import validate_plan
 from georg_task_manager.planner import prompts
-from georg_task_manager.validator import validate_plan
 
 DECISIONS = ('plan', 'continue', 'done', 'abort')
 DEFAULT_MAX_STEPS = 8

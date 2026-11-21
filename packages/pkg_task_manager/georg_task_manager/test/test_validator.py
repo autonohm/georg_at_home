@@ -1,8 +1,8 @@
 """Catalog and validator: only catalog tasks with valid arguments get through."""
 
 from georg_task_manager.catalog import CatalogError, load_catalog
+from georg_task_manager.catalog.validator import check_mission, instantiate, validate_plan
 from georg_task_manager.missions import DigitalFestival, Test_Mapping
-from georg_task_manager.validator import check_mission, instantiate, validate_plan
 import pytest
 
 
@@ -128,7 +128,7 @@ def test_invalid_blocks_are_rejected(catalog, plan, expected):
 
 
 def test_block_tasks_are_built(catalog):
-    from georg_task_manager.validator import block_tasks
+    from georg_task_manager.catalog.validator import block_tasks
     tasks = block_tasks('greet_guest', catalog)
     assert [t.mode for t in tasks] == ['look_at', 'point_to', 'greet_person']
 

@@ -13,9 +13,9 @@ import replay as rp  # noqa: E402
 
 rp._import_task_manager()
 
-from georg_task_manager.burr_app.builder import make_tracker, PROJECT  # noqa: E402, I100
-from georg_task_manager.burr_app.service import TaskManagerService  # noqa: E402
-from georg_task_manager.mission_selector import get_mission  # noqa: E402
+from georg_task_manager.engine.builder import make_tracker, PROJECT  # noqa: E402, I100
+from georg_task_manager.engine.service import TaskManagerService  # noqa: E402
+from georg_task_manager.missions import get_mission  # noqa: E402
 
 
 def record_run(storage, results):

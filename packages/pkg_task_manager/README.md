@@ -8,12 +8,27 @@
 > - The launch file starts only `task_manager`, which runs missions with Burr (P1). The py_trees variant (`task_manager_bt`, `render_mission_bt`) was removed.
 > - Start everything with `./projectctl.bash up mock|sim|real|mcap` from the repo root.
 >
-> The terminal instructions below still work, but each package now runs in its own container.
+
+## Layout
+
+```
+georg_task_manager/georg_task_manager/
+  node.py        ROS node: services, status topic, mode switch (entry point task_manager)
+  robot.py       action clients to speech, gestures, navigation; odom
+  state.py       RobotState (position, current task)
+  engine/        Burr: graph builder, actions, LLM actions, TaskManagerService (no ROS)
+  catalog/       catalog.yaml (allowed tasks + blocks), loader.py, validator.py
+  planner/       LLM planner: client, prompts, JSON schema, decision log
+  tasks/         one class per task (Gesture, Listening, NavigateObject, ...)
+  missions/      one file per mission; registry MISSIONS in missions/__init__.py
+  mocks/         fake action servers + scenarios (entry point mock_packages)
+test/            tests (unit without ROS, ROS/sim/MCAP/LLM integration with env flags)
+```
 
 ## Burr engine (since P1)
 
 Missions are executed by an [Apache Burr](https://burr.apache.org/) state machine
-(`georg_task_manager/burr_app/`). Tasks and missions are written exactly as before;
+(`georg_task_manager/engine/`). Tasks and missions are written exactly as before;
 only the engine that runs them changed. The priority rules below are unchanged.
 
 The Burr graph is built from the mission at every start: one node per mission step,
@@ -48,9 +63,7 @@ a task is not in the catalog or not allowed in the current mode, or **an action 
 the mission needs is not reachable** (checked before the start). `CancelMission` cancels
 the running action goal and ends the mission as `ABORTED`.
 
-Missions that can be started are listed in `mission_selector.py` (`MISSIONS`).
-The old variant that picks a mission from `MISSION_ID` and exits afterwards still exists
-as `ros2 run georg_task_manager task_manager_cli`.
+Missions that can be started are listed in `missions/__init__.py` (`MISSIONS`).
 
 ### Mock packages (P2)
 
@@ -100,7 +113,7 @@ start_llm -> next -> <task or block> -> next -> ... -> finish -> idle      (star
 
 1. Write the class in `georg_task_manager/tasks/`, derived from `BaseTask`, with
    `async def run(self, robot, state) -> bool` (see `Gesture.py`).
-2. Add one entry to `georg_task_manager/catalog.yaml`: `class` (`module:Class`),
+2. Add one entry to `georg_task_manager/catalog/catalog.yaml`: `class` (`module:Class`),
    `action`, `type`, `args_schema` (the constructor arguments), `timeout_s`, `modes`.
    **Tasks that are not in the catalog are rejected at mission start.** The catalog name plus
    the `name_arg` argument become the node name in the Burr graph (e.g. `gesture_look_at`),
@@ -110,8 +123,8 @@ start_llm -> next -> <task or block> -> next -> ... -> finish -> idle      (star
 ### Add a new mission
 
 1. Copy `georg_task_manager/missions/DigitalFestival.py`; `get_mission()` returns the list of tasks.
-2. Add it to `georg_task_manager/mission_selector.py`.
-3. Start it: `MISSION_ID=<number>` in `docker-compose.yaml`, or pick it from the menu.
+2. Register it in `MISSIONS` in `georg_task_manager/missions/__init__.py`.
+3. Start it: Lichtblick panel or `task_manager/start` with its id.
 
 ### Burr UI
 
@@ -129,84 +142,12 @@ python -m pytest test/test_burr_app.py test/test_validator.py
 ```
 
 ROS message modules are replaced by stand-ins in `test/conftest.py` if they are not installed.
-`test_burr_app.py` also compares the Burr engine with the previous loop (`task_manager.py`)
-on random scenarios: same task order, same outcome.
 
-This is the Task Manager for the Pib Robot "Georg". It allows the creation of different
-tasks, which can be fullfilled in costumized, modular missions by the usage of actions. 
-Each task will be fulfilled in sequence and a priority can be assigned.
+### Priorities
 
+Tasks run in sequence; the priority decides what happens when a task fails:
 
-The priority determines, how the discard of the task is handled by the task manager:
-
-### LOW: 
-The task will be discarded after the initial try.
-
-### MID: 
-The task will be retried after after a specified amount of time. Another failure will discard the task.
-
-### HIGH: 
-The Task will be retried three more times (can be adjusted to the own desire). If the retries are used up, the task will be discarded.
-      
-### Critical: 
-Works the same as the HIGH priority, but instead of just discarding the task, the mission will be stopped after the retries are used up.
-
-# 
-
-
-# Setup for currently implemented tasks/modules:
-
-
-## Terminal 1 (for Navigation):
-
-source install/setup.bash
-
-ros2 run navigate_server navigate_action_server --node-name nav_server --action-name nav/navigate
-
-## Terminal 2 (for Drive Tasks):  
-source install/setup.bash
-
-ros2 run drive_route_server drive_route_action_server
-
-## Terminal 3 (for Gesture): 
-source install/setup.bash
-
-ros2 run pib_gestures_action pib_gestures_server.py 
-
-## If no executable is found:
-
-Execute these terminal commands:
-###
-
-cd ~/Task_Manager_Pib/src/pib_gestures_action/modules
-
-chmod +x pib_gestures_client.py
-
-chmod +x pib_gestures_server.py
-
-####
-
-cd ~/Task_Manager_Pib/src/pib_gestures_action/modules/pib_gestures/src/pib_gestures
-
-chmod +x greet_person.py
-
-chmod +x look_at.py
-
-chmod +x point_to.py
-
-
-
-
-
-## Terminal 4 (for Listen: 
-source install/setup.bash
-
-ros2 run voice_assistant listen_action_server
-
-## Terminal 5 (for Task Manager Node):  
-source install/setup.bash
-
-ros2 run georg_task_manager task_manager
-
-
-
+- **LOW**: discarded after the first try.
+- **MID**: retried once after the next task; a second failure discards it.
+- **HIGH**: retried up to three more times, then discarded.
+- **CRITICAL**: like HIGH, but the mission stops when the retries are used up.
