@@ -2,7 +2,9 @@
 
 Physics (contacts with walls, inertia of the base) come from MuJoCo, the laser scan
 from MuJoCo ray casting. The model is built from the map YAML (georg_sim/mjcf.py).
-Runs headless; the state is visible in Lichtblick like on the robot.
+Runs headless by default; the state is visible in Lichtblick like on the robot.
+With ``viewer:=true`` the MuJoCo window opens as well (on macOS the node must run
+under ``mjpython``, sim_stack.launch.py does that with ``mujoco_viewer:=true``).
 
 mujoco_ros2_control is not available for macOS, so this node talks to MuJoCo directly.
 On Linux the model can later be driven by mujoco_ros2_control instead; the topics
@@ -36,9 +38,15 @@ class SimMuJoCo(Sim2D):
         self._beam_angles = angles
         self._geomid = np.zeros(self.beams, dtype=np.int32)
         self._dist = np.zeros(self.beams, dtype=np.float64)
+        self.viewer = None
+        if self.declare_parameter('viewer', False).value:
+            import mujoco.viewer
+            self.viewer = mujoco.viewer.launch_passive(self.model, self.data)
+            self.viewer.cam.lookat[:] = (self.x, self.y, 0.0)
+            self.viewer.cam.distance, self.viewer.cam.elevation = 8.0, -60.0
         self.get_logger().info(
             f'MuJoCo {mujoco.__version__}: {self.model.ngeom} geoms, '
-            f'timestep {self.model.opt.timestep}s')
+            f'timestep {self.model.opt.timestep}s, viewer {"on" if self.viewer else "off"}')
 
     def _step(self):
         now = time.monotonic()
@@ -50,8 +58,16 @@ class SimMuJoCo(Sim2D):
                              cmd.linear.x * s + cmd.linear.y * c,
                              cmd.angular.z]
         steps = max(1, min(50, round(dt / self.model.opt.timestep)))
-        for _ in range(steps):
-            self.mj.mj_step(self.model, self.data)
+        if self.viewer is not None:
+            # the viewer reads model/data in its own thread
+            with self.viewer.lock():
+                for _ in range(steps):
+                    self.mj.mj_step(self.model, self.data)
+            if self.viewer.is_running():
+                self.viewer.sync()
+        else:
+            for _ in range(steps):
+                self.mj.mj_step(self.model, self.data)
         if self.data.ncon:
             self.collisions += 1
             if self.collisions % 50 == 1:

@@ -4,6 +4,7 @@ Subscribes:  cmd_vel (geometry_msgs/Twist, mecanum: linear.x, linear.y, angular.
 Publishes:   odom (nav_msgs/Odometry, frame odom -> base_footprint)
              merged_scan and scan (sensor_msgs/LaserScan, frame base_link, 360 deg)
              tf odom -> base_footprint, tf_static base_footprint -> base_link
+             (off with publish_base_link_tf:=false when georg_description publishes it)
 
 The odom frame is aligned with the map frame of the map YAML, so odom positions are
 map positions (the task manager uses them as start point for navigation). Commands
@@ -50,6 +51,7 @@ class Sim2D(Node):
         self.max_range = p('scan_range_m', 12.0).value
         physics_hz = p('physics_hz', 50.0).value
         scan_hz = p('scan_hz', 10.0).value
+        self.publish_base_link_tf = p('publish_base_link_tf', True).value
 
         self.world = World.from_yaml(self.map_file)
         if not self.world.is_free((self.x, self.y), self.radius):
@@ -125,6 +127,8 @@ class Sim2D(Node):
         self.tf.sendTransform(t)
 
     def _publish_static(self):
+        if not self.publish_base_link_tf:
+            return
         t = TransformStamped()
         t.header.stamp = self.get_clock().now().to_msg()
         t.header.frame_id, t.child_frame_id = 'base_footprint', 'base_link'
