@@ -4,6 +4,7 @@ from std_msgs.msg import String
 from std_msgs.msg import Bool
 from pib_gestures_action.action import PibGesturesInterface
 from datatypes.srv import PlayAudioFromSpeech
+from datatypes.action import RecordAudio
 from georg_nav_msgs.action import Navigate, DriveRoute
 from std_msgs.msg import String as StringMsg
 from .interface import RobotState
@@ -31,6 +32,14 @@ class Georg:
             PlayAudioFromSpeech,
             "/play_audio_from_speech"
         )
+
+        self.listen_action_client = ActionClient(
+            node,
+            RecordAudio,
+            "/record_audio"
+        )
+
+        # Move
 
         self.greet_action_client = ActionClient(
             node,
