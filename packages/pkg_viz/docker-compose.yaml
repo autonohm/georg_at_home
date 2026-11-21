@@ -39,6 +39,12 @@ services:
       - "8765:8765"
     init: true
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'echo > /dev/tcp/127.0.0.1/8765'"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
     # min_qos_depth 10: status updates that follow each other within milliseconds
     # (last Burr steps) must not be dropped
     command: ros2 launch foxglove_bridge foxglove_bridge_launch.xml port:=8765 min_qos_depth:=10

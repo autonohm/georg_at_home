@@ -11,7 +11,7 @@ services:
       - /dev:/dev
       - ./config:/config:ro
     privileged: true
-#    restart: always
+    restart: unless-stopped
     init: true
     environment:
       - GEORG_PROFILE=${GEORG_PROFILE:-}

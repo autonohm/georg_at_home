@@ -32,3 +32,8 @@ git clone https://github.com/autonohm/georg_at_home.git
 cd georg_at_home/system-files
 ./setup-PC.sh
 ```
+
+## Continuous operation on the robot (plan P8)
+See `docs/P8_ANLEITUNG.md`: `setup-robot.sh` writes `real` to `/etc/georg/mode` and installs
+`georg.service` (starts `projectctl.bash up real` at boot). `setup-PC.sh` writes `sim` and
+installs Lichtblick 1.30.0 and the Burr UI (`georg-burr-ui`).
