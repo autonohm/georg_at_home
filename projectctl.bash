@@ -122,6 +122,10 @@ check_mode() {
     if [[ "$mode" == "real" ]] && [[ "$(device_mode)" != "real" ]]; then
         log_fatal "mode 'real' refused: $MODE_FILE is '$(device_mode)', not 'real'. 'real' only runs on the robot."
     fi
+    # plan P7: 'real' only after the hardware scan finds no problem
+    if [[ "$mode" == "real" ]] && ! python3 tools/hardware_scan.py --check > /dev/null; then
+        log_fatal "mode 'real' refused: hardware scan has open problems, see docs/hardware_access_report.md"
+    fi
 }
 
 compose() {

@@ -34,10 +34,15 @@ def generate_launch_description():
         output='screen',
     )
 
+    # Profile real (P7): drive commands go through twist_mux (input cmd_vel/nav) and the
+    # twist_limiter of pkg_drive, then the command_gate. In sim the simulator listens on
+    # cmd_vel directly, there is no twist_mux.
+    real = os.environ.get('GEORG_PROFILE') == 'real'
     drive_route_module = Node(
         package='drive_route_server',
         executable='drive_route_action_server',
         name='drive_route_action_server',
+        remappings=[('cmd_vel', 'cmd_vel/nav')] if real else [],
         output='screen',
     )
 

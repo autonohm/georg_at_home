@@ -164,3 +164,21 @@ Weiter umgesetzt: Missionsblöcke im Katalog (`greet_guest`, `wait_for_guest`), 
 **Offen:**
 - **Q27 – Modell auf dem Jetson Thor.** Das 1,5B-Modell plant gültig, aber inhaltlich schwach (z. B. „schau zur Tür“ → „auf Klingel hören“). Auf dem Jetson ein größeres Modell wählen und das Image von `pkg_llm` festlegen (für die neuesten llama.cpp-Builds gab es keine nummerierten Image-Tags).
 - **Q28 – Ereignisse als Auslöser.** Heute startet nur eine Anweisung der Bedienperson einen LLM-Lauf. Ereignisse (Klingel, Sprache) könnten Läufe direkt auslösen; das ist noch nicht gebaut.
+
+# P7 – Stand (2026-11-21)
+
+Bericht: `docs/hardware_access_report.md`, erzeugt von `tools/hardware_scan.py` (jede getrackte Datei in `packages/` und `system-files/` einzeln, 3218 Dateien, alle im Bericht gelistet).
+
+| Abnahmekriterium P7 | Stand |
+| --- | --- |
+| Jede Datei in jedem Paket geprüft und im Report gelistet | erfüllt |
+| Hardware-Zugriff nur noch in Treiber-Paketen hinter dem `command_gate` | **nicht erfüllt**: 13 Probleme in fremden Paketen (gemeldet, nicht umgebaut, Plan P7 Schritt 4) |
+| Offene Funde gemeldet und behoben | gemeldet im Bericht; behoben nur in eigenen Paketen (Task Manager, Navigation) |
+| Profil `real` erst danach freigegeben | **gesperrt**: `projectctl.bash up real` verweigert, solange `hardware_scan.py --check` Probleme findet |
+
+Behoben (eigene Pakete): Task Manager ohne `privileged`, nur `/dev/snd` für die Spracherkennung; Navigation leitet in `real` über `cmd_vel/nav` → `twist_mux` → `twist_limiter` → `command_gate` (Q13 erledigt).
+
+Gemeldet an die Paket-Verantwortlichen:
+- **pkg_gestures:** `pib-sdk` steuert die Servos des pib per rosbridge am Gate vorbei (heute auskommentiert, Abhängigkeit aber installiert). Servobefehle müssen über ROS-Topics hinter einem Gate laufen.
+- **pkg_slam, pkg_viz, pkg_urdf, pkg_examples:** `privileged` bzw. `/dev`-Mounts ohne Bedarf.
+- **Offen (nicht prüfbar):** beim Bauen geklonter Code (edu_robot-Treiber, Lidar-Treiber, georg_interfaces, georg_description, RViz-Plugins). Der Treiber `edu_robot` muss `cmd_vel` abonnieren, damit der Remap auf `cmd_vel/gated` greift.

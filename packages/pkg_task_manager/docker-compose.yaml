@@ -26,7 +26,12 @@ services:
       # no MISSION_ID: the node starts in Idle, missions are started via
       # ros2 service call /georg/task_manager/start (plan: boot never starts a mission)
 
-    privileged: true
+    # P7 hardware scan: no privileged; only the sound devices for the speech recognition
+    # (microphone / speaker of pib-audio), no actuators
+    devices:
+      - /dev/snd:/dev/snd
+    group_add:
+      - audio
     init: true
     restart: unless-stopped
     command: ros2 launch /config/task_manager.launch.py
