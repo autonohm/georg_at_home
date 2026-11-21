@@ -80,6 +80,9 @@ Tests: `pixi run test`, `test_ros`, `test_sim`, `test_sim_mj`, `test_lichtblick`
    Externes Netz `pib-network`. Namenskonflikt `datatypes`: unser Paket (Listen/VoiceEvent/
    VoiceTask) fällt weg, das von pib-backend wird genutzt (hat keine `Listen`-Action),
    Listening neu auf `/speech_detected` bzw. `/chat` (löst Q1).
+   **Domain:** pib-backend läuft in `ROS_DOMAIN_ID` 0, die Sim in 30 (Q32). Übergang abseits
+   des Roboters: `GEORG_SIM_DOMAIN_ID=0`. Sauber: `domain_bridge` mit fester Freigabeliste
+   (nur Sprach-Topics/-Services, nie `cmd_vel` oder `/apply_joint_trajectory`).
 6. **Gesamttest** in `sim`: Fahren, Gesten, (ab 5) Sprache; Abnahmelisten P2–P8 im Container;
    instabilen MuJoCo-Test klären.
 7. **Roboter (später, nur mit Mensch am Roboter):** 12 Hardware-Scan-Funde mit den Teams,
