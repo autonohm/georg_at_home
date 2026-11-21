@@ -48,6 +48,11 @@ als `:pre-jetson-20261121` gesichert, alte `georg-*`-Container durch neue ersetz
 - **Folgen:** Healthchecks setzen „kein Namespace“ voraus. Wer `EDU_ROBOT_NAMESPACE=georg` setzt,
   bekommt `unhealthy` – das ist gewollt, weil der Stack dann ohnehin nicht zusammenpasst.
 
+Comment: das müssen wir später mal ausbessern so finde ich das blöd
+> Antwort: notiert unter „Später“ (S1). Nebenbei: `EDU_ROBOT_NAMESPACE` kommt heute gar nicht
+> in die Container (Compose reicht die Variable nicht durch) – der Schalter wirkt also nur halb.
+> Sauber wäre: Variable an alle Dienste durchreichen und Healthchecks daraus bauen.
+
 ### E2 – Wie Sim-, MCAP- und Lichtblick-Tests im Container laufen
 - **Problem:** Diese pytest-Tests starten Task Manager, Simulator, Navigation, SLAM und
   `foxglove_bridge` in **einer** ROS-Umgebung. Auf dem Mac ging das (ein Workspace), in Docker
@@ -68,6 +73,9 @@ als `:pre-jetson-20261121` gesichert, alte `georg-*`-Container durch neue ersetz
   Der Test prüft die **Pose**, nicht nur den Status – wegen Q21 meldet eine Mission auch dann
   `succeeded`, wenn die Fahrt scheiterte.
 
+  Comment: ja das müssen wir noch irgendwie besser aufräumen oder irgendwie weil so ist bissl dumm maybe eigene branches kp
+  > Antwort: notiert unter „Später“ (S2). Vorschlag dort.
+
 ### Fund (nicht behoben, fremdes Paket): Q33 – nach Abbruch in der Engstelle kein Weiterkommen
 - Abbruch mitten in der 0,55-m-Lücke (Q25) → Georg steht in einer Sicherheitszelle → der Planer
   lehnt jedes Ziel ab. Vorher 13 s gleicher Fahrbefehl ohne Fortschritt (keine
@@ -75,6 +83,8 @@ als `:pre-jetson-20261121` gesichert, alte `georg-*`-Container durch neue ersetz
 - **Folge für uns:** Nach einem Abbruch kann eine Sim-Session „hängen“; abhilfe heute:
   `tests/stack/run.sh sim` bzw. Simulator neu starten. Auf dem Roboter wäre das ein echtes
   Problem → wichtig für die Navigation.
+
+Comment: Ja das müssen wir definitiv angehen 
 
 ### Phase 3 – Georg komplett in Lichtblick (neues Paket `pkg_pib_model`)
 
@@ -121,3 +131,60 @@ als `:pre-jetson-20261121` gesichert, alte `georg-*`-Container durch neue ersetz
 - Gesten-Server meldet Erfolg, sendet aber keinen Gelenkbefehl (pib-sdk auskommentiert).
   Vorschlag: `/apply_joint_trajectory` von pib-backend nutzen – dann sieht man die Gesten sofort
   in der Sim (Fake-Motoren) und auf dem Roboter.
+
+### Phase 4 – Fahren in der Sim wie am Roboter
+
+#### E6 – Wie weit Sams `sim_mode` in der Sim geht
+- **Problem:** Ganz auf `sim_mode` umzustellen hieße: `rf2o` macht die Odometrie, `odom` beginnt
+  am Startpunkt bei (0, 0). Die Navigation rechnet aber `Karte = odom + fester Versatz aus der
+  Karten-YAML` und nutzt die SLAM-Pose nicht (Q36) – sie läge um die Startpose daneben.
+  Außerdem sendet Sams SLAM-Launch `map → odom` doppelt (Q35).
+- **Optionen:** (a) alles umstellen und Navigation/SLAM in der Sim kaputt machen; (b) nur den
+  Fahrpfad umstellen, SLAM/Odometrie bleiben bei der Sim-Lösung; (c) gar nichts umstellen.
+- **Gewählt:** (b). In `sim` läuft `pkg_drive` mit `sim_mode` (twist_mux + twist_limiter, **ohne**
+  Treiber `edu_robot`), Navigation fährt über `cmd_vel/nav` – genau die Kette des Roboters.
+- **Folgen:** Die doppelte SLAM-Lösung (Q30) bleibt, bis die Navigation die Lokalisierung löst
+  (Q36) und Sam Q35 behebt. Dann: Simulator ohne odom-tf, `rf2o` an, `slam_sim.launch.py` weg.
+  `projectctl` setzt `GEORG_SIM_MODE` **nur** aus dem Profil (nie aus deiner Shell): `real`
+  startet immer den Treiber, `sim` nie. Der `drive`-Container läuft in `sim` jetzt mit
+  `privileged` und `/dev` (so ist Sams Compose) – der Treiber startet dort aber nicht.
+
+#### Fehler gefunden und behoben
+- **QoS:** `twist_limiter` sendet `cmd_vel` als *best effort*, der Simulator abonnierte
+  *reliable* → **keine einzige Nachricht** kam an, Georg stand still. Simulator abonniert jetzt
+  best effort (verträgt beides). Am Roboter betrifft das nur, falls ein Node `cmd_vel` reliable
+  abonniert.
+- **Doppelte tf:** Simulator sendete `base_footprint → base_link` mit 0 m, `georg_description`
+  mit 0,128 m – im Stack jetzt nur noch das URDF.
+
+#### Realistischere Sensoren (Parameter des Simulators, Schalter im Compose)
+| Parameter | Standard im Stack | Was |
+| --- | --- | --- |
+| `GEORG_SIM_LIDARS` | `robot` | zwei TiM571 an den URDF-Positionen, 270°, → `lidar1/scan`, `lidar2/scan`, `merged_scan` wie der Scan-Merger (1°, ab 0,3 m) |
+| `GEORG_SIM_LIDAR_NOISE` | `0.02` m | Gauß-Rauschen pro Strahl |
+| `GEORG_SIM_ODOM_NOISE` | `0` | relatives Geschwindigkeitsrauschen → Drift von `odom`/`odom/wheel` |
+| `GEORG_SIM_CMD_LATENCY` | `0` s | Befehle wirken verzögert |
+
+Dazu `/clock` (für `use_sim_time` in `pkg_drive`) und `sim/ground_truth` (wahre Pose, nur Tests).
+Strahlauflösung 1° statt 0,33°: der zusammengeführte Scan hat ohnehin 1°, Python-Raycasting mit
+0,33° wäre auf dem Jetson zu langsam.
+
+#### Ergebnis
+- Stack-Test `sim` **6/6** mit sim2d **und** mit MuJoCo (Fahrpfad über twist_mux/limiter, zwei
+  Lidare mit Rauschen, SLAM-Karte aus dem zusammengeführten Scan).
+- Mit 5 % Odometrie-Rauschen ebenfalls 6/6 – zufälliges Rauschen mittelt sich weg; echter
+  Schlupf ist eher systematisch. Systematischen Fehler (z. B. 3 % zu kurz) könnte man als
+  weiteren Parameter ergänzen.
+- `tests/system` 8/8 (Treiber-Test angepasst: in `sim` nur mit `sim_mode:=true`).
+- Gemeldet: Q35 (SLAM `map → odom` doppelt), Q36 (keine Lokalisierung in der Karte).
+
+## Später (vereinbart bzw. aus deinen Kommentaren)
+- **S1 – Namespace sauber machen:** `EDU_ROBOT_NAMESPACE` an alle Dienste durchreichen,
+  Healthchecks daraus bilden (heute fest „kein Namespace“).
+- **S2 – Tests aufräumen:** Mac-pytest (ein Workspace) und Stack-Test (Container) prüfen
+  teilweise dasselbe auf zwei Wegen. Vorschlag: Die Integrationstests werden zu Stack-Tests
+  (laufen gegen `projectctl up`, auf Mac mit Docker ebenso), die Mac-pixi-Tests bleiben nur
+  für schnelle Unit-Tests. Eigene Branches dafür sind nicht nötig – ein Ordner `tests/stack`
+  als einziger Integrationsweg reicht.
+- **S3 – Meshes verkleinern** (~50 MB beim ersten Verbinden von Lichtblick).
+- **S4 – Q21:** Mission meldet `succeeded`, obwohl ein LOW-Task scheiterte.
