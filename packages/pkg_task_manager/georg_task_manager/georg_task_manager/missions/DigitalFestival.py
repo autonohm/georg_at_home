@@ -21,7 +21,7 @@ def get_mission():
 
     return [
 
-        Listening("DOORBELL", HIGH),
+        Listening("DOORBELL", priority=HIGH),
         Gesture("look_at", -1000.0, 0.0, 100.0),
         Gesture("point_to", -2000.0, 0.0, 100.0),
         #NavigateObject("front_door", "/home/giuseppe/georg_maps/arena.yaml"),
