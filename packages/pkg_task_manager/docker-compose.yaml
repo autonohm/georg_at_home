@@ -34,6 +34,12 @@ services:
       - audio
     init: true
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", ". /opt/ros/jazzy/setup.sh && . /ws/install/setup.sh && ros2 service list | grep -q /georg/task_manager/start"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+      start_period: 60s
     command: ros2 launch /config/task_manager.launch.py
     # command: sleep 1d
 
@@ -102,6 +108,12 @@ services:
       - burr_path=/root/.burr
     init: true
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "/opt/burr-venv/bin/python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:7241/api/v0/ready', timeout=5)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
     command: /opt/burr-venv/bin/python -m uvicorn burr.tracking.server.run:app --host 0.0.0.0 --port 7241
 
 volumes:

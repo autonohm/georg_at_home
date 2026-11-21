@@ -135,7 +135,7 @@ packages/pkg_command_gate/command_gate/setup.cfg  –  5 Zeilen geprüft
 packages/pkg_command_gate/command_gate/setup.py  –  26 Zeilen geprüft
 packages/pkg_command_gate/command_gate/test/test_gate.py  –  27 Zeilen geprüft
 packages/pkg_command_gate/config/command_gate.launch.py  –  26 Zeilen geprüft
-packages/pkg_command_gate/docker-compose.yaml  –  24 Zeilen geprüft
+packages/pkg_command_gate/docker-compose.yaml  –  30 Zeilen geprüft
 packages/pkg_drive/Dockerfile  –  38 Zeilen geprüft
 packages/pkg_drive/README.md  –  18 Zeilen geprüft
 packages/pkg_drive/config/drive.launch.py  –  94 Zeilen geprüft
@@ -181,7 +181,7 @@ packages/pkg_examples/pib_topic_template/setup.py  –  31 Zeilen geprüft
 packages/pkg_gestures/Dockerfile  –  36 Zeilen geprüft
 packages/pkg_gestures/README.md  –  14 Zeilen geprüft
 packages/pkg_gestures/config/gestures.launch.py  –  30 Zeilen geprüft
-packages/pkg_gestures/docker-compose.yaml  –  19 Zeilen geprüft
+packages/pkg_gestures/docker-compose.yaml  –  25 Zeilen geprüft
 packages/pkg_gestures/pib_gestures_action/CMakeLists.txt  –  16 Zeilen geprüft
 packages/pkg_gestures/pib_gestures_action/LICENSE  –  203 Zeilen geprüft
 packages/pkg_gestures/pib_gestures_action/README.md  –  252 Zeilen geprüft
@@ -243,7 +243,7 @@ packages/pkg_llm/docker-compose.yaml  –  25 Zeilen geprüft
 packages/pkg_navigation/Dockerfile  –  25 Zeilen geprüft
 packages/pkg_navigation/README.md  –  186 Zeilen geprüft
 packages/pkg_navigation/config/navigation.launch.py  –  58 Zeilen geprüft
-packages/pkg_navigation/docker-compose.yaml  –  26 Zeilen geprüft
+packages/pkg_navigation/docker-compose.yaml  –  32 Zeilen geprüft
 packages/pkg_navigation/drive_route_server_pkg/drive_route_server/__init__.py  –  1 Zeilen geprüft
 packages/pkg_navigation/drive_route_server_pkg/drive_route_server/drive_route_action_server.py  –  557 Zeilen geprüft
 packages/pkg_navigation/drive_route_server_pkg/drive_route_server/drive_route_client.py  –  114 Zeilen geprüft
@@ -3176,7 +3176,7 @@ packages/pkg_sim/Dockerfile  –  28 Zeilen geprüft
 packages/pkg_sim/README.md  –  47 Zeilen geprüft
 packages/pkg_sim/config/sim.launch.py  –  24 Zeilen geprüft
 packages/pkg_sim/config/sim_stack.launch.py  –  44 Zeilen geprüft
-packages/pkg_sim/docker-compose.yaml  –  25 Zeilen geprüft
+packages/pkg_sim/docker-compose.yaml  –  31 Zeilen geprüft
 packages/pkg_sim/georg_sim/georg_sim/__init__.py  –  2 Zeilen geprüft
 packages/pkg_sim/georg_sim/georg_sim/mjcf.py  –  71 Zeilen geprüft
 packages/pkg_sim/georg_sim/georg_sim/sim2d_node.py  –  166 Zeilen geprüft
@@ -3208,7 +3208,7 @@ packages/pkg_speech/README.md  –  54 Zeilen geprüft
 packages/pkg_task_manager/Dockerfile  –  60 Zeilen geprüft
 packages/pkg_task_manager/README.md  –  213 Zeilen geprüft
 packages/pkg_task_manager/config/task_manager.launch.py  –  54 Zeilen geprüft
-packages/pkg_task_manager/docker-compose.yaml  –  113 Zeilen geprüft
+packages/pkg_task_manager/docker-compose.yaml  –  125 Zeilen geprüft
 packages/pkg_task_manager/georg_task_manager/README.md  –  91 Zeilen geprüft
 packages/pkg_task_manager/georg_task_manager/demo_burr.py  –  66 Zeilen geprüft
 packages/pkg_task_manager/georg_task_manager/georg_task_manager/Georg.py  –  105 Zeilen geprüft
@@ -3322,7 +3322,7 @@ packages/pkg_viz/config/operator.launch.py  –  50 Zeilen geprüft
 packages/pkg_viz/config/qt5ct/colors/gruvbox-dark.conf  –  6 Zeilen geprüft
 packages/pkg_viz/config/qt5ct/colors/gruvbox-light.conf  –  6 Zeilen geprüft
 packages/pkg_viz/config/qt5ct/qt5ct.conf  –  8 Zeilen geprüft
-packages/pkg_viz/docker-compose.yaml  –  49 Zeilen geprüft
+packages/pkg_viz/docker-compose.yaml  –  55 Zeilen geprüft
 packages/pkg_viz/georg_slam.rviz  –  320 Zeilen geprüft
 packages/pkg_viz/lichtblick_panel/.gitignore  –  3 Zeilen geprüft
 packages/pkg_viz/lichtblick_panel/README.md  –  47 Zeilen geprüft
@@ -3332,11 +3332,11 @@ packages/pkg_viz/lichtblick_panel/src/extension.js  –  213 Zeilen geprüft
 packages/pkg_viz/lichtblick_panel/src/model.js  –  146 Zeilen geprüft
 packages/pkg_viz/lichtblick_panel/test/model.test.js  –  78 Zeilen geprüft
 packages/pkg_viz/lichtblick_panel/test/panel.test.js  –  149 Zeilen geprüft
-projectctl.bash  –  256 Zeilen geprüft
+projectctl.bash  –  261 Zeilen geprüft
 system-files/README.md  –  34 Zeilen geprüft
 system-files/etc/udev/rules.d/51-autonohm-joystick.rules  –  7 Zeilen geprüft
 system-files/etc/udev/rules.d/99-pib-motors.rules  –  12 Zeilen geprüft
-system-files/projectctl-completion.bash  –  50 Zeilen geprüft
-system-files/setup-PC.sh  –  65 Zeilen geprüft
-system-files/setup-robot.sh  –  96 Zeilen geprüft
+system-files/projectctl-completion.bash  –  51 Zeilen geprüft
+system-files/setup-PC.sh  –  97 Zeilen geprüft
+system-files/setup-robot.sh  –  111 Zeilen geprüft
 ```

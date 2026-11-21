@@ -50,6 +50,38 @@ install_thingy 644 root root "/etc/udev/rules.d/51-autonohm-joystick.rules"
 sudo udevadm control --reload
 sudo udevadm trigger
 
+log_state "georg mode (plan P8)"
+# a PC never runs profile 'real' (projectctl.bash refuses it)
+sudo mkdir -p /etc/georg
+echo sim | sudo tee /etc/georg/mode > /dev/null
+log_ok "/etc/georg/mode = sim"
+
+log_state "Lichtblick ${LICHTBLICK_VERSION:=1.30.0} (pinned, plan P4)"
+if dpkg -s lichtblick &>/dev/null; then
+  log_warn "Lichtblick already installed. Skipping"
+else
+  DEB="lichtblick-${LICHTBLICK_VERSION}-linux-$(dpkg --print-architecture).deb"
+  curl -fsSL -o "/tmp/${DEB}" \
+    "https://github.com/lichtblick-suite/lichtblick/releases/download/v${LICHTBLICK_VERSION}/${DEB}"
+  sudo apt install -y "/tmp/${DEB}"
+  log_ok "Lichtblick installed; panel: packages/pkg_viz/lichtblick_panel (python3 build.py)"
+fi
+
+log_state "Burr UI (plan P1)"
+BURR_VENV="$HOME/.local/share/georg/burr-ui"
+if [ ! -x "${BURR_VENV}/bin/python" ]; then
+  python3 -m venv "${BURR_VENV}"
+  "${BURR_VENV}/bin/pip" install --quiet "apache-burr[tracking]==0.43.0"
+fi
+mkdir -p "$HOME/.local/bin"
+cat > "$HOME/.local/bin/georg-burr-ui" <<EOF
+#!/usr/bin/env bash
+# Burr UI on http://localhost:7241, reads ~/.burr (or BURR_DIR)
+burr_path="\${BURR_DIR:-\$HOME/.burr}" exec "${BURR_VENV}/bin/python" -m uvicorn burr.tracking.server.run:app --port 7241
+EOF
+chmod +x "$HOME/.local/bin/georg-burr-ui"
+log_ok "Burr UI: run georg-burr-ui"
+
 log_state "bashrc"
 BASHRC="$HOME/.bashrc"
 if grep -q "autonohm georg" $BASHRC ; then

@@ -18,6 +18,12 @@ services:
       - GEORG_PROFILE=${GEORG_PROFILE:-}
     init: true
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", ". /opt/ros/jazzy/setup.sh && . /ws/install/setup.sh && ros2 node list | grep -q /georg/drive_route_action_server"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+      start_period: 60s
     command: ros2 launch /config/navigation.launch.py
 
 networks:

@@ -182,3 +182,27 @@ Gemeldet an die Paket-Verantwortlichen:
 - **pkg_gestures:** `pib-sdk` steuert die Servos des pib per rosbridge am Gate vorbei (heute auskommentiert, Abhängigkeit aber installiert). Servobefehle müssen über ROS-Topics hinter einem Gate laufen.
 - **pkg_slam, pkg_viz, pkg_urdf, pkg_examples:** `privileged` bzw. `/dev`-Mounts ohne Bedarf.
 - **Offen (nicht prüfbar):** beim Bauen geklonter Code (edu_robot-Treiber, Lidar-Treiber, georg_interfaces, georg_description, RViz-Plugins). Der Treiber `edu_robot` muss `cmd_vel` abonnieren, damit der Remap auf `cmd_vel/gated` greift.
+
+# P8 – Stand (2026-11-21)
+
+Anleitung: `docs/P8_ANLEITUNG.md`.
+
+| Abnahmekriterium P8 | Stand |
+| --- | --- |
+| Nach dem Einschalten steht Georg in Idle | umgesetzt: `georg.service` startet `projectctl.bash up real`; der Task Manager startet nichts, Betriebsart `mission` (P2/P6 getestet). Auf dem Jetson noch nicht ausprobiert. |
+| Ein abgestürzter Container kommt allein wieder hoch | umgesetzt: alle Dauerdienste `restart: unless-stopped` (bzw. `always` beim Treiber), Healthchecks für Task Manager, Gate, Navigation, Gesten, Simulator, Brücke, Burr-UI (`tests/system`). Live-Test mit Docker steht aus. |
+| `up real` wird auf dem PC verweigert | erfüllt und getestet (Modusdatei; zusätzlich Sperre durch den Hardware-Scan) |
+
+Umgesetzt: `system-files/etc/systemd/system/georg.service` (Vorlage), `setup-robot.sh` (Modusdatei `real`, Dienst aktivieren), `setup-PC.sh` (Modusdatei `sim`, Lichtblick 1.30.0, Burr-UI als `georg-burr-ui`), `projectctl.bash status`, `GEORG_MODE_FILE` für Tests, `tests/system/test_operation.py` (8 Tests).
+
+**Hinweise:**
+- Healthchecks zeigen den Zustand an. Einen laufenden, aber „unhealthy“ Container startet Docker nicht von selbst neu; nur beendete Container werden neu gestartet.
+- Der Docker-Installationsteil in `setup-robot.sh` ist für Debian; auf dem Jetson ist Docker meist schon da.
+- **Instabiler Test:** `pixi run test_sim_mj` (P3 mit MuJoCo) schlug im Gesamtlauf am 2026-11-21 einmal fehl; vier weitere Läufe direkt danach waren grün. Die Logs zeigen keinen Fehler im Ablauf; welcher der fünf Tests betroffen war, ist nicht mehr feststellbar. Vermutlich ein Zeitproblem unter Last.
+
+# Gesamtstand (2026-11-21)
+
+P0 bis P8 sind umgesetzt. Geprüft auf dem Mac mit ROS 2 Jazzy (RoboStack), nicht im Container und nicht auf dem Roboter. Offen bleiben vor allem:
+1. Docker-Build und `up mock`/`up sim` auf einem Rechner mit Docker (P0/P3-Kriterium im Container).
+2. Die 13 Probleme aus dem Hardware-Scan in fremden Paketen (P7) – bis dahin bleibt `real` gesperrt.
+3. Paket-Vertrag (Ergebnis/Feedback) in den echten Paketen (Q14/Q24), Robotermodell in MuJoCo (Q26), LLM-Modell und Image auf dem Jetson (Q27).

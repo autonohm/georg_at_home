@@ -5,7 +5,7 @@ set -Eeuo pipefail
 PROJECT_NAME="georg"
 PACKAGES_DIR="packages"
 COMPOSE_FILE="compose.yaml"
-MODE_FILE="/etc/georg/mode"
+MODE_FILE="${GEORG_MODE_FILE:-/etc/georg/mode}"   # overridable for tests
 MODES=(mock sim real mcap)
 
 # Space-separated package names to skip, for example:
@@ -187,6 +187,7 @@ Commands:
   stop [mode]         Stop the containers of [mode] (all if empty)
   logs [service ...]  View logs for the given services (all if empty)
   mode                Show the device mode from /etc/georg/mode
+  status              Show the running containers and their health
   check_pkgs          Validate packages (docker-compose.yaml, README.md, included in compose.yaml)
   install_completion  Install autocompletion for this script (requires bash-completion)
   help                Show this help message
@@ -231,6 +232,10 @@ main() {
             ;;
         mode)
             printf '%s\n' "$(device_mode)"
+            ;;
+        status)
+            # containers with restart policy and health (plan P8)
+            compose --profile '*' ps --format 'table {{.Service}}\t{{.Status}}'
             ;;
         build_base_image|build-base-image)
             build_base_image

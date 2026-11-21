@@ -16,6 +16,12 @@ services:
       - GEORG_DEVICE_MODE=${GEORG_DEVICE_MODE:-}
     init: true
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", ". /opt/ros/jazzy/setup.sh && . /ws/install/setup.sh && ros2 node list | grep -q /georg/command_gate"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+      start_period: 60s
     command: ros2 launch /config/command_gate.launch.py
 
 networks:

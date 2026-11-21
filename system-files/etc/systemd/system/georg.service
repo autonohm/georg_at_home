@@ -1,0 +1,28 @@
+# Georg robot software (plan P8). Template: setup-robot.sh replaces @REPO@ and @USER@
+# and installs it to /etc/systemd/system/georg.service.
+#
+# Start: projectctl.bash up real   -> containers in profile real, task manager in Idle,
+#                                     operating mode "mission" (boot never starts a mission)
+# Stop:  projectctl.bash down real
+# Single crashed containers are restarted by Docker (restart: unless-stopped).
+# 'up real' is refused if /etc/georg/mode is not 'real' or the hardware scan (P7) has
+# open problems; then this unit fails and nothing moves.
+
+[Unit]
+Description=Georg robot software (docker compose, profile real)
+Requires=docker.service
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+User=@USER@
+WorkingDirectory=@REPO@
+ExecStart=@REPO@/projectctl.bash up real
+ExecStop=@REPO@/projectctl.bash down real
+TimeoutStartSec=900
+TimeoutStopSec=120
+
+[Install]
+WantedBy=multi-user.target

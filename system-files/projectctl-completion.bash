@@ -14,6 +14,7 @@ _projectctl_completion() {
         build_base_image
         logs
         mode
+        status
         check_pkgs
         install_completion
         help

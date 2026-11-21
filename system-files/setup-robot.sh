@@ -53,6 +53,21 @@ install_thingy 644 root root "/etc/udev/rules.d/99-pib-motors.rules"
 sudo udevadm control --reload
 sudo udevadm trigger
 
+log_state "georg mode (plan P8)"
+# the mode is bound to the device: only the robot may run profile 'real'
+sudo mkdir -p /etc/georg
+echo real | sudo tee /etc/georg/mode > /dev/null
+log_ok "/etc/georg/mode = real"
+
+log_state "systemd service georg.service (plan P8)"
+REPO_DIR=$( cd -- "${THIS_SCRIPT_DIR}/.." &> /dev/null && pwd )
+sed -e "s#@REPO@#${REPO_DIR}#g" -e "s#@USER@#${USER}#g" \
+  "${THIS_SCRIPT_DIR}/etc/systemd/system/georg.service" \
+  | sudo tee /etc/systemd/system/georg.service > /dev/null
+sudo systemctl daemon-reload
+sudo systemctl enable georg.service
+log_ok "georg.service enabled (starts 'projectctl.bash up real' at boot)"
+
 log_state "bashrc"
 BASHRC="$HOME/.bashrc"
 if grep -q "autonohm georg" $BASHRC ; then
