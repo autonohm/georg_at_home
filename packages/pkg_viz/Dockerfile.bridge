@@ -2,10 +2,33 @@ FROM georg-ros:jazzy
 
 SHELL ["/bin/bash", "-c"]
 
+WORKDIR /ws
+
 # foxglove_bridge: Lichtblick connects to ws://<robot>:8765 (protocol foxglove.sdk.v1)
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    ros-jazzy-foxglove-bridge \
+    ros-jazzy-foxglove-bridge curl unzip \
     && rm -rf /var/lib/apt/lists/*
+
+# Lichtblick loads the meshes of the robot descriptions through the bridge (package://...),
+# so the bridge needs the packages that contain them:
+# - georg_description: same source as packages/pkg_urdf/Dockerfile
+# - pib_model: the pib web model (packages/pkg_pib_model, same pin as its Dockerfile)
+ARG PIB_MODEL_VERSION=v0.11.6
+ARG PIB_MODEL_SHA256=7954575a4bca8942a074abfebd9744e0ead5e6e20bf99a310e82b50c680cc251
+
+# change this variable to trick docker cache into rebuilding
+ENV REBUILD=1
+
+RUN git clone https://github.com/autonohm/georg_description.git /ws/georg_description
+COPY --from=pib_model_pkg . /ws/pib_model_pkg
+RUN curl -sSL --fail -o /tmp/model.zip \
+      "https://github.com/pib-rocks/pib-3d/releases/download/${PIB_MODEL_VERSION}/robot-model-${PIB_MODEL_VERSION}.zip" \
+    && echo "${PIB_MODEL_SHA256}  /tmp/model.zip" | sha256sum -c - \
+    && mkdir -p /tmp/model && unzip -q /tmp/model.zip -d /tmp/model \
+    && cd /ws/pib_model_pkg && python3 -m pib_model.convert /tmp/model model \
+    && rm -rf /tmp/model /tmp/model.zip
+RUN source /ws/install/setup.bash && \
+    colcon build --packages-select georg_description pib_model
 
 ENTRYPOINT ["/ros_entrypoint.sh"]
 CMD ["bash"]

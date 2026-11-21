@@ -37,10 +37,14 @@ services:
     build:
       context: .
       dockerfile: ./Dockerfile.bridge
+      additional_contexts:
+        pib_model_pkg: ../pkg_pib_model/pib_model_pkg
     networks:
       - pib-network
     ports:
       - "8765:8765"
+    volumes:
+      - ./config/foxglove_bridge.yaml:/config/foxglove_bridge.yaml:ro
     init: true
     restart: unless-stopped
     healthcheck:
@@ -49,9 +53,8 @@ services:
       timeout: 5s
       retries: 3
       start_period: 20s
-    # min_qos_depth 10: status updates that follow each other within milliseconds
-    # (last Burr steps) must not be dropped
-    command: ros2 launch foxglove_bridge foxglove_bridge_launch.xml port:=8765 min_qos_depth:=10
+    # port, min_qos_depth 10 (no lost status updates), mesh allowlist: config/foxglove_bridge.yaml
+    command: ros2 run foxglove_bridge foxglove_bridge --ros-args --params-file /config/foxglove_bridge.yaml
 
 networks:
   pib-network:

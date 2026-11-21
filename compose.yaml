@@ -22,6 +22,7 @@ include:
   - packages/pkg_sim/docker-compose.yaml
   - packages/pkg_llm/docker-compose.yaml
   - packages/pkg_urdf/docker-compose.yaml
+  - packages/pkg_pib_model/docker-compose.yaml
   - packages/pkg_drive/docker-compose.yaml
   - packages/pkg_viz/docker-compose.yaml
   - packages/pkg_examples/docker-compose.yaml

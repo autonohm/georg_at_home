@@ -9,7 +9,9 @@
         "/map": { "visible": true },
         "/merged_scan": { "visible": true, "pointSize": 4, "colorField": "range" },
         "/odom": { "visible": true },
-        "/robot_description": { "visible": true }
+        "/robot_description": { "visible": false },
+        "/pib/robot_description": { "visible": false },
+        "/georg_full/robot_description": { "visible": true }
       },
       "layers": {
         "grid": { "visible": true, "layerId": "foxglove.Grid", "frameLocked": true,

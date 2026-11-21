@@ -1,0 +1,27 @@
+services:
+  pib_model:
+    image: pib_model
+    environment:
+      - ROS_DOMAIN_ID=${ROS_DOMAIN_ID:-0}
+      - GEORG_PROFILE=${GEORG_PROFILE:-}
+    profiles: [sim, real, mcap]
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    networks:
+      - pib-network
+    volumes:
+      - ./config:/config:ro
+    restart: unless-stopped
+    init: true
+    healthcheck:
+      test: ["CMD-SHELL", ". /opt/ros/jazzy/setup.sh && . /ws/install/setup.sh && ros2 node list | grep -qx /pib_model"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+      start_period: 60s
+    command: ros2 launch /config/pib_model.launch.py
+
+networks:
+  pib-network:
+    driver: bridge

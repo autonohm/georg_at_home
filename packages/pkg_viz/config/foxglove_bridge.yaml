@@ -1,0 +1,9 @@
+# foxglove_bridge for Lichtblick (ws://<host>:8765)
+foxglove_bridge:
+  ros__parameters:
+    port: 8765
+    # status updates that follow each other within milliseconds must not be dropped
+    min_qos_depth: 10
+    # meshes of the URDF via package://; default list plus spaces ("Mecanum Wheel.obj")
+    asset_uri_allowlist:
+      - '^package://(?:[-\w%. ]+/)*[-\w%. ]+\.(?:dae|fbx|glb|gltf|jpeg|jpg|mtl|obj|png|stl|tif|tiff|urdf|webp|xacro)$'
