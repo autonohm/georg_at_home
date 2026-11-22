@@ -5,9 +5,8 @@ from datatypes.srv import StartModel
 
 
 class StartFaceTracking(BaseTask):
-    def __init__(self, text: str, priority=TaskPriority.LOW):
-        super().__init__("Start", priority)
-        self.text = text
+    def __init__(self, priority=TaskPriority.LOW):
+        super().__init__("StartFaceTracking", priority)
 
     async def run(self, robot, state):
         request = StartModel.Request()

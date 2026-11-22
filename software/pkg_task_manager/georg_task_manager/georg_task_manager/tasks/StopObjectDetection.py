@@ -5,9 +5,8 @@ from datatypes.srv import StopModel
 
 
 class StopObjectDetection(BaseTask):
-    def __init__(self, text: str, priority=TaskPriority.LOW):
-        super().__init__("Start", priority)
-        self.text = text
+    def __init__(self, priority=TaskPriority.LOW):
+        super().__init__("StopObjectDetection", priority)
 
     async def run(self, robot, state):
         request = StopModel.Request()
