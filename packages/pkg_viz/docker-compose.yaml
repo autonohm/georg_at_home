@@ -57,5 +57,9 @@ services:
     command: ros2 run foxglove_bridge foxglove_bridge --ros-args --params-file /config/foxglove_bridge.yaml
 
 networks:
+  # Shared with pib-backend and Cerebra (same fixed name): ROS 2 nodes can always reach each
+  # other on the network, the ROS domain alone separates them (real = 0 like pib-backend,
+  # mock/sim/mcap = 30). See docs/DECISIONS.md "One network, domains separate".
   pib-network:
+    name: pib-network
     driver: bridge

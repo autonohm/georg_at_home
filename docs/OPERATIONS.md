@@ -130,6 +130,21 @@ A map gives everything the same geometry: obstacle polygons (navigation, lidar, 
 places (navigation targets) and the start (`type: sim_start`); `<map>_visuals.xml` is what the
 simulated camera renders.
 
+## Network on the robot
+
+All containers of Georg, pib-backend and Cerebra share the Docker network `pib-network`; the ROS
+domain alone separates simulation (30) from the robot (0) – see DECISIONS "One network, domains
+separate".
+
+This works as long as pib-backend runs **on the same machine** (the Jetson). That is the target.
+If pib-backend runs on the **Raspberry Pi** (192.168.2.1) instead: ROS 2 finds partners by
+multicast, and multicast does not leave a Docker bridge network, so the containers on the Jetson
+would not see pib-backend on the Pi although both are in the same LAN (192.168.2.0/24) and the same
+domain. Fix, only for that setup: let Georg's containers use the LAN directly – either
+`network_mode: host` (simplest, usual for ROS on robots) or a `macvlan` network with fixed
+addresses `192.168.2.51-80` (the plan in the README). This is a compose setting only, no code
+change; the domains keep the simulation separate as before.
+
 ## Troubleshooting
 
 | Symptom | Cause / fix |

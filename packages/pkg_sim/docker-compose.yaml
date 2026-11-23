@@ -76,5 +76,9 @@ services:
       -p visuals_file:=$$v'
 
 networks:
+  # Shared with pib-backend and Cerebra (same fixed name): ROS 2 nodes can always reach each
+  # other on the network, the ROS domain alone separates them (real = 0 like pib-backend,
+  # mock/sim/mcap = 30). See docs/DECISIONS.md "One network, domains separate".
   pib-network:
+    name: pib-network
     driver: bridge

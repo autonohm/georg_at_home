@@ -160,8 +160,8 @@ docker_cmd() {
         fi
         # optional bridge to pib-backend (pkg_pib_bridge): speech and head camera
         if [[ "${GEORG_WITH_PIB_BACKEND:-0}" == "1" ]] && [[ "$mode" == "sim" || "$mode" == "real" ]]; then
-            docker network inspect pib-network > /dev/null 2>&1 \
-                || log_fatal "GEORG_WITH_PIB_BACKEND=1 needs pib-backend running (docker network pib-network)"
+            [[ -n "$(docker ps -q --filter label=com.docker.compose.project=pib-backend)" ]] \
+                || log_fatal "GEORG_WITH_PIB_BACKEND=1 needs pib-backend running on this machine"
             extra+=(--profile pib)
         fi
         # sim_mode of pkg_drive/pkg_slam (main): only in sim, never taken from the caller's

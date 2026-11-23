@@ -2,11 +2,11 @@
 
 Bridge between Georg's stack and [pib-backend](https://github.com/pib-rocks/pib-backend) for
 speech, with a fixed allowlist. Optional: `GEORG_WITH_PIB_BACKEND=1 ./projectctl.bash up sim|real`
-(needs pib-backend's Docker network `pib-network`).
+(needs pib-backend running).
 
 One process in two ROS domains: the stack (`ROS_DOMAIN_ID`, 30 in sim, 0 on the robot) and
-pib-backend (`PIB_BACKEND_DOMAIN_ID`, 0). This container is the only one in both Docker networks.
-Nothing else crosses – in particular no drive or motor commands.
+pib-backend (`PIB_BACKEND_DOMAIN_ID`, 0). All containers share the Docker network `pib-network`;
+the domains separate them, this bridge is the only explicit link. Nothing else crosses – in particular no drive or motor commands.
 
 | Stack side | pib-backend |
 | --- | --- |

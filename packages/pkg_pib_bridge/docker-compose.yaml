@@ -1,5 +1,4 @@
 # Bridge to pib-backend. Optional: GEORG_WITH_PIB_BACKEND=1 ./projectctl.bash up sim|real
-# Needs the docker network of pib-backend (name pib-network, created by pib-backend's compose).
 services:
   pib_bridge:
     image: pib_bridge
@@ -17,10 +16,8 @@ services:
     build:
       context: .
       dockerfile: ./Dockerfile
-    # the only Georg container in pib-backend's network: speech and camera, nothing else
     networks:
       - pib-network
-      - pib-backend
     volumes:
       # named poses and joint limits (shared with the fake motors of pkg_pib_model)
       - ../pkg_pib_model/config:/config:ro
@@ -35,8 +32,9 @@ services:
     command: ros2 run pib_bridge pib_bridge
 
 networks:
+  # Shared with pib-backend and Cerebra (same fixed name): ROS 2 nodes can always reach each
+  # other on the network, the ROS domain alone separates them (real = 0 like pib-backend,
+  # mock/sim/mcap = 30). See docs/DECISIONS.md "One network, domains separate".
   pib-network:
-    driver: bridge
-  pib-backend:
-    external: true
     name: pib-network
+    driver: bridge

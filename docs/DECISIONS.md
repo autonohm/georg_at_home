@@ -64,6 +64,17 @@ package of the same name; the base image builds pib-backend's `datatypes` (pinne
 
 ## Safety and operation
 
+**One network, domains separate** (2026-11-23). All Georg containers join the Docker network
+`pib-network` that pib-backend and Cerebra already share (fixed name in every compose file).
+ROS 2 nodes can therefore always reach each other on the network; **only the ROS domain**
+separates them: `real` = 0 like pib-backend, `mock`/`sim`/`mcap` = 30. Before, a second barrier
+(our own network `georg_pib-network`) also cut Georg off from pib-backend in `real`, so poses,
+gestures, speech and the real joint states could never arrive there. Checked: in `sim`,
+pib-backend (domain 0) sees none of our topics; the stack (domain 30) sees none of
+pib-backend's; `pib_bridge` still connects the two for speech on purpose.
+If pib-backend runs on the Raspberry Pi instead of the Jetson, see OPERATIONS "Network on the
+robot".
+
 **No command gate; `ROS_DOMAIN_ID` per profile** (`real` 0 like pib-backend, else 30). The gate
 only repeated what profiles, `sim_mode` and the `up real` check already guarantee, and was always
 open in `real`; separate domains close the real gap (a sim on the same network).

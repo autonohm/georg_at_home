@@ -50,7 +50,7 @@ Old numbers (Q…) from the former `OPEN_QUESTIONS.md` in brackets.
 | S1 | Healthchecks assume no namespace; `EDU_ROBOT_NAMESPACE` is not passed into containers | open (later) |
 | S2 | Tests on two paths: Mac pixi (`dev/macos`) and containers/stack; pixi stack still uses `slam_sim` and no drive chain | open – keep pixi for unit tests only |
 | S3 | ~50 MB of meshes on first Lichtblick connection | open – decimate pib meshes |
-| S4 | On the robot pib-backend runs on the Pi (LAN): `pib_bridge`/`pib_model` need the robot network (host network or macvlan) | open – before `real` |
+| S4 | One shared network `pib-network`, domains separate (done). Target: pib-backend on the Jetson. If it stays on the Pi: containers need the LAN (`network_mode: host` or macvlan) – OPERATIONS "Network on the robot" | open – decide before `real` |
 | S5 | Simulated camera has no detections (real ones come from the OAK chip) | open – detections from known positions in sim |
 | S6 | MuJoCo base is a cylinder, not Georg's mesh | open (low) |
 | S8 | `drive` container runs `privileged` with `/dev` also in sim (Sam's compose) | info |
