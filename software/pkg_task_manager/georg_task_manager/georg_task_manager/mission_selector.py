@@ -1,7 +1,8 @@
 from georg_task_manager.missions.DigitalFestival import get_mission as DigitalFestival
 from georg_task_manager.missions.Test_Mapping import get_mission as TestMapping
 from georg_task_manager.missions.Greeting import get_mission as Greeting
-from georg_task_manager.missions.ObjectFaceDetection import get_mission as ObjectFaceDetection
+from georg_task_manager.missions.StartObjectFaceDetection import get_mission as StartObjectFaceDetection
+from georg_task_manager.missions.StopObjectFaceDetection import get_mission as StopObjectFaceDetection
 
 import os
 
@@ -16,7 +17,8 @@ def select_mission():
         print("1 - Digital Festival")
         print("2 - Mapping Test")
         print("3 - Greeting")
-        print("4 - Vision")
+        print("4 - Vision on")
+        print("5 - Vision off")
         print("0 - Exit")
 
         mission_id = input("\nSelect Mission: ")
@@ -31,7 +33,10 @@ def select_mission():
         return Greeting()
 
     elif mission_id == "4":
-        return ObjectFaceDetection()
+        return StartObjectFaceDetection()
+
+    elif mission_id == "5":
+        return StopObjectFaceDetection()
 
     elif mission_id == "0":
         return None

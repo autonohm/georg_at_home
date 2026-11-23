@@ -63,14 +63,14 @@ class Georg:
         )
 
         # Vision 
-        self.start_model = node.create_client(
+        self.StartModel = node.create_client(
             StartModel,
-            "/StartModel" 
+            "/start_model" 
         )
 
-        self.stop_model = node.create_client(
+        self.StopModel = node.create_client(
             StopModel,
-            "/StopModel" 
+            "/stop_model" 
         )
         
         # Odometrie

@@ -11,7 +11,6 @@ class StopObjectDetection(BaseTask):
     async def run(self, robot, state):
         request = StopModel.Request()
         request.model_id = 'yolov6n_coco_640x640'
-        request.shaves = '4' 
         request.owner = 'Taskmanagement'
 
         response = await wait_for_service_result(

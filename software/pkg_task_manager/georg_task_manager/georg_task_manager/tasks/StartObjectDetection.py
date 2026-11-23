@@ -12,7 +12,7 @@ class StartObjectDetection(BaseTask):
     async def run(self, robot, state):
         request = StartModel.Request()
         request.model_id = 'yolov6n_coco_640x640'
-        request.shaves = '4' 
+        request.shaves = 4
         request.owner = 'Taskmanagement'
 
         response = await wait_for_service_result(

@@ -6,7 +6,7 @@ from georg_task_manager.tasks.priority import TaskPriority
 
 
 def get_mission():
-    print("Mission vision started.")
+    print("Mission vision on started.")
     return [
         StartObjectDetection(priority=TaskPriority.HIGH),
         StartFaceTracking(priority=TaskPriority.HIGH),

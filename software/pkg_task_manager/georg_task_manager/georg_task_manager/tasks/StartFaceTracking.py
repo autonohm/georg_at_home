@@ -11,7 +11,7 @@ class StartFaceTracking(BaseTask):
     async def run(self, robot, state):
         request = StartModel.Request()
         request.model_id = 'face_detection_yunet_160x120'
-        request.shaves = '4' 
+        request.shaves = 4 
         request.owner = 'Taskmanagement'
 
         response = await wait_for_service_result(
