@@ -53,7 +53,7 @@ Old numbers (Q…) from the former `OPEN_QUESTIONS.md` in brackets.
 | S5 | Simulated camera has no detections (real ones come from the OAK chip) | open – detections from known positions in sim |
 | S6 | MuJoCo base is a cylinder, not Georg's mesh | open (low) |
 | S8 | `drive` container runs `privileged` with `/dev` also in sim (Sam's compose) | info |
-| S9 | Switch the simulation world from Lichtblick (service `sim/set_world` + panel selection) | planned |
+| S9 | Switch the simulation world from Lichtblick: panel row "Load world" publishes `/sim/set_world`; simulator, camera and task manager follow | done |
 | S10 | Semantic map: name places automatically from camera detections (YOLO on the OAK, depth) or a VLM (Qwen-VL) | future |
 
 ## Task manager

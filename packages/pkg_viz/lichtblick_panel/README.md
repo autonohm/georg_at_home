@@ -34,6 +34,12 @@ Panel settings: robot namespace (default `/georg`) and Burr UI URL (default `htt
 Plain JavaScript, no npm: `src/model.js` (logic) and `src/extension.js` (DOM) are bundled by
 `build.py`. `foxglove_bridge` 3.x only speaks `foxglove.sdk.v1`; Lichtblick 1.30 offers it.
 
+## World of the simulator
+
+With profile `sim` a row "Load world" appears (choices from `/sim/worlds`, current world from
+`/sim/world`). The button publishes the chosen map on `/sim/set_world`; it is disabled while a
+mission runs. Without a simulator the row is hidden.
+
 ## Tests
 
 ```bash

@@ -4,10 +4,25 @@ import os
 from .priority import TaskPriority
 
 
+# world chosen at runtime (sim: /sim/world from the simulator), wins over GEORG_DEFAULT_MAP
+_current_map = None
+
+
+def set_default_map(name) -> None:
+    """Use map ``name`` (file name in GEORG_MAP_DIR) from now on; None: back to the env."""
+    global _current_map
+    _current_map = name or None
+
+
 def default_map_path() -> str:
-    """Map of this robot: GEORG_MAP_DIR/GEORG_DEFAULT_MAP (default /root/georg_maps/Nav_Test.yaml)."""
+    """Map of this robot: GEORG_MAP_DIR/<map> (default /root/georg_maps/Nav_Test.yaml).
+
+    <map> is the world of the simulator if it was switched (set_default_map), else
+    GEORG_DEFAULT_MAP.
+    """
+    name = _current_map or os.environ.get('GEORG_DEFAULT_MAP', 'Nav_Test.yaml')
     return os.path.join(os.environ.get('GEORG_MAP_DIR', '/root/georg_maps'),
-                        os.environ.get('GEORG_DEFAULT_MAP', 'Nav_Test.yaml'))
+                        os.path.basename(name))
 
 
 class BaseTask:

@@ -38,8 +38,10 @@ class SimMuJoCo(Sim2D):
         self._beam_angles = angles
         self._geomid = np.zeros(self.beams, dtype=np.int32)
         self._dist = np.zeros(self.beams, dtype=np.float64)
-        self.viewer = None
-        if self.declare_parameter('viewer', False).value:
+        self.viewer = getattr(self, 'viewer', None)
+        if not self.has_parameter('viewer'):
+            self.declare_parameter('viewer', False)
+        if self.viewer is None and self.get_parameter('viewer').value:
             import mujoco.viewer
             self.viewer = mujoco.viewer.launch_passive(self.model, self.data)
             self.viewer.cam.lookat[:] = (self.x, self.y, 0.0)
@@ -47,6 +49,10 @@ class SimMuJoCo(Sim2D):
         self.get_logger().info(
             f'MuJoCo {mujoco.__version__}: {self.model.ngeom} geoms, '
             f'timestep {self.model.opt.timestep}s, viewer {"on" if self.viewer else "off"}')
+
+    def _can_switch_world(self):
+        # the passive viewer holds the old model; rebuilding under it is not supported
+        return self.viewer is None
 
     def _reset_backend(self):
         self.mj.mj_resetDataKeyframe(self.model, self.data, 0)

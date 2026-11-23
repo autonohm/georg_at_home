@@ -3,6 +3,16 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 const m = require("../src/model.js");
 
+test("world options come from the JSON list of the simulator", () => {
+  assert.deepEqual(m.worldOptions({ data: '["Arena.yaml", "Nav_Test.yaml"]' }), [
+    { id: "Arena.yaml", label: "Arena" },
+    { id: "Nav_Test.yaml", label: "Nav_Test" },
+  ]);
+  assert.deepEqual(m.worldOptions({ data: "not json" }), []);
+  assert.deepEqual(m.worldOptions(undefined), []);
+  assert.equal(m.WORLD_TOPICS.set, "/sim/set_world");
+});
+
 test("service names follow the robot namespace", () => {
   assert.deepEqual(m.serviceNames("georg"), {
     start: "/georg/task_manager/start",

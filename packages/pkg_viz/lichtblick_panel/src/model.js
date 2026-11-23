@@ -125,7 +125,26 @@ function burrUrl(baseUrl, missionId, appId) {
   return `${base}/project/task_manager/${encodeURIComponent(missionId || "null")}/${encodeURIComponent(appId)}`;
 }
 
+// world switch of the simulator (pkg_sim georg_sim/worlds.py); topics are not namespaced
+const WORLD_TOPICS = { current: "/sim/world", list: "/sim/worlds", set: "/sim/set_world" };
+
+// std_msgs/String with a JSON list of map files -> dropdown options
+function worldOptions(msg) {
+  let names = [];
+  try {
+    names = JSON.parse(msg?.data ?? "[]");
+  } catch (err) {
+    names = [];
+  }
+  if (!Array.isArray(names)) {
+    return [];
+  }
+  return names.map((n) => ({ id: String(n), label: String(n).replace(/\.yaml$/, "") }));
+}
+
 module.exports = {
+  WORLD_TOPICS,
+  worldOptions,
   STATE_NAMES,
   MODES,
   MODE_LABELS,

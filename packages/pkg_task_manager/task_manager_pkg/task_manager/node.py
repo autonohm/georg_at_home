@@ -44,7 +44,7 @@ from task_manager.missions import ALIASES, get_mission, MISSIONS
 from task_manager.planner.llm_client import LLMClient
 from task_manager.planner.planner import Planner
 from task_manager.robot import Georg
-from task_manager.tasks.base import default_map_path
+from task_manager.tasks.base import default_map_path, set_default_map
 
 MODES = ('mission', 'llm', 'llm_approval')
 APPROVAL_TIMEOUT_S = 300.0
@@ -90,6 +90,13 @@ class TaskManagerBridge(Node):
         plan_qos = QoSProfile(depth=10, durability=DurabilityPolicy.TRANSIENT_LOCAL,
                               reliability=ReliabilityPolicy.RELIABLE)
         self._plan_pub = self.create_publisher(String, 'task_manager/plan', plan_qos)
+        # sim: the world can be switched in Lichtblick; the next mission uses its map
+        if self._profile == 'sim':
+            self.create_subscription(
+                String, '/sim/world', self._on_world,
+                QoSProfile(depth=1, durability=DurabilityPolicy.TRANSIENT_LOCAL,
+                           reliability=ReliabilityPolicy.RELIABLE),
+                callback_group=self._cb)
         # after the start always mission mode; the LLM only acts after the operator
         # switched to an LLM mode (plan: hard rules)
         self._mode = 'mission'
@@ -298,6 +305,10 @@ class TaskManagerBridge(Node):
             return self._approval.result()
         finally:
             self._approval = None
+
+    def _on_world(self, msg) -> None:
+        set_default_map(msg.data)
+        self.get_logger().info(f'world {msg.data}: map {default_map_path()}')
 
     def _take_feedback(self) -> str:
         text, self._feedback = self._feedback, ''

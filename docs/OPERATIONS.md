@@ -56,6 +56,13 @@ comes up idle, no mission starts by itself.
 
 Example: `GEORG_MAP=Arena.yaml GEORG_WITH_PIB_BACKEND=1 ./projectctl.bash up sim`
 
+`GEORG_MAP` is only the world at start. In `sim` the world can be switched at runtime in the
+Lichtblick panel (row "Load world", disabled while a mission runs) or with
+`ros2 topic pub --once /sim/set_world std_msgs/msg/String "{data: Wohnung.yaml}"`. The robot
+goes to the `sim_start` of the new world, odometry and the SLAM map are reset, the camera
+renders the new world and the next mission uses its map. A container restart goes back to
+`GEORG_MAP`. Do not switch under a running mission: the robot jumps away from its plan.
+
 ## Watch
 
 | What | Where |

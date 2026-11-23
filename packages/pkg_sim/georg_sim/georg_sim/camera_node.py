@@ -11,6 +11,9 @@ Publishes like pib-backend's camera node, so Lichtblick and the task manager see
     /oak/rgb/image_raw/compressed (sensor_msgs/CompressedImage, jpeg), frame
     oak_rgb_camera_optical_frame
 
+Follows the world of the simulator (/sim/world, latched): on a world switch the scene is
+rebuilt with the new walls and furniture.
+
     ros2 run georg_sim sim_camera --ros-args -p map_file:=.../Nav_Test.yaml
 """
 
@@ -18,6 +21,7 @@ import io
 import math
 import os
 
+from georg_sim import worlds
 from georg_sim.mjcf import build_mjcf
 from georg_sim.world import World
 from nav_msgs.msg import Odometry
@@ -25,9 +29,10 @@ import numpy as np
 from PIL import Image
 import rclpy
 from rclpy.node import Node
-from rclpy.qos import qos_profile_sensor_data
+from rclpy.qos import DurabilityPolicy, QoSProfile, qos_profile_sensor_data
 from rclpy.time import Time
 from sensor_msgs.msg import CompressedImage
+from std_msgs.msg import String
 import tf2_ros
 
 DEFAULT_MAP = os.path.join(os.environ.get('GEORG_MAP_DIR', '/root/georg_maps'), 'Nav_Test.yaml')
@@ -106,27 +111,19 @@ class SimCamera(Node):
         self.base_frame = p('base_frame', 'base_footprint').value
         self.quality = p('jpeg_quality', 80).value
         # MJCF snippet with the real furniture meshes (pkg_sim/tools/arena_convert.py); the
-        # box walls of the map are hidden then
-        visuals = p('visuals_file', '').value
+        # box walls of the map are hidden then. Empty: <map>_visuals.xml next to the map
+        visuals = p('visuals_file', '').value or worlds.visuals_for(map_file)
+        self.vfov = math.degrees(2 * math.atan(math.tan(hfov / 2) * self.height / self.width))
 
         import mujoco
         self.mj = mujoco
-        world = World.from_yaml(map_file)
-        xml = add_visuals(build_mjcf(world, (0.0, 0.0, 0.0), 0.2))
-        if visuals and os.path.exists(visuals):
-            xml = add_meshes(xml, visuals)
-        self.model = mujoco.MjModel.from_xml_string(xml)
-        self.data = mujoco.MjData(self.model)
-        # the robot's own simulated body is not part of the camera image
-        base = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_GEOM, 'base')
-        if base >= 0:
-            self.model.geom_rgba[base][3] = 0.0
-        vfov = 2 * math.atan(math.tan(hfov / 2) * self.height / self.width)
-        self.model.vis.global_.fovy = math.degrees(vfov)
-        mujoco.mj_forward(self.model, self.data)
-        self.renderer = mujoco.Renderer(self.model, self.height, self.width)
+        self.renderer = None
+        self._build(map_file, visuals)
         self.camera = mujoco.MjvCamera()
         self.camera.type = mujoco.mjtCamera.mjCAMERA_FREE
+        self.create_subscription(
+            String, 'sim/world', self._on_world,
+            QoSProfile(depth=1, durability=DurabilityPolicy.TRANSIENT_LOCAL))
 
         self.base_pose = None
         self.create_subscription(Odometry, 'sim/ground_truth', self._on_truth, 10)
@@ -139,6 +136,40 @@ class SimCamera(Node):
         self.get_logger().info(
             f'sim camera ready: {self.width}x{self.height} @ {rate} Hz, hfov '
             f'{math.degrees(hfov):.0f} deg, frame {self.frame}, map {map_file}')
+
+    def _build(self, map_file, visuals):
+        """MuJoCo scene and renderer for a map (and its furniture meshes, if any)."""
+        mujoco = self.mj
+        world = World.from_yaml(map_file)
+        xml = add_visuals(build_mjcf(world, (0.0, 0.0, 0.0), 0.2))
+        if visuals and os.path.exists(visuals):
+            xml = add_meshes(xml, visuals)
+        model = mujoco.MjModel.from_xml_string(xml)
+        data = mujoco.MjData(model)
+        # the robot's own simulated body is not part of the camera image
+        base = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_GEOM, 'base')
+        if base >= 0:
+            model.geom_rgba[base][3] = 0.0
+        model.vis.global_.fovy = self.vfov
+        mujoco.mj_forward(model, data)
+        if self.renderer is not None:
+            self.renderer.close()
+        self.model, self.data = model, data
+        self.renderer = mujoco.Renderer(model, self.height, self.width)
+        self.map_file = map_file
+
+    def _on_world(self, msg):
+        """World switch of the simulator: rebuild the scene."""
+        map_dir = os.path.dirname(os.path.abspath(self.map_file))
+        path = worlds.resolve(msg.data, map_dir)
+        if path is None or path == self.map_file:
+            return
+        try:
+            self._build(path, worlds.visuals_for(path))
+        except Exception as exc:  # keep rendering the old world
+            self.get_logger().error(f'world {msg.data}: cannot build the camera scene: {exc}')
+            return
+        self.get_logger().info(f'camera world switched to {msg.data}')
 
     def _on_truth(self, msg):
         p, q = msg.pose.pose.position, msg.pose.pose.orientation

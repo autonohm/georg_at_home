@@ -69,11 +69,9 @@ services:
       timeout: 20s
       retries: 3
       start_period: 60s
+    # furniture: <map>_visuals.xml next to the map (georg_sim/worlds.py); follows /sim/world
     command: >-
-      sh -c 'v=/root/georg_maps/$${GEORG_MAP%.yaml}_visuals.xml; [ -f "$$v" ] || v=;
-      [ "$${GEORG_MAP}" = Arena_AtHome.yaml ] && v=/root/arena/arena_visuals.xml;
-      ros2 run georg_sim sim_camera --ros-args -p map_file:=/root/georg_maps/$${GEORG_MAP}
-      -p visuals_file:=$$v'
+      sh -c 'ros2 run georg_sim sim_camera --ros-args -p map_file:=/root/georg_maps/$${GEORG_MAP}'
 
 networks:
   # Shared with pib-backend and Cerebra (same fixed name): ROS 2 nodes can always reach each

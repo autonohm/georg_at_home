@@ -32,6 +32,13 @@ The world is a map YAML in `pkg_slam/maps` (`GEORG_MAP`): obstacle polygons bloc
 and planner; objects are navigation places; `type: sim_start` is the start pose. The camera
 renders `<map>_visuals.xml` if it exists (else the walls of the map as boxes).
 
+Switch at runtime (`georg_sim/worlds.py`): publish the file name on `/sim/set_world`
+(`std_msgs/String`). The simulator loads it, puts the robot at its `sim_start`, resets odometry
+and calls `/slam_toolbox/reset`; it publishes the current world on `/sim/world` and the choices
+(every map YAML with `polygons`) as a JSON list on `/sim/worlds`, both latched. `sim_camera`
+and the task manager follow `/sim/world`. Unknown names are rejected; with the MuJoCo viewer
+open the switch is refused.
+
 | Map | Generator |
 | --- | --- |
 | `Nav_Test.yaml` | hand-drawn (navigation team) |

@@ -50,6 +50,10 @@ function fakeContext() {
     updatePanelSettingsEditor() {},
     watch() {},
     subscribe(s) { this.subscribed = s; },
+    published: [],
+    advertised: [],
+    advertise(topic, type) { this.advertised.push([topic, type]); },
+    publish(topic, msg) { this.published.push([topic, msg]); },
     async callService(name, req) {
       calls.push([name, req]);
       if (name.endsWith("list_missions")) {
@@ -71,7 +75,7 @@ test("panel registers, lists missions, starts, shows status and aborts", async (
   panel.initPanel(ctx);
   await tick();
 
-  assert.deepEqual(ctx.subscribed, [{ topic: "/task_manager/status" }, { topic: "/task_manager/plan" }]);
+  assert.deepEqual(ctx.subscribed.slice(0, 2), [{ topic: "/task_manager/status" }, { topic: "/task_manager/plan" }]);
   assert.deepEqual(ctx.calls[0], ["/task_manager/list_missions", {}]);
   const select = ctx.panelElement.find((n) => n.tagName === "select");
   assert.equal(select.children.length, 2);
@@ -145,4 +149,32 @@ test("LLM controls: mode, instruction, approval and plan display", async () => {
   ctx.onRender({ currentFrame: [{ topic: "/task_manager/plan", message: { data: '{"mode": "mission"}' } }] }, () => {});
   assert.equal(button("Send").disabled, true);
   assert.equal(button("Approve plan").disabled, true);
+});
+
+test("world row: hidden without simulator, publishes the chosen world", async () => {
+  const panel = loadPanel();
+  const ctx = fakeContext();
+  panel.initPanel(ctx);
+  await tick();
+  const button = ctx.panelElement.find((n) => n.tagName === "button" && n.textContent === "Load world");
+  const row = ctx.panelElement.find((n) => n.children.includes(button));
+  const frame = (events) => new Promise((r) => ctx.onRender({ currentFrame: events }, r));
+
+  await frame([]);
+  assert.equal(row.style, "display: none");
+
+  await frame([
+    { topic: "/sim/worlds", message: { data: '["Arena.yaml", "Nav_Test.yaml"]' } },
+    { topic: "/sim/world", message: { data: "Nav_Test.yaml" } },
+  ]);
+  assert.equal(row.style, "");
+  const select = ctx.panelElement.find((n) => n.tagName === "select" && n.attrs.title === "world of the simulator");
+  assert.equal(select.children.length, 2);
+  select.value = "Arena.yaml";
+  button.onclick();
+  assert.deepEqual(ctx.advertised, [["/sim/set_world", "std_msgs/msg/String"]]);
+  assert.deepEqual(ctx.published, [["/sim/set_world", { data: "Arena.yaml" }]]);
+
+  await frame([{ topic: "/sim/world", message: { data: "Arena.yaml" } }]);
+  assert.ok(ctx.panelElement.find((n) => n.textContent === "world: Arena"));
 });

@@ -58,6 +58,14 @@ function initPanel(context) {
   const approveBtn = el("button", { text: "Approve plan" });
   const rejectBtn = el("button", { text: "Reject plan" });
   const modeBox = el("span", { class: "gtm-mode", text: "mode: ?" });
+  // S9: world of the simulator (only with profile sim; hidden otherwise)
+  const worldSelect = el("select", { title: "world of the simulator" });
+  const worldBtn = el("button", { text: "Load world" });
+  const worldBox = el("span", { class: "gtm-mode", text: "world: ?" });
+  const worldRow = el("div", { class: "gtm-row" }, [worldSelect, worldBtn, worldBox]);
+  let worlds = [];
+  let currentWorld = "";
+  let worldAdvertised = false;
   const planLines = el("div", { class: "gtm-lines" });
   const root = el("div", { class: "gtm" }, [
     style,
@@ -68,6 +76,7 @@ function initPanel(context) {
     el("div", { class: "gtm-row" }, [modeSelect, modeBtn, modeBox]),
     el("div", { class: "gtm-row" }, [instruction, sendBtn, approveBtn, rejectBtn]),
     planLines,
+    worldRow,
     feedback,
   ]);
   context.panelElement.appendChild(root);
@@ -95,6 +104,23 @@ function initPanel(context) {
     approveBtn.disabled = !p.waiting;
     rejectBtn.disabled = !p.waiting;
     sendBtn.disabled = p.mode === "mission";
+    worldRow.style = worlds.length ? "" : "display: none";
+    worldBox.textContent = `world: ${currentWorld.replace(/\.yaml$/, "") || "?"}`;
+    // switching under a running mission would move the robot away from its plan
+    worldBtn.disabled = d.running || !worlds.length;
+  }
+
+  function setWorlds(options) {
+    const key = options.map((o) => o.id).join(",");
+    if (key === worlds.map((o) => o.id).join(",")) {
+      return;
+    }
+    worlds = options;
+    const previous = worldSelect.value || currentWorld;
+    worldSelect.replaceChildren(...options.map((o) => el("option", { value: o.id, text: o.label })));
+    if (options.some((o) => o.id === previous)) {
+      worldSelect.value = previous;
+    }
   }
 
   async function call(service, request) {
@@ -155,13 +181,33 @@ function initPanel(context) {
       say(`approval: ${err.message ?? err}`);
     }
   };
+  worldBtn.onclick = () => {
+    try {
+      if (typeof context.publish !== "function") {
+        throw new Error("this data source cannot publish (use foxglove_bridge)");
+      }
+      if (!worldAdvertised) {
+        context.advertise(model.WORLD_TOPICS.set, "std_msgs/msg/String");
+        worldAdvertised = true;
+      }
+      context.publish(model.WORLD_TOPICS.set, { data: worldSelect.value });
+      say(`world: loading ${worldSelect.value} (robot back to the start, map cleared)`);
+    } catch (err) {
+      say(`world: ${err.message ?? err}`);
+    }
+  };
   approveBtn.onclick = decide(true);
   rejectBtn.onclick = decide(false);
 
   function applySettings() {
     names = model.serviceNames(settings.namespace);
     context.saveState({ ...settings });
-    context.subscribe([{ topic: names.status }, { topic: names.plan }]);
+    context.subscribe([
+      { topic: names.status },
+      { topic: names.plan },
+      { topic: model.WORLD_TOPICS.current },
+      { topic: model.WORLD_TOPICS.list },
+    ]);
     context.updatePanelSettingsEditor({
       actionHandler: (action) => {
         if (action.action === "update") {
@@ -190,6 +236,15 @@ function initPanel(context) {
         lastStatus = event.message; // MissionStatus, updated on every Burr step
       } else if (event.topic === names.plan) {
         lastPlan = event.message; // std_msgs/String with JSON (mode, goal, plan, history)
+      } else if (event.topic === model.WORLD_TOPICS.list) {
+        setWorlds(model.worldOptions(event.message));
+      } else if (event.topic === model.WORLD_TOPICS.current) {
+        const changed = currentWorld && currentWorld !== event.message?.data;
+        currentWorld = event.message?.data ?? "";
+        if (changed) {
+          worldSelect.value = currentWorld;
+          say(`world: ${currentWorld} loaded`);
+        }
       }
     }
     render();

@@ -8,6 +8,9 @@ Publishes:   odom and odom/wheel (nav_msgs/Odometry, frame odom -> base_footprin
              sim/ground_truth (nav_msgs/Odometry): true pose, for tests only
 Action:      sim/reset (georg_sim_msgs/ResetSim): back to the start pose, stopped, odometry
              reset; with clear_map also /slam_toolbox/reset (mission sim_reset)
+Topics:      sim/set_world (std_msgs/String): load another world (map file name, e.g.
+             Arena.yaml): robot at its sim_start, odometry and SLAM map reset;
+             sim/world (current world) and sim/worlds (JSON list), both latched
              /clock (rosgraph_msgs/Clock) with publish_clock:=true (nodes with use_sim_time,
              e.g. twist_mux of pkg_drive in sim_mode)
 
@@ -34,15 +37,17 @@ import time
 
 from geometry_msgs.msg import TransformStamped, Twist
 from georg_sim_msgs.action import ResetSim
+from georg_sim import worlds
 from georg_sim.world import World
 from nav_msgs.msg import Odometry
 import rclpy
 from rclpy.action import ActionServer
 from rclpy.node import Node
-from rclpy.qos import qos_profile_sensor_data
+from rclpy.qos import DurabilityPolicy, QoSProfile, qos_profile_sensor_data
 from rosgraph_msgs.msg import Clock
 from sensor_msgs.msg import LaserScan
 from slam_toolbox.srv import Reset as SlamReset
+from std_msgs.msg import String
 from tf2_ros import StaticTransformBroadcaster, TransformBroadcaster
 
 DEFAULT_MAP = os.path.join(os.environ.get('GEORG_MAP_DIR', '/root/georg_maps'), 'Nav_Test.yaml')
@@ -76,6 +81,7 @@ class Sim2D(Node):
         super().__init__('georg_sim')
         p = self.declare_parameter
         self.map_file = p('map_file', DEFAULT_MAP).value
+        self.map_dir = os.path.dirname(os.path.abspath(self.map_file))
         # start: parameters, else the object of type sim_start in the map, else (1.0, 0.1)
         start = _map_start(self.map_file)
         self.x = p('start_x', start[0]).value
@@ -134,6 +140,13 @@ class Sim2D(Node):
         self.slam_reset = self.create_client(SlamReset, '/slam_toolbox/reset')
         self._reset_server = ActionServer(self, ResetSim, 'sim/reset', self._on_reset)
 
+        # world switch (Lichtblick panel): latched, so late subscribers get the current world
+        latched = QoSProfile(depth=1, durability=DurabilityPolicy.TRANSIENT_LOCAL)
+        self.world_pub = self.create_publisher(String, 'sim/world', latched)
+        self.worlds_pub = self.create_publisher(String, 'sim/worlds', latched)
+        self.create_subscription(String, 'sim/set_world', self._on_set_world, 10)
+        self._publish_world()
+
         self.last_step = time.monotonic()
         self.create_timer(1.0 / physics_hz, self._step)
         self.create_timer(1.0 / scan_hz, self._publish_scan)
@@ -145,6 +158,50 @@ class Sim2D(Node):
 
     def _setup(self):
         """Prepare the simulation backend (hook for the MuJoCo simulator)."""
+
+    def _can_switch_world(self):
+        """Whether the backend can load another world now (hook for the MuJoCo simulator)."""
+        return True
+
+    def _publish_world(self):
+        self.world_pub.publish(String(data=os.path.basename(self.map_file)))
+        self.worlds_pub.publish(String(data=worlds.worlds_json(self.map_dir)))
+
+    def _on_set_world(self, msg):
+        """Load another world: robot at its sim_start, stopped, odometry and SLAM map reset."""
+        path = worlds.resolve(msg.data, self.map_dir)
+        if path is None:
+            self.get_logger().warn(f'set_world: unknown world {msg.data!r} '
+                                   f'(choices: {worlds.list_worlds(self.map_dir)})')
+            self._publish_world()
+            return
+        if not self._can_switch_world():
+            self.get_logger().warn('set_world: not possible with the MuJoCo viewer open')
+            self._publish_world()
+            return
+        try:
+            world = World.from_yaml(path)
+        except Exception as exc:  # broken YAML: keep the current world
+            self.get_logger().error(f'set_world: cannot load {path}: {exc}')
+            self._publish_world()
+            return
+        self.map_file, self.world = path, world
+        sx, sy = _map_start(path)
+        self.start_pose = (sx, sy, 0.0)
+        self.x, self.y, self.yaw = self.start_pose
+        self.ox, self.oy, self.oyaw = self.start_pose
+        self.cmd_queue.clear()
+        self.cmd, self.cmd_time = Twist(), 0.0
+        self._setup()
+        if self.slam_reset.service_is_ready():
+            self.slam_reset.call_async(SlamReset.Request())
+            slam = 'SLAM map reset'
+        else:
+            slam = 'no /slam_toolbox/reset'
+        self._publish_world()
+        self.get_logger().info(
+            f'world switched to {os.path.basename(path)}: start ({sx:.2f}, {sy:.2f}), '
+            f'{len(world.segments)} wall segments, {slam}')
 
     def _reset_backend(self):
         """Put the backend back to the start pose (hook for the MuJoCo simulator)."""
