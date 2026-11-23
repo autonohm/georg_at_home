@@ -158,14 +158,39 @@ def decide(queue: List[int], attempts: List[int], current: int, last_result: Opt
     return RUNNING, queue[1:], attempts, queue[0], notes
 
 
+# tasks that only tidy up; they do not count as "something succeeded"
+BOOKKEEPING_TASKS = {'ReturnToIdle'}
+
+
 def _apply_decision(state: State, ctx: MissionContext, current: int,
                     last_result: Optional[bool]) -> State:
     outcome, queue, attempts, nxt, notes = decide(
         state['queue'], state['attempts'], current, last_result,
         [ctx.priority(i) for i in range(len(ctx.tasks))], ctx.abort_requested())
 
+    skipped, succeeded = list(state['skipped']), state['succeeded']
+    executed = list(state['executed'])
+    if current >= 0 and last_result:
+        if type(ctx.tasks[current]).__name__ not in BOOKKEEPING_TASKS:
+            succeeded += 1
     if current >= 0 and not last_result:
         ctx.log(f"[TASK FAILED] {task_name(ctx.tasks[current])}: {notes[0].split(', ', 1)[-1]}")
+        if 'discarded' in notes[0]:
+            # a discarded task is SKIPPED: the mission goes on without it
+            name = task_name(ctx.tasks[current])
+            skipped.append(name)
+            if executed:
+                executed[-1] = f'{executed[-1]} (SKIPPED)'
+            ctx.log(f'[TASK SKIPPED] {name}')
+    if outcome == SUCCEEDED and ctx.tasks:
+        real = [t for t in ctx.tasks if type(t).__name__ not in BOOKKEEPING_TASKS]
+        if real and succeeded == 0:
+            # nothing that the mission was for has worked: not a success
+            outcome = FAILED
+            notes = notes[:-1] + [f'no task succeeded ({len(skipped)} skipped)']
+        elif skipped:
+            notes = notes[:-1] + [f'mission complete, {len(skipped)} skipped: '
+                                  + ', '.join(skipped)]
     if outcome == RUNNING:
         task = ctx.tasks[nxt]
         go_to = ctx.node(nxt)
@@ -184,16 +209,17 @@ def _apply_decision(state: State, ctx: MissionContext, current: int,
 
     return state.update(queue=queue, attempts=attempts, outcome=outcome, go_to=go_to,
                         decision=' | '.join(notes + [f'-> {go_to}']),
-                        message=notes[-1] if notes else '', **updates)
+                        message=notes[-1] if notes else '', skipped=skipped,
+                        succeeded=succeeded, executed=executed, **updates)
 
 
 # --- Burr actions --------------------------------------------------------------
 
 DECISION_KEYS = ['queue', 'attempts', 'outcome', 'go_to', 'decision', 'message',
-                 'current', 'next_task', 'next_args']
+                 'current', 'next_task', 'next_args', 'skipped', 'succeeded', 'executed']
 
 
-@action(reads=[], writes=['mission_id', 'planned', 'step', 'executed', 'task', 'args',
+@action(reads=[], writes=['mission_id', 'planned', 'step', 'task', 'args',
                           'last_result'] + DECISION_KEYS)
 def start_mission(state: State, ctx: MissionContext, mission_id: str) -> State:
     ctx.log('\n=== Mission Started ===\n')
@@ -204,6 +230,8 @@ def start_mission(state: State, ctx: MissionContext, mission_id: str) -> State:
         attempts=[0] * len(ctx.tasks),
         step=0,
         executed=[],
+        skipped=[],
+        succeeded=0,
         task='',
         args={},
         last_result=None,
@@ -211,8 +239,9 @@ def start_mission(state: State, ctx: MissionContext, mission_id: str) -> State:
     return _apply_decision(state, ctx, current=-1, last_result=None)
 
 
-@action(reads=['current', 'next_task', 'next_args', 'queue', 'attempts', 'step', 'executed'],
-        writes=['task', 'args', 'last_result', 'step', 'executed'] + DECISION_KEYS)
+@action(reads=['current', 'next_task', 'next_args', 'queue', 'attempts', 'step', 'executed',
+               'skipped', 'succeeded'],
+        writes=['task', 'args', 'last_result', 'step'] + DECISION_KEYS)
 async def run_task(state: State, ctx: MissionContext, index: int) -> State:
     """Node of one mission step: run the task, then decide where to go next."""
     if state['current'] != index:   # graph and decision out of sync

@@ -10,9 +10,8 @@ Old numbers (Q…) from the former `OPEN_QUESTIONS.md` in brackets.
 | --- | --- | --- |
 | R1 | Switch navigation to Nav2 now (start from Sam's branch `pkg_nav2`)? | yes – solves N1–N5; keep `nav/navigate_object_x` as the task manager's interface via an adapter |
 | R2 | Remove the RViz container (`pkg_viz` profile `viz`), `pkg_examples`, `pkg_object_detection` (528 MB)? | ask Sam / object detection team first (H1–H3) |
-| R3 | Should a mission with a failed LOW task still end `SUCCEEDED`? | add an outcome "partial" or make key tasks CRITICAL (T1) |
-| R4 | Doorbell for `Listening(DOORBELL)`: Home Assistant (runs in pib-backend) or a button? | Home Assistant event → `PIB_DOORBELL_TOPIC` (V2) |
-| R5 | Default world for `up sim`: keep `Nav_Test.yaml` (tests) or switch to `Arena.yaml`? | keep `Nav_Test` as default, Arena for demos |
+| R4 | Doorbell, microphone, speech in sim | decided: own topic later, worked through in one go (V1, V2) |
+| R5 | Default world | decided: `Nav_Test.yaml` default, Arena for demos; switch the world from Lichtblick (S9) |
 
 ## Navigation (navigation team; Nav2 planned)
 
@@ -54,12 +53,14 @@ Old numbers (Q…) from the former `OPEN_QUESTIONS.md` in brackets.
 | S5 | Simulated camera has no detections (real ones come from the OAK chip) | open – detections from known positions in sim |
 | S6 | MuJoCo base is a cylinder, not Georg's mesh | open (low) |
 | S8 | `drive` container runs `privileged` with `/dev` also in sim (Sam's compose) | info |
+| S9 | Switch the simulation world from Lichtblick (service `sim/set_world` + panel selection) | planned |
+| S10 | Semantic map: name places automatically from camera detections (YOLO on the OAK, depth) or a VLM (Qwen-VL) | future |
 
 ## Task manager
 
 | ID | Issue | Status |
 | --- | --- | --- |
-| T1 (Q21) | Mission ends `SUCCEEDED` although LOW tasks failed | open – R3 |
+| T1 (Q21) | Mission ends `SUCCEEDED` although LOW tasks failed | done: discarded tasks are labelled `(SKIPPED)` in the steps and the final message; a mission where no task succeeded (`ReturnToIdle` does not count) ends `FAILED` |
 | T2 (Q19) | flake8 of the old task manager code still red | open (low) |
 | T3 (Q4b) | `navigate_server` built into the task manager image (map lookup) | open – goes away with Nav2 adapter |
 | T4 (Q27) | LLM model for the Jetson (1.5B plans weakly) | open – step "LLM" |

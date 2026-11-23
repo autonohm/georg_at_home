@@ -58,7 +58,7 @@ def test_success_path_ends_in_idle():
 def test_low_failure_is_discarded_and_mission_continues():
     result = run(service(), [FakeTask('a', LOW, [False]), FakeTask('b')])
     assert result.outcome == 'succeeded'
-    assert result.executed == ['a', 'b']
+    assert result.executed == ['a (SKIPPED)', 'b']
 
 
 def test_mid_failure_retries_after_next_task():
@@ -68,7 +68,7 @@ def test_mid_failure_retries_after_next_task():
 
 def test_high_failure_retries_immediately_three_times():
     result = run(service(), [FakeTask('a', HIGH, [False] * 10), FakeTask('b')])
-    assert result.executed == ['a'] * 4 + ['b']
+    assert result.executed == ['a'] * 3 + ['a (SKIPPED)', 'b']   # 4th attempt fails -> skipped
     assert result.outcome == 'succeeded'
 
 
@@ -254,3 +254,19 @@ def test_node_names_are_readable_and_unique():
                                            'navigate_object': 'object_name'})
     assert names == ['gesture_look_at', 'gesture_look_at_2', 'listen_doorbell',
                      'gesture_point_to', 'finish_2', 'navigate_object']
+
+
+# --- skipped tasks and "nothing succeeded" (review R3, docs/OPEN_ISSUES.md T1) ------------
+
+def test_skipped_task_is_labelled_and_reported():
+    result = run(service(), [FakeTask('a', LOW, [False]), FakeTask('b')])
+    assert result.outcome == 'succeeded'
+    assert result.executed[0].endswith('(SKIPPED)')
+    assert '1 skipped' in result.message
+
+
+def test_mission_where_nothing_succeeded_is_failed():
+    result = run(service(), [FakeTask('a', LOW, [False]), FakeTask('b', LOW, [False])])
+    assert result.outcome == 'failed'
+    assert 'no task succeeded' in result.message
+    assert all(e.endswith('(SKIPPED)') for e in result.executed)
