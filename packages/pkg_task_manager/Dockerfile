@@ -13,6 +13,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
     ros-jazzy-rosbag2 \
     ros-jazzy-rosbag2-storage-mcap \
+    ros-jazzy-nav2-msgs \
     && rm -rf /var/lib/apt/lists/*
 
 # Burr (P1) in its own venv. --system-site-packages keeps rclpy from Jazzy visible,
@@ -27,15 +28,11 @@ ENV GEORG_BURR_STORAGE_DIR=/root/.burr
 # change this variable to trick docker cache into rebuilding
 ENV REBUILD=1
 
-# Interfaces (georg_nav_msgs, georg_gesture_msgs, georg_task_manager_msgs, georg_speech_msgs, pib-backend datatypes)
+# Interfaces (georg_gesture_msgs, georg_task_manager_msgs, georg_speech_msgs, pib-backend datatypes)
 # come from the base image (packages/pkg_interfaces).
 COPY ./task_manager_pkg /ws/task_manager
-# NavigateObject/NavigateRoom import navigate_server.grid_rasterizer directly.
-# Until that is resolved in P1 (docs/OPEN_ISSUES.md T3) the package is built here too.
-COPY --from=navigation ./navigate_server_pkg /ws/navigate_server_pkg
 # Maps are mounted from packages/pkg_slam/maps at runtime (docker-compose.yaml).
 
-#RUN git clone https://github.com/Giusaurus/pkg_navigation.git
 
 RUN rosdep install --from-paths . --ignore-src -r -y && \
     rm -rf /var/lib/apt/lists/*

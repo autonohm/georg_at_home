@@ -1,4 +1,4 @@
-"""P3 simulation: simulator + SLAM + real navigation + task manager over real ROS.
+"""P3 simulation: simulator + SLAM + Nav2 + task manager over real ROS.
 
 Acceptance criteria from the plan: SLAM builds a map in the simulator, a mission with
 the real navigation action runs through, abort stops the drive, the command gate
@@ -42,7 +42,7 @@ def ros_profile():
 
 @pytest.fixture(scope='module')
 def sim_stack(env, bridge):
-    """Start simulator, SLAM and the real navigation servers once for the module."""
+    """Start simulator, SLAM and Nav2 once for the module (Nav2 needs /config/nav2_params.yaml)."""
     maps = env['GEORG_MAP_DIR']
     procs = [
         _spawn(['ros2', 'run', 'georg_sim', SIMULATOR, '--ros-args', '-r', f'__ns:={NS_ARG}',
@@ -50,8 +50,7 @@ def sim_stack(env, bridge):
                os.path.join(env['TMP'], 'sim.log'), env),
         _spawn(['ros2', 'launch', 'slam_sim.launch.py'], os.path.join(env['TMP'], 'slam.log'),
                env, cwd=os.path.join(REPO, 'pkg_slam', 'config')),
-        _spawn(['ros2', 'launch', os.path.join(REPO, 'pkg_navigation', 'config',
-                                               'navigation.launch.py')],
+        _spawn(['ros2', 'launch', os.path.join(REPO, 'pkg_nav2', 'config', 'nav2.launch.py')],
                os.path.join(env['TMP'], 'nav.log'), env),
     ]
     time.sleep(5.0)

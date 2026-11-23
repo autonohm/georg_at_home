@@ -25,6 +25,18 @@ def default_map_path() -> str:
                         os.path.basename(name))
 
 
+def load_place(map_path: str, name: str):
+    """(x, y) of object ``name`` in the map YAML, or None if the map has no such object."""
+    import yaml
+    with open(map_path, encoding='utf-8') as f:
+        data = yaml.safe_load(f) or {}
+    obj = (data.get('objects') or {}).get(name)
+    if obj is None:
+        return None
+    pos = obj['position']
+    return float(pos[0]), float(pos[1])
+
+
 class BaseTask:
 
     def __init__(self, name, priority: TaskPriority = TaskPriority.LOW):

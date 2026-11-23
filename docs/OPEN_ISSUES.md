@@ -8,21 +8,23 @@ Old numbers (Q…) from the former `OPEN_QUESTIONS.md` in brackets.
 
 | # | Question | Proposal |
 | --- | --- | --- |
-| R1 | Switch navigation to Nav2 now (start from Sam's branch `pkg_nav2`)? | yes – solves N1–N5; keep `nav/navigate_object_x` as the task manager's interface via an adapter |
 | R2 | Remove the RViz container (`pkg_viz` profile `viz`), `pkg_examples`, `pkg_object_detection` (528 MB)? | ask Sam / object detection team first (H1–H3) |
 | R4 | Doorbell, microphone, speech in sim | decided: own topic later, worked through in one go (V1, V2) |
 | R5 | Default world | decided: `Nav_Test.yaml` default, Arena for demos; switch the world from Lichtblick (S9) |
 
-## Navigation (navigation team; Nav2 planned)
+## Navigation (Nav2 in `pkg_nav2`; `pkg_navigation` removed, still on `main`)
 
 | ID | Issue | Status |
 | --- | --- | --- |
-| N1 (Q36) | No localisation in the map: pose = `odom` + fixed offset from the map YAML; SLAM pose unused | open – Nav2 (AMCL / slam_toolbox localisation) |
-| N2 (Q31) | Drive server reads `odom`; on the robot only `odom/lidar` and `odom/wheel` exist | open – Nav2 |
-| N3 (Q33) | Gets stuck at door corners / in narrow passages (cuts corners between waypoints, no stuck detection, no re-plan from an inflated cell); seen in `Arena` (`arena_tour` 5/7) | open – Nav2 |
+| N1 (Q36) | No localisation in the map: pose = `odom` + fixed offset from the map YAML; SLAM pose unused | Nav2: solved (drives in the SLAM `map` frame); on the robot places need a saved SLAM map (N8) |
+| N2 (Q31) | Drive server read `odom`; on the robot only `odom/lidar` and `odom/wheel` exist | Nav2 uses TF `odom -> base_footprint`; the task manager's position (`robot.py`, topic `odom`) still needs a source on the robot (N8) |
+| N3 (Q33) | Gets stuck at door corners / in narrow passages (cuts corners between waypoints, no stuck detection, no re-plan from an inflated cell); seen in `Arena` (`arena_tour` 5/7) | Nav2: solved in sim – Arena tour 7/7, Wohnung 5/5 goals (2026-11-23) |
 | N4 (Q25) | 0.55 m gaps in `Nav_Test.yaml` | open (map of the navigation team) |
-| N5 | Planner inflation 0.25 m < half diagonal of the base (0.32 m) | open – Nav2 footprint |
-| N6 | `FACE_TRAVEL_DIRECTION` off: the robot keeps its heading and drives sideways | info – decide with Nav2 |
+| N5 | Planner inflation 0.25 m < half diagonal of the base (0.32 m) | Nav2: footprint 0.50 × 0.42 m, inflation 0.45 m |
+| N6 | `FACE_TRAVEL_DIRECTION` off: the robot keeps its heading and drives sideways | Nav2: MPPI Omni without preferred direction; at the goal pib faces the object (`tasks/nav2_go.py`) |
+| N7 | Switch to Nav2 (R1) | done: `pkg_navigation` removed from this branch, `NavigateObject` and `NavigateRoom` drive with Nav2 |
+| N8 | Real robot: the SLAM map starts where Georg is switched on, so map-YAML places are not SLAM poses. Needs a saved SLAM map (slam_toolbox localization mode) with the places in its frame | open – before `real` with Nav2 (S10) |
+| N9 | Goal response of an action can get lost (DDS: "Failed to send goal response"); `wait_for_action_result` then waits forever. `nav2_go` resends after 10 s; the other tasks do not | open – task manager |
 
 ## SLAM / lidar (Sam)
 
@@ -62,7 +64,7 @@ Old numbers (Q…) from the former `OPEN_QUESTIONS.md` in brackets.
 | --- | --- | --- |
 | T1 (Q21) | Mission ends `SUCCEEDED` although LOW tasks failed | done: discarded tasks are labelled `(SKIPPED)` in the steps and the final message; a mission where no task succeeded (`ReturnToIdle` does not count) ends `FAILED` |
 | T2 (Q19) | flake8 of the old task manager code still red | open (low) |
-| T3 (Q4b) | `navigate_server` built into the task manager image (map lookup) | open – goes away with Nav2 adapter |
+| T3 (Q4b) | `navigate_server` built into the task manager image (map lookup) | done: own lookup `tasks/base.py load_place` |
 | T4 (Q27) | LLM model for the Jetson (1.5B plans weakly) | open – step "LLM" |
 | T5 (Q28) | Events (doorbell, speech) do not trigger LLM runs yet | open |
 

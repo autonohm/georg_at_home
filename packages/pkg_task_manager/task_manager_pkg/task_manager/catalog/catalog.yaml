@@ -103,14 +103,13 @@ tasks:
   navigate_object:
     description: Drive to a named place of the map (see places), stopping short of it.
     class: task_manager.tasks.NavigateObject:NavigateObject
-    action: nav/navigate_object_x
-    extra_actions: [nav/drive_route]
-    type: georg_nav_msgs/action/Navigate
+    action: navigate_to_pose          # Nav2 (pkg_nav2)
+    type: nav2_msgs/action/NavigateToPose
     args_schema:
       object_name: {type: string}
       map_path: {type: string, required: false}   # default: GEORG_MAP_DIR/GEORG_DEFAULT_MAP
       standoff_m: {type: number, min: 0, required: false}
-    timeout_s: 240      # plan 120 s + drive 120 s
+    timeout_s: 200      # Nav2 180 s + goal resend
     cancelable: true
     modes: [mock, sim, real, mcap]
     requires: []        # slam_ready from P3
@@ -119,13 +118,12 @@ tasks:
   navigate_room:
     description: Drive into a named room of the map.
     class: task_manager.tasks.NavigateRoom:NavigateRoom
-    action: nav/navigate_room_x
-    extra_actions: [nav/drive_route]
-    type: georg_nav_msgs/action/Navigate
+    action: navigate_to_pose          # Nav2 (pkg_nav2)
+    type: nav2_msgs/action/NavigateToPose
     args_schema:
       room_name: {type: string}
       map_path: {type: string, required: false}   # default: GEORG_MAP_DIR/GEORG_DEFAULT_MAP
-    timeout_s: 240      # plan 120 s + drive 120 s
+    timeout_s: 200      # Nav2 180 s + goal resend
     cancelable: true
     modes: [mock, sim, real, mcap]
     requires: []        # slam_ready from P3

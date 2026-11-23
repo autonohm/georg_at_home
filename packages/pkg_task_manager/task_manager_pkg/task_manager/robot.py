@@ -5,7 +5,7 @@ from std_msgs.msg import Bool
 from georg_gesture_msgs.action import PibGesturesInterface, PibPose
 from georg_sim_msgs.action import ResetSim
 from georg_speech_msgs.action import Listen, Say
-from georg_nav_msgs.action import Navigate, DriveRoute
+from nav2_msgs.action import NavigateToPose
 from std_msgs.msg import String as StringMsg
 from .state import RobotState
 from nav_msgs.msg import Odometry
@@ -61,27 +61,8 @@ class Georg:
             "pib_gestures_interface"
         )
 
-        # Navigate
-
-        self.navigate_room_action_client = ActionClient(
-            node,
-            Navigate,
-            "nav/navigate_room_x"
-        )
-
-        self.navigate_object_action_client = ActionClient(
-            node,
-            Navigate,
-            "nav/navigate_object_x"
-        )
-
-        # Drive 
-
-        self.drive_route_action_client = ActionClient(
-            node,
-            DriveRoute,
-            "nav/drive_route"
-        )
+        # Navigation: Nav2 (pkg_nav2) plans and drives (tasks/nav2_go.py)
+        self.nav2_action_client = ActionClient(node, NavigateToPose, "navigate_to_pose")
 
         # # Vision (Placeholder)
 

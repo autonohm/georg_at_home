@@ -2,7 +2,6 @@ from task_manager.tasks.Listening import Listening
 from task_manager.tasks.Gesture import Gesture
 from task_manager.tasks.ReturnToIdle import ReturnToIdle
 from task_manager.tasks.NavigateObject import NavigateObject
-from task_manager.tasks.NavigateObject import DriveRoute
 from task_manager.tasks.priority import LOW, MID, HIGH, CRITICAL
 
 

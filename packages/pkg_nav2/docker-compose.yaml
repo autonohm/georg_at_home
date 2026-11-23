@@ -1,0 +1,32 @@
+services:
+  # Nav2 on the live SLAM map (config/nav2.launch.py); the task manager's navigation tasks
+  # send navigate_to_pose (tasks/nav2_go.py).
+  nav2:
+    image: nav2
+    profiles: [sim, real]
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    networks:
+      - pib-network
+    volumes:
+      - ./config:/config:ro
+    environment:
+      - ROS_DOMAIN_ID=${ROS_DOMAIN_ID:-0}
+    init: true
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", ". /opt/ros/jazzy/setup.sh && ros2 node list | grep -qx /bt_navigator"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+      start_period: 60s
+    command: ros2 launch /config/nav2.launch.py
+
+networks:
+  # Shared with pib-backend and Cerebra (same fixed name): ROS 2 nodes can always reach each
+  # other on the network, the ROS domain alone separates them (real = 0 like pib-backend,
+  # mock/sim/mcap = 30). See docs/DECISIONS.md "One network, domains separate".
+  pib-network:
+    name: pib-network
+    driver: bridge

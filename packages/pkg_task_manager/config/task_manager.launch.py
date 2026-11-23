@@ -18,7 +18,7 @@ def generate_launch_description():
         'robot_namespace', default_value=os.getenv('EDU_ROBOT_NAMESPACE', default='')
     )
 
-    # Navigation -> packages/pkg_navigation/config/navigation.launch.py
+    # Navigation -> packages/pkg_nav2/config/nav2.launch.py (Nav2)
     # Gestures   -> packages/pkg_gestures/config/gestures.launch.py
 
     # Listening / Speech: the Listen action server (audio/listen) is not started here any more;

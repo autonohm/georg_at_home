@@ -1,6 +1,6 @@
 # maps
 
-Map files for the pib robot "Georg". Each `.yaml` file describes one environment: the occupancy layout (walls, obstacles, boundary) and named points of interest (objects such as a door or a seat). The navigation servers read these files, and the Task Manager refers to them by path or name.
+Map files for the pib robot "Georg". Each `.yaml` file describes one environment: the occupancy layout (walls, obstacles, boundary) and named points of interest (objects such as a door or a seat). The simulator builds its world from these files, and the Task Manager looks up places in them by name. Nav2 does not read them: it drives on the live SLAM map.
 
 Currently included:
 
@@ -45,7 +45,7 @@ polygons:                   # geometry used for the occupancy grid
 
 ### Polygon types
 
-The rasterizer (`packages/pkg_navigation/navigate_server_pkg/navigate_server/grid_rasterizer.py`) handles the `type` field as follows:
+The simulator (`packages/pkg_sim/georg_sim/georg_sim/world.py`) handles the `type` field as follows:
 
 | `type` | Effect on the grid |
 |---|---|
@@ -69,32 +69,21 @@ Only `position` is used (`[x, y]`). `type` and `frame` are informational.
 
 ### In the Docker image
 
-This folder lives in `pkg_slam` as a debug fallback; the real map is built by SLAM. `pkg_navigation` and `pkg_task_manager` mount it read-only at `/root/georg_maps` (see their `docker-compose.yaml`). Missions reference maps with that absolute path.
+This folder lives in `pkg_slam` as a debug fallback; the real map is built by SLAM. `pkg_sim` and `pkg_task_manager` mount it read-only at `/root/georg_maps` (see their `docker-compose.yaml`). Missions reference maps with that absolute path.
 
 ### On a development machine
 
-Copy the folder to a location of your choice and point the navigation server at it with its parameters:
-
-```bash
-ros2 run navigate_server navigate_action_server --ros-args \
-  -p map_dir:=/home/<user>/georg_maps \
-  -p default_map_name:=Nav_Test.yaml
-```
-
-Or set the environment variables `GEORG_MAP_DIR` and `GEORG_DEFAULT_MAP` before starting the node.
-
-Map names passed in a goal can be a file name (resolved against `map_dir`) or an absolute path.
+Set `GEORG_MAP_DIR` (folder) and `GEORG_DEFAULT_MAP` (file name) before starting the simulator and the task manager. In `sim` the world can also be switched at runtime (`/sim/set_world`, see `packages/pkg_sim/README.md`).
 
 ## Adding a new map
 
 1. Export the map from the map editor as YAML, or write one following the format above.
 2. Make sure there is exactly one `boundary` polygon, or set `width_m` and `height_m`.
 3. Give every point of interest a unique key under `objects:`. The key is the name that missions use.
-4. Check the result in a test run before a demo: plan a route with the Navigate action (see [pkg_navigation](../../pkg_navigation/README.md)) between the points you need.
+4. Check the result in the simulation before a demo: start `sim` with the map and drive to the places you need (`NavigateObject`, Nav2).
 5. Commit the file to this folder and reference it from the mission with its path.
 
 ## Known issues
 
-- **Default map directory.** `DEFAULT_MAP_DIR` in `navigate_action_server.py` is `os.path.expanduser("root/georg_maps")`, which is a relative path. Set `GEORG_MAP_DIR` or the `map_dir` parameter explicitly.
 - **Hard-coded paths in missions.** Missions use absolute paths such as `/root/georg_maps/Nav_Test.yaml` and `/home/giu/georg_maps/...`. Those work only on the machines that have these folders. Consider a single configurable map directory.
 - **Only `Nav_Test.yaml` exists.** The Task Manager mission names `Seat` and `Door`, which are defined in this file only.

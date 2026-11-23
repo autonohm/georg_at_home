@@ -1,2 +1,2 @@
-# the drive server is not running: StartMission must be rejected with a reason
-nav/drive_route: {result: unreachable}
+# Nav2 is not running: StartMission must be rejected with a reason
+navigate_to_pose: {result: unreachable}

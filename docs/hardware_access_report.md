@@ -1,6 +1,6 @@
 # Hardware-Zugriffs-Bericht (P7)
 
-Erzeugt am 2026-11-21 von `tools/hardware_scan.py`. 3209 Dateien einzeln geprüft, 62 Fundstellen.
+Erzeugt am 2026-11-23 von `tools/hardware_scan.py`. 3200 Dateien einzeln geprüft, 60 Fundstellen.
 
 **Profil `real`: NICHT freigegeben** – es gibt offene Probleme (unten). Funde in fremden Paketen werden gemeldet, nicht umgebaut.
 
@@ -8,7 +8,7 @@ Erzeugt am 2026-11-21 von `tools/hardware_scan.py`. 3209 Dateien einzeln geprüf
 | --- | --- |
 | Problem | 12 |
 | offen | 10 |
-| Hinweis | 32 |
+| Hinweis | 30 |
 | erlaubt | 8 |
 
 ## Meldungen an die Paket-Verantwortlichen
@@ -64,16 +64,14 @@ Erzeugt am 2026-11-21 von `tools/hardware_scan.py`. 3209 Dateien einzeln geprüf
 | pkg_gestures | `packages/pkg_gestures/pib_gestures_action/modules/pib_gestures/README.md` | 170 | `- **ERROR: Could not find a version that satisfies the requirement mediapipe (from pib-sdk) (from versions: none)**` | controller sdk | Hinweis | nur Dokumentation |
 | pkg_gestures | `packages/pkg_gestures/pib_gestures_action/modules/pib_gestures/README.md` | 173 | `- **roslibpy.core.RosTimeoutError: Failed to connect to ROS**` | controller sdk | Hinweis | nur Dokumentation |
 | pkg_gestures | `packages/pkg_gestures/pib_gestures_action/modules/pib_gestures/src/pib_gestures/utils/pib_control.py` | 5 | `more detailed description on pibrocks github / pib-sdk / branch-978` | controller sdk | Hinweis | nur Kommentar/Docstring |
-| pkg_navigation | `packages/pkg_navigation/drive_route_server_pkg/drive_route_server/drive_route_action_server.py` | 177 | `self._cmd_vel_pub = self.create_publisher(Twist, CMD_VEL_TOPIC, 10)` | cmd_vel publisher | Hinweis | Fahrbefehl über ROS (cmd_vel). Im Profil real per Launch auf cmd_vel/nav umgeleitet -> twist_mux -> twist_limiter -> Treiber |
 | pkg_object_detection | `packages/pkg_object_detection/README.md` | 5 | `'''git clone --depth 1 https://github.com/luxonis/oak-examples.git` | external code | Hinweis | nur Dokumentation |
 | pkg_slam | `packages/pkg_slam/Dockerfile` | 15 | `RUN git clone https://github.com/SICKAG/sick_scan_xd.git --branch 3.8.0 && \` | external code | offen | Sensor-Treiber (sick_scan_xd, rf2o, scan merger) werden geklont; lesend, nicht im Repo geprüft |
 | pkg_slam | `packages/pkg_slam/Dockerfile` | 16 | `git clone https://github.com/MAPIRlab/rf2o_laser_odometry.git && \` | external code | offen | Sensor-Treiber (sick_scan_xd, rf2o, scan merger) werden geklont; lesend, nicht im Repo geprüft |
 | pkg_slam | `packages/pkg_slam/Dockerfile` | 17 | `git clone https://github.com/BruceChanJianLe/laser_scan_merger.git` | external code | offen | Sensor-Treiber (sick_scan_xd, rf2o, scan merger) werden geklont; lesend, nicht im Repo geprüft |
 | pkg_slam | `packages/pkg_slam/config/lidars.launch.py` | 28 | `arguments=[node_arguments, "hostname:=192.168.2.104", "frame_id:=laser1_frame", "tf_publish_rate:=0.0"],` | hardware ip | erlaubt | Netzwerk-Lidar (SICK), nur lesend, kein Aktor |
 | pkg_slam | `packages/pkg_slam/config/lidars.launch.py` | 36 | `arguments=[node_arguments, "hostname:=192.168.2.144", "frame_id:=laser2_frame", "tf_publish_rate:=0.0"],` | hardware ip | erlaubt | Netzwerk-Lidar (SICK), nur lesend, kein Aktor |
-| pkg_task_manager | `packages/pkg_task_manager/Dockerfile` | 38 | `#RUN git clone https://github.com/Giusaurus/pkg_navigation.git` | external code | Hinweis | nur Kommentar/Docstring |
 | pkg_task_manager | `packages/pkg_task_manager/task_manager_pkg/test/test_mcap_integration.py` | 77 | `cmd = client.node.create_publisher(Twist, f'{NS}/cmd_vel', 10)` | cmd_vel publisher | Hinweis | Fahrbefehl über ROS; läuft über twist_mux/twist_limiter |
-| pkg_task_manager | `packages/pkg_task_manager/task_manager_pkg/test/test_sim_integration.py` | 75 | `self.cmd = node.create_publisher(Twist, f'{NS}/cmd_vel', 10)` | cmd_vel publisher | Hinweis | Fahrbefehl über ROS; läuft über twist_mux/twist_limiter |
+| pkg_task_manager | `packages/pkg_task_manager/task_manager_pkg/test/test_sim_integration.py` | 74 | `self.cmd = node.create_publisher(Twist, f'{NS}/cmd_vel', 10)` | cmd_vel publisher | Hinweis | Fahrbefehl über ROS; läuft über twist_mux/twist_limiter |
 | pkg_urdf | `packages/pkg_urdf/Dockerfile` | 16 | `RUN git clone https://github.com/autonohm/georg_description.git` | external code | offen | beim Bauen geklonter Code, nicht im Repo geprüft |
 | pkg_viz | `packages/pkg_viz/Dockerfile` | 26 | `RUN git clone https://github.com/autonohm/georg_description.git` | external code | offen | beim Bauen geklonter Code, nicht im Repo geprüft |
 | pkg_viz | `packages/pkg_viz/Dockerfile.bridge` | 22 | `RUN git clone https://github.com/autonohm/georg_description.git /ws/georg_description` | external code | offen | beim Bauen geklonter Code, nicht im Repo geprüft |
@@ -94,7 +92,7 @@ Erzeugt am 2026-11-21 von `tools/hardware_scan.py`. 3209 Dateien einzeln geprüf
 
 ## Geprüfte Dateien (Beleg)
 
-3209 Dateien, jede einzeln gelesen.
+3200 Dateien, jede einzeln gelesen.
 
 ```
 compose.yaml  –  31 Zeilen geprüft
@@ -109,7 +107,7 @@ packages/pkg_drive/config/twist_mux/joystick.yaml  –  12 Zeilen geprüft
 packages/pkg_drive/config/twist_mux/twist_mux_launch.py  –  87 Zeilen geprüft
 packages/pkg_drive/config/twist_mux/twist_mux_locks.yaml  –  27 Zeilen geprüft
 packages/pkg_drive/config/twist_mux/twist_mux_topics.yaml  –  27 Zeilen geprüft
-packages/pkg_drive/docker-compose.yaml  –  27 Zeilen geprüft
+packages/pkg_drive/docker-compose.yaml  –  31 Zeilen geprüft
 packages/pkg_drive/twist_limiter/.gitignore  –  7 Zeilen geprüft
 packages/pkg_drive/twist_limiter/CMakeLists.txt  –  31 Zeilen geprüft
 packages/pkg_drive/twist_limiter/LICENSE  –  18 Zeilen geprüft
@@ -120,7 +118,7 @@ packages/pkg_drive/twist_limiter/src/main.cpp  –  107 Zeilen geprüft
 packages/pkg_examples/Dockerfile  –  23 Zeilen geprüft
 packages/pkg_examples/README.md  –  17 Zeilen geprüft
 packages/pkg_examples/config/examples.launch.py  –  64 Zeilen geprüft
-packages/pkg_examples/docker-compose.yaml  –  23 Zeilen geprüft
+packages/pkg_examples/docker-compose.yaml  –  27 Zeilen geprüft
 packages/pkg_examples/pib_action_template/CMakeLists.txt  –  24 Zeilen geprüft
 packages/pkg_examples/pib_action_template/LICENSE  –  203 Zeilen geprüft
 packages/pkg_examples/pib_action_template/README_demo.md  –  39 Zeilen geprüft
@@ -144,7 +142,7 @@ packages/pkg_examples/pib_topic_template/setup.py  –  31 Zeilen geprüft
 packages/pkg_gestures/Dockerfile  –  38 Zeilen geprüft
 packages/pkg_gestures/README.md  –  14 Zeilen geprüft
 packages/pkg_gestures/config/gestures.launch.py  –  30 Zeilen geprüft
-packages/pkg_gestures/docker-compose.yaml  –  27 Zeilen geprüft
+packages/pkg_gestures/docker-compose.yaml  –  31 Zeilen geprüft
 packages/pkg_gestures/pib_gestures_action/CMakeLists.txt  –  16 Zeilen geprüft
 packages/pkg_gestures/pib_gestures_action/LICENSE  –  203 Zeilen geprüft
 packages/pkg_gestures/pib_gestures_action/README.md  –  252 Zeilen geprüft
@@ -208,27 +206,7 @@ packages/pkg_interfaces/georg_task_manager_msgs/srv/ListMissions.srv  –  5 Zei
 packages/pkg_interfaces/georg_task_manager_msgs/srv/SetMode.srv  –  7 Zeilen geprüft
 packages/pkg_interfaces/georg_task_manager_msgs/srv/StartMission.srv  –  7 Zeilen geprüft
 packages/pkg_llm/README.md  –  30 Zeilen geprüft
-packages/pkg_llm/docker-compose.yaml  –  25 Zeilen geprüft
-packages/pkg_navigation/Dockerfile  –  25 Zeilen geprüft
-packages/pkg_navigation/README.md  –  186 Zeilen geprüft
-packages/pkg_navigation/config/navigation.launch.py  –  58 Zeilen geprüft
-packages/pkg_navigation/docker-compose.yaml  –  33 Zeilen geprüft
-packages/pkg_navigation/drive_route_server_pkg/drive_route_server/__init__.py  –  1 Zeilen geprüft
-packages/pkg_navigation/drive_route_server_pkg/drive_route_server/drive_route_action_server.py  –  557 Zeilen geprüft
-packages/pkg_navigation/drive_route_server_pkg/drive_route_server/drive_route_client.py  –  114 Zeilen geprüft
-packages/pkg_navigation/drive_route_server_pkg/drive_route_server/mecanum_controller.py  –  126 Zeilen geprüft
-packages/pkg_navigation/drive_route_server_pkg/package.xml  –  26 Zeilen geprüft
-packages/pkg_navigation/drive_route_server_pkg/resource/drive_route_server  –  1 Zeilen geprüft
-packages/pkg_navigation/drive_route_server_pkg/setup.cfg  –  5 Zeilen geprüft
-packages/pkg_navigation/drive_route_server_pkg/setup.py  –  29 Zeilen geprüft
-packages/pkg_navigation/navigate_server_pkg/navigate_server/__init__.py  –  1 Zeilen geprüft
-packages/pkg_navigation/navigate_server_pkg/navigate_server/astar.py  –  214 Zeilen geprüft
-packages/pkg_navigation/navigate_server_pkg/navigate_server/grid_rasterizer.py  –  281 Zeilen geprüft
-packages/pkg_navigation/navigate_server_pkg/navigate_server/navigate_action_server.py  –  259 Zeilen geprüft
-packages/pkg_navigation/navigate_server_pkg/package.xml  –  26 Zeilen geprüft
-packages/pkg_navigation/navigate_server_pkg/resource/navigate_server  –  1 Zeilen geprüft
-packages/pkg_navigation/navigate_server_pkg/setup.cfg  –  5 Zeilen geprüft
-packages/pkg_navigation/navigate_server_pkg/setup.py  –  29 Zeilen geprüft
+packages/pkg_llm/docker-compose.yaml  –  29 Zeilen geprüft
 packages/pkg_object_detection/Datensatz/images/train/20260708_145237.jpg  –  binär (Bild/Modell/Archiv), kein Code
 packages/pkg_object_detection/Datensatz/images/train/20260708_145357.jpg  –  binär (Bild/Modell/Archiv), kein Code
 packages/pkg_object_detection/Datensatz/images/train/20260708_145736.jpg  –  binär (Bild/Modell/Archiv), kein Code
@@ -3142,19 +3120,20 @@ packages/pkg_object_detection/yolov8n_aug_coco_results/val_batch1_pred.jpg  – 
 packages/pkg_object_detection/yolov8n_aug_coco_results/val_batch2_labels.jpg  –  binär (Bild/Modell/Archiv), kein Code
 packages/pkg_object_detection/yolov8n_aug_coco_results/val_batch2_pred.jpg  –  binär (Bild/Modell/Archiv), kein Code
 packages/pkg_pib_bridge/Dockerfile  –  21 Zeilen geprüft
-packages/pkg_pib_bridge/README.md  –  31 Zeilen geprüft
-packages/pkg_pib_bridge/docker-compose.yaml  –  38 Zeilen geprüft
-packages/pkg_pib_bridge/pib_bridge_pkg/package.xml  –  21 Zeilen geprüft
+packages/pkg_pib_bridge/README.md  –  29 Zeilen geprüft
+packages/pkg_pib_bridge/docker-compose.yaml  –  41 Zeilen geprüft
+packages/pkg_pib_bridge/pib_bridge_pkg/package.xml  –  24 Zeilen geprüft
 packages/pkg_pib_bridge/pib_bridge_pkg/pib_bridge/__init__.py  –  2 Zeilen geprüft
-packages/pkg_pib_bridge/pib_bridge_pkg/pib_bridge/bridge_node.py  –  212 Zeilen geprüft
+packages/pkg_pib_bridge/pib_bridge_pkg/pib_bridge/bridge_node.py  –  321 Zeilen geprüft
 packages/pkg_pib_bridge/pib_bridge_pkg/resource/pib_bridge  –  1 Zeilen geprüft
 packages/pkg_pib_bridge/pib_bridge_pkg/setup.cfg  –  5 Zeilen geprüft
 packages/pkg_pib_bridge/pib_bridge_pkg/setup.py  –  21 Zeilen geprüft
 packages/pkg_pib_model/Dockerfile  –  33 Zeilen geprüft
-packages/pkg_pib_model/README.md  –  58 Zeilen geprüft
+packages/pkg_pib_model/README.md  –  53 Zeilen geprüft
+packages/pkg_pib_model/config/pib_limits.yaml  –  11 Zeilen geprüft
 packages/pkg_pib_model/config/pib_model.launch.py  –  29 Zeilen geprüft
-packages/pkg_pib_model/config/pib_poses.yaml  –  56 Zeilen geprüft
-packages/pkg_pib_model/docker-compose.yaml  –  28 Zeilen geprüft
+packages/pkg_pib_model/config/pib_poses.yaml  –  69 Zeilen geprüft
+packages/pkg_pib_model/docker-compose.yaml  –  32 Zeilen geprüft
 packages/pkg_pib_model/pib_model_pkg/.gitignore  –  2 Zeilen geprüft
 packages/pkg_pib_model/pib_model_pkg/package.xml  –  27 Zeilen geprüft
 packages/pkg_pib_model/pib_model_pkg/pib_model/__init__.py  –  1 Zeilen geprüft
@@ -3168,24 +3147,28 @@ packages/pkg_pib_model/pib_model_pkg/setup.cfg  –  5 Zeilen geprüft
 packages/pkg_pib_model/pib_model_pkg/setup.py  –  41 Zeilen geprüft
 packages/pkg_pib_model/pib_model_pkg/test/test_model.py  –  114 Zeilen geprüft
 packages/pkg_sim/Dockerfile  –  28 Zeilen geprüft
-packages/pkg_sim/README.md  –  47 Zeilen geprüft
+packages/pkg_sim/README.md  –  54 Zeilen geprüft
 packages/pkg_sim/assets/README.md  –  22 Zeilen geprüft
 packages/pkg_sim/config/sim.launch.py  –  24 Zeilen geprüft
 packages/pkg_sim/config/sim_stack.launch.py  –  88 Zeilen geprüft
-packages/pkg_sim/docker-compose.yaml  –  81 Zeilen geprüft
+packages/pkg_sim/docker-compose.yaml  –  83 Zeilen geprüft
 packages/pkg_sim/georg_sim/georg_sim/__init__.py  –  2 Zeilen geprüft
-packages/pkg_sim/georg_sim/georg_sim/camera_node.py  –  204 Zeilen geprüft
+packages/pkg_sim/georg_sim/georg_sim/camera_node.py  –  235 Zeilen geprüft
 packages/pkg_sim/georg_sim/georg_sim/mjcf.py  –  71 Zeilen geprüft
-packages/pkg_sim/georg_sim/georg_sim/sim2d_node.py  –  355 Zeilen geprüft
-packages/pkg_sim/georg_sim/georg_sim/simmj_node.py  –  119 Zeilen geprüft
+packages/pkg_sim/georg_sim/georg_sim/sim2d_node.py  –  412 Zeilen geprüft
+packages/pkg_sim/georg_sim/georg_sim/simmj_node.py  –  125 Zeilen geprüft
 packages/pkg_sim/georg_sim/georg_sim/world.py  –  122 Zeilen geprüft
+packages/pkg_sim/georg_sim/georg_sim/worlds.py  –  55 Zeilen geprüft
 packages/pkg_sim/georg_sim/package.xml  –  28 Zeilen geprüft
 packages/pkg_sim/georg_sim/resource/georg_sim  –  1 Zeilen geprüft
 packages/pkg_sim/georg_sim/setup.cfg  –  5 Zeilen geprüft
 packages/pkg_sim/georg_sim/setup.py  –  28 Zeilen geprüft
 packages/pkg_sim/georg_sim/test/test_mjcf.py  –  58 Zeilen geprüft
 packages/pkg_sim/georg_sim/test/test_world.py  –  47 Zeilen geprüft
+packages/pkg_sim/georg_sim/test/test_worlds.py  –  24 Zeilen geprüft
+packages/pkg_sim/test/test_arena.py  –  333 Zeilen geprüft
 packages/pkg_sim/tools/arena_convert.py  –  426 Zeilen geprüft
+packages/pkg_sim/tools/build_arena.py  –  518 Zeilen geprüft
 packages/pkg_sim/tools/build_world.py  –  230 Zeilen geprüft
 packages/pkg_slam/Dockerfile  –  29 Zeilen geprüft
 packages/pkg_slam/README.md  –  68 Zeilen geprüft
@@ -3197,19 +3180,25 @@ packages/pkg_slam/config/pkg_slam.launch.py  –  49 Zeilen geprüft
 packages/pkg_slam/config/slam.launch.py  –  84 Zeilen geprüft
 packages/pkg_slam/config/slam_mcap.launch.py  –  35 Zeilen geprüft
 packages/pkg_slam/config/slam_sim.launch.py  –  34 Zeilen geprüft
-packages/pkg_slam/docker-compose.yaml  –  30 Zeilen geprüft
+packages/pkg_slam/docker-compose.yaml  –  34 Zeilen geprüft
 packages/pkg_slam/georg_slam.rviz  –  320 Zeilen geprüft
+packages/pkg_slam/maps/Arena.yaml  –  867 Zeilen geprüft
 packages/pkg_slam/maps/Arena_AtHome.yaml  –  4134 Zeilen geprüft
+packages/pkg_slam/maps/Arena_visuals.xml  –  401 Zeilen geprüft
 packages/pkg_slam/maps/Nav_Test.yaml  –  180 Zeilen geprüft
-packages/pkg_slam/maps/README.md  –  101 Zeilen geprüft
+packages/pkg_slam/maps/README.md  –  90 Zeilen geprüft
 packages/pkg_slam/maps/Wohnung.yaml  –  582 Zeilen geprüft
 packages/pkg_slam/maps/Wohnung_visuals.xml  –  47 Zeilen geprüft
+packages/pkg_slam/maps/arena_meshes/bottle.obj  –  244 Zeilen geprüft
+packages/pkg_slam/maps/arena_meshes/cup.obj  –  244 Zeilen geprüft
+packages/pkg_slam/maps/arena_meshes/cylinder.obj  –  100 Zeilen geprüft
+packages/pkg_slam/maps/arena_meshes/sphere.obj  –  454 Zeilen geprüft
 packages/pkg_slam/tools/mcap_raw_only.py  –  91 Zeilen geprüft
-packages/pkg_task_manager/Dockerfile  –  50 Zeilen geprüft
-packages/pkg_task_manager/README.md  –  155 Zeilen geprüft
+packages/pkg_task_manager/Dockerfile  –  47 Zeilen geprüft
+packages/pkg_task_manager/README.md  –  157 Zeilen geprüft
 packages/pkg_task_manager/config/task_manager.launch.py  –  46 Zeilen geprüft
-packages/pkg_task_manager/docker-compose.yaml  –  128 Zeilen geprüft
-packages/pkg_task_manager/task_manager_pkg/package.xml  –  32 Zeilen geprüft
+packages/pkg_task_manager/docker-compose.yaml  –  130 Zeilen geprüft
+packages/pkg_task_manager/task_manager_pkg/package.xml  –  31 Zeilen geprüft
 packages/pkg_task_manager/task_manager_pkg/resource/task_manager  –  1 Zeilen geprüft
 packages/pkg_task_manager/task_manager_pkg/setup.cfg  –  5 Zeilen geprüft
 packages/pkg_task_manager/task_manager_pkg/setup.py  –  34 Zeilen geprüft
@@ -3219,49 +3208,49 @@ packages/pkg_task_manager/task_manager_pkg/task_manager/catalog/catalog.yaml  �
 packages/pkg_task_manager/task_manager_pkg/task_manager/catalog/loader.py  –  126 Zeilen geprüft
 packages/pkg_task_manager/task_manager_pkg/task_manager/catalog/validator.py  –  173 Zeilen geprüft
 packages/pkg_task_manager/task_manager_pkg/task_manager/engine/__init__.py  –  2 Zeilen geprüft
-packages/pkg_task_manager/task_manager_pkg/task_manager/engine/actions.py  –  250 Zeilen geprüft
+packages/pkg_task_manager/task_manager_pkg/task_manager/engine/actions.py  –  279 Zeilen geprüft
 packages/pkg_task_manager/task_manager_pkg/task_manager/engine/builder.py  –  134 Zeilen geprüft
 packages/pkg_task_manager/task_manager_pkg/task_manager/engine/llm_actions.py  –  181 Zeilen geprüft
 packages/pkg_task_manager/task_manager_pkg/task_manager/engine/service.py  –  156 Zeilen geprüft
 packages/pkg_task_manager/task_manager_pkg/task_manager/missions/DigitalFestival.py  –  34 Zeilen geprüft
 packages/pkg_task_manager/task_manager_pkg/task_manager/missions/Greeting.py  –  41 Zeilen geprüft
 packages/pkg_task_manager/task_manager_pkg/task_manager/missions/Mock_Test.py  –  24 Zeilen geprüft
-packages/pkg_task_manager/task_manager_pkg/task_manager/missions/Sim_Test.py  –  54 Zeilen geprüft
+packages/pkg_task_manager/task_manager_pkg/task_manager/missions/Sim_Test.py  –  51 Zeilen geprüft
 packages/pkg_task_manager/task_manager_pkg/task_manager/missions/Test_Mapping.py  –  34 Zeilen geprüft
 packages/pkg_task_manager/task_manager_pkg/task_manager/missions/__init__.py  –  31 Zeilen geprüft
 packages/pkg_task_manager/task_manager_pkg/task_manager/mocks/__init__.py  –  2 Zeilen geprüft
-packages/pkg_task_manager/task_manager_pkg/task_manager/mocks/mock_packages.py  –  196 Zeilen geprüft
+packages/pkg_task_manager/task_manager_pkg/task_manager/mocks/mock_packages.py  –  191 Zeilen geprüft
 packages/pkg_task_manager/task_manager_pkg/task_manager/mocks/scenarios/abort.yaml  –  3 Zeilen geprüft
-packages/pkg_task_manager/task_manager_pkg/task_manager/mocks/scenarios/all_ok.yaml  –  6 Zeilen geprüft
-packages/pkg_task_manager/task_manager_pkg/task_manager/mocks/scenarios/mcap.yaml  –  8 Zeilen geprüft
+packages/pkg_task_manager/task_manager_pkg/task_manager/mocks/scenarios/all_ok.yaml  –  5 Zeilen geprüft
+packages/pkg_task_manager/task_manager_pkg/task_manager/mocks/scenarios/mcap.yaml  –  6 Zeilen geprüft
 packages/pkg_task_manager/task_manager_pkg/task_manager/mocks/scenarios/one_fails.yaml  –  3 Zeilen geprüft
 packages/pkg_task_manager/task_manager_pkg/task_manager/mocks/scenarios/retry_then_ok.yaml  –  3 Zeilen geprüft
-packages/pkg_task_manager/task_manager_pkg/task_manager/mocks/scenarios/sim_mocks.yaml  –  8 Zeilen geprüft
+packages/pkg_task_manager/task_manager_pkg/task_manager/mocks/scenarios/sim_mocks.yaml  –  6 Zeilen geprüft
 packages/pkg_task_manager/task_manager_pkg/task_manager/mocks/scenarios/slow_drive.yaml  –  3 Zeilen geprüft
 packages/pkg_task_manager/task_manager_pkg/task_manager/mocks/scenarios/timeout.yaml  –  3 Zeilen geprüft
 packages/pkg_task_manager/task_manager_pkg/task_manager/mocks/scenarios/unreachable.yaml  –  3 Zeilen geprüft
-packages/pkg_task_manager/task_manager_pkg/task_manager/node.py  –  412 Zeilen geprüft
+packages/pkg_task_manager/task_manager_pkg/task_manager/node.py  –  423 Zeilen geprüft
 packages/pkg_task_manager/task_manager_pkg/task_manager/planner/__init__.py  –  2 Zeilen geprüft
 packages/pkg_task_manager/task_manager_pkg/task_manager/planner/llm_client.py  –  82 Zeilen geprüft
 packages/pkg_task_manager/task_manager_pkg/task_manager/planner/planner.py  –  164 Zeilen geprüft
 packages/pkg_task_manager/task_manager_pkg/task_manager/planner/prompts.py  –  126 Zeilen geprüft
-packages/pkg_task_manager/task_manager_pkg/task_manager/robot.py  –  127 Zeilen geprüft
+packages/pkg_task_manager/task_manager_pkg/task_manager/robot.py  –  108 Zeilen geprüft
 packages/pkg_task_manager/task_manager_pkg/task_manager/state.py  –  100 Zeilen geprüft
 packages/pkg_task_manager/task_manager_pkg/task_manager/tasks/Gesture.py  –  50 Zeilen geprüft
 packages/pkg_task_manager/task_manager_pkg/task_manager/tasks/Listening.py  –  68 Zeilen geprüft
-packages/pkg_task_manager/task_manager_pkg/task_manager/tasks/NavigateObject.py  –  115 Zeilen geprüft
-packages/pkg_task_manager/task_manager_pkg/task_manager/tasks/NavigateRoom.py  –  100 Zeilen geprüft
+packages/pkg_task_manager/task_manager_pkg/task_manager/tasks/NavigateObject.py  –  67 Zeilen geprüft
+packages/pkg_task_manager/task_manager_pkg/task_manager/tasks/NavigateRoom.py  –  15 Zeilen geprüft
 packages/pkg_task_manager/task_manager_pkg/task_manager/tasks/PibPose.py  –  33 Zeilen geprüft
 packages/pkg_task_manager/task_manager_pkg/task_manager/tasks/ResetSimulation.py  –  30 Zeilen geprüft
 packages/pkg_task_manager/task_manager_pkg/task_manager/tasks/ReturnToIdle.py  –  34 Zeilen geprüft
 packages/pkg_task_manager/task_manager_pkg/task_manager/tasks/Speak.py  –  65 Zeilen geprüft
 packages/pkg_task_manager/task_manager_pkg/task_manager/tasks/__init__.py  –  1 Zeilen geprüft
-packages/pkg_task_manager/task_manager_pkg/task_manager/tasks/base.py  –  21 Zeilen geprüft
+packages/pkg_task_manager/task_manager_pkg/task_manager/tasks/base.py  –  48 Zeilen geprüft
 packages/pkg_task_manager/task_manager_pkg/task_manager/tasks/priority.py  –  22 Zeilen geprüft
 packages/pkg_task_manager/task_manager_pkg/task_manager/tasks/timeout_watcher.py  –  76 Zeilen geprüft
-packages/pkg_task_manager/task_manager_pkg/test/conftest.py  –  94 Zeilen geprüft
+packages/pkg_task_manager/task_manager_pkg/test/conftest.py  –  93 Zeilen geprüft
 packages/pkg_task_manager/task_manager_pkg/test/ros_helpers.py  –  220 Zeilen geprüft
-packages/pkg_task_manager/task_manager_pkg/test/test_burr_app.py  –  257 Zeilen geprüft
+packages/pkg_task_manager/task_manager_pkg/test/test_burr_app.py  –  273 Zeilen geprüft
 packages/pkg_task_manager/task_manager_pkg/test/test_copyright.py  –  26 Zeilen geprüft
 packages/pkg_task_manager/task_manager_pkg/test/test_flake8.py  –  26 Zeilen geprüft
 packages/pkg_task_manager/task_manager_pkg/test/test_greeting.py  –  35 Zeilen geprüft
@@ -3272,11 +3261,11 @@ packages/pkg_task_manager/task_manager_pkg/test/test_mcap_integration.py  –  1
 packages/pkg_task_manager/task_manager_pkg/test/test_pep257.py  –  24 Zeilen geprüft
 packages/pkg_task_manager/task_manager_pkg/test/test_planner.py  –  222 Zeilen geprüft
 packages/pkg_task_manager/task_manager_pkg/test/test_ros_integration.py  –  116 Zeilen geprüft
-packages/pkg_task_manager/task_manager_pkg/test/test_sim_integration.py  –  160 Zeilen geprüft
+packages/pkg_task_manager/task_manager_pkg/test/test_sim_integration.py  –  159 Zeilen geprüft
 packages/pkg_task_manager/task_manager_pkg/test/test_validator.py  –  142 Zeilen geprüft
 packages/pkg_urdf/Dockerfile  –  25 Zeilen geprüft
 packages/pkg_urdf/README.md  –  16 Zeilen geprüft
-packages/pkg_urdf/docker-compose.yaml  –  23 Zeilen geprüft
+packages/pkg_urdf/docker-compose.yaml  –  27 Zeilen geprüft
 packages/pkg_urdf/view_urdf.rviz  –  156 Zeilen geprüft
 packages/pkg_viz/Dockerfile  –  38 Zeilen geprüft
 packages/pkg_viz/Dockerfile.bridge  –  35 Zeilen geprüft
@@ -3287,17 +3276,17 @@ packages/pkg_viz/config/operator.launch.py  –  50 Zeilen geprüft
 packages/pkg_viz/config/qt5ct/colors/gruvbox-dark.conf  –  6 Zeilen geprüft
 packages/pkg_viz/config/qt5ct/colors/gruvbox-light.conf  –  6 Zeilen geprüft
 packages/pkg_viz/config/qt5ct/qt5ct.conf  –  8 Zeilen geprüft
-packages/pkg_viz/docker-compose.yaml  –  62 Zeilen geprüft
+packages/pkg_viz/docker-compose.yaml  –  66 Zeilen geprüft
 packages/pkg_viz/georg_slam.rviz  –  320 Zeilen geprüft
 packages/pkg_viz/lichtblick_layouts/georg_sim.json  –  114 Zeilen geprüft
 packages/pkg_viz/lichtblick_panel/.gitignore  –  3 Zeilen geprüft
-packages/pkg_viz/lichtblick_panel/README.md  –  47 Zeilen geprüft
+packages/pkg_viz/lichtblick_panel/README.md  –  53 Zeilen geprüft
 packages/pkg_viz/lichtblick_panel/build.py  –  66 Zeilen geprüft
 packages/pkg_viz/lichtblick_panel/package.json  –  18 Zeilen geprüft
-packages/pkg_viz/lichtblick_panel/src/extension.js  –  213 Zeilen geprüft
-packages/pkg_viz/lichtblick_panel/src/model.js  –  146 Zeilen geprüft
-packages/pkg_viz/lichtblick_panel/test/model.test.js  –  78 Zeilen geprüft
-packages/pkg_viz/lichtblick_panel/test/panel.test.js  –  149 Zeilen geprüft
+packages/pkg_viz/lichtblick_panel/src/extension.js  –  268 Zeilen geprüft
+packages/pkg_viz/lichtblick_panel/src/model.js  –  165 Zeilen geprüft
+packages/pkg_viz/lichtblick_panel/test/model.test.js  –  88 Zeilen geprüft
+packages/pkg_viz/lichtblick_panel/test/panel.test.js  –  181 Zeilen geprüft
 projectctl.bash  –  281 Zeilen geprüft
 system-files/README.md  –  40 Zeilen geprüft
 system-files/etc/systemd/system/georg.service  –  29 Zeilen geprüft

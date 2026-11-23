@@ -1,6 +1,6 @@
 """Everything for profile sim in one launch (used on a Mac without Docker: pixi run sim).
 
-simulator + SLAM + real navigation + task manager + mocked speech/gestures + command gate,
+simulator + SLAM + Nav2 + task manager + mocked speech/gestures + command gate,
 plus Georg's model (georg_description, if built: pixi run fetch_description && pixi run build).
 In Docker the same parts run as separate containers (compose profile sim, model: pkg_urdf).
 
@@ -76,8 +76,8 @@ def generate_launch_description():
             Node(package='task_manager', executable='mock_packages', name='mock_packages',
                  arguments=['--scenario', 'sim_mocks'], output='screen'),
         ]),
-        IncludeLaunchDescription(os.path.join(PACKAGES, 'pkg_navigation', 'config',
-                                              'navigation.launch.py')),
+        IncludeLaunchDescription(os.path.join(PACKAGES, 'pkg_nav2', 'config',
+                                              'nav2.launch.py')),
         # Lichtblick: ws://localhost:8765 (min_qos_depth 10: no lost status updates)
         Node(package='foxglove_bridge', executable='foxglove_bridge', name='foxglove_bridge',
              parameters=[{'port': 8765, 'min_qos_depth': 10}], output='screen'),

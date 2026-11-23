@@ -63,6 +63,20 @@ goes to the `sim_start` of the new world, odometry and the SLAM map are reset, t
 renders the new world and the next mission uses its map. A container restart goes back to
 `GEORG_MAP`. Do not switch under a running mission: the robot jumps away from its plan.
 
+## Navigation with Nav2
+
+`pkg_nav2` starts with `sim` and `real`. Nav2 drives on the live SLAM map (no map server, no
+AMCL) and sends `cmd_vel/nav` into twist_mux. Missions use it through `NavigateObject` /
+`NavigateRoom`; a goal can also be sent directly:
+
+```bash
+ros2 action send_goal /navigate_to_pose nav2_msgs/action/NavigateToPose \
+  "{pose: {header: {frame_id: map}, pose: {position: {x: 3.8, y: 6.85}, orientation: {w: 1.0}}}}"
+```
+
+In the simulation the SLAM `map` frame is the frame of the map YAML (SLAM starts at `sim_start`),
+so place coordinates work as goals. Parameters: `packages/pkg_nav2/config/nav2_params.yaml`.
+
 ## Watch
 
 | What | Where |

@@ -1,2 +1,2 @@
 # driving takes 3 s: time for operator feedback while a task runs
-nav/drive_route: {result: success, after_s: 3}
+navigate_to_pose: {result: success, after_s: 3}

@@ -5,7 +5,7 @@ Runs inside the task_manager container, which has rclpy and the message packages
     tests/stack/run.sh mock      # or: sim
 
 Checks (plan P2/P3): missions can be listed and started, a mission ends with the expected
-state, in sim the robot really reaches the seat with real navigation, SLAM publishes a map,
+state, in sim the robot really reaches the seat with Nav2, SLAM publishes a map,
 an abort stops the drive. Prints one line per check, exit code 1 if one fails.
 """
 import math
@@ -106,10 +106,10 @@ def wait_for(pred, timeout):
 
 def seat_position(name='Seat'):
     """Position of a named object in the default map."""
-    from navigate_server import grid_rasterizer
+    from task_manager.tasks.base import load_place
     path = os.path.join(os.environ.get('GEORG_MAP_DIR', '/root/georg_maps'),
                         os.environ.get('GEORG_DEFAULT_MAP', 'Nav_Test.yaml'))
-    return grid_rasterizer.load_named_object_position(path, name)
+    return load_place(path, name)
 
 
 def main():
@@ -200,7 +200,7 @@ def main():
 
         check('simulator publishes /odom', odom)
         check('SLAM builds a map in the simulator', slam_map)
-        check('sim_seat: real navigation reaches the seat', seat)
+        check('sim_seat: Nav2 reaches the seat', seat)
         check('abort stops the drive', abort_stops)
 
         def reset():

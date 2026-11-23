@@ -61,8 +61,8 @@ test("requests match the service definitions", () => {
 test("responses become one line of feedback", () => {
   assert.equal(m.describeResponse("start", { accepted: true, burr_app_id: "x" }), "start: accepted (x)");
   assert.equal(
-    m.describeResponse("start", { accepted: false, reason: "action server not reachable: nav/drive_route" }),
-    "start: rejected – action server not reachable: nav/drive_route",
+    m.describeResponse("start", { accepted: false, reason: "action server not reachable: navigate_to_pose" }),
+    "start: rejected – action server not reachable: navigate_to_pose",
   );
   assert.equal(m.describeResponse("cancel", undefined), "cancel: no response");
 });

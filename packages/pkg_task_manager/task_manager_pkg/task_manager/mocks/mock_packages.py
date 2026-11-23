@@ -8,7 +8,7 @@ tell the difference. What each server answers is set by a scenario (YAML)::
     listen:  {result: success, after_s: 0.3}
 
 Keys are catalog task names (``listen``, ``gesture``, ``navigate_object``, ...)
-or action names (``nav/drive_route``). Action names win. A value is one
+or action names (``navigate_to_pose``). Action names win. A value is one
 behaviour or a list of behaviours used one after another (the last one repeats):
 
     result:  success | fail | timeout | unreachable
@@ -30,9 +30,8 @@ import threading
 import time
 
 from georg_speech_msgs.action import Listen, Say
-from geometry_msgs.msg import Point
 from georg_gesture_msgs.action import PibGesturesInterface, PibPose
-from georg_nav_msgs.action import DriveRoute, Navigate
+from nav2_msgs.action import NavigateToPose
 from nav_msgs.msg import Odometry
 import rclpy
 from rclpy.action import ActionServer, CancelResponse, GoalResponse
@@ -50,9 +49,9 @@ ACTION_TYPES = {
     'georg_speech_msgs/action/Say': Say,
     'georg_gesture_msgs/action/PibGesturesInterface': PibGesturesInterface,
     'georg_gesture_msgs/action/PibPose': PibPose,
-    'georg_nav_msgs/action/Navigate': Navigate,
+    'nav2_msgs/action/NavigateToPose': NavigateToPose,
 }
-EXTRA_ACTION_TYPES = {'nav/drive_route': DriveRoute}
+EXTRA_ACTION_TYPES = {}
 
 
 def load_scenario(name_or_path: str) -> dict:
@@ -77,15 +76,11 @@ def _result(action_type, ok: bool):
     elif action_type is PibGesturesInterface:
         r = PibGesturesInterface.Result()
         r.success, r.message = (0, 'mock ok') if ok else (1, 'mock failure')
-    elif action_type is Navigate:
-        r = Navigate.Result()
-        r.result_code = Navigate.Result.RESULT_OK if ok else Navigate.Result.RESULT_NO_PATH_FOUND
-        r.waypoints = [Point(x=1.0, y=0.0, z=0.0)] if ok else []
-        r.path_length_m = 1.0 if ok else 0.0
     else:
-        r = DriveRoute.Result()
-        r.result_code = DriveRoute.Result.RESULT_OK if ok \
-            else DriveRoute.Result.RESULT_OBSTACLE_DETECTED
+        # NavigateToPose: success/failure is the goal status (succeed/abort), plus an error code
+        r = NavigateToPose.Result()
+        if not ok:
+            r.error_code, r.error_msg = 1, 'mock failure'
     return r
 
 

@@ -5,8 +5,6 @@ services:
     build:
       context: .
       dockerfile: ./Dockerfile
-      additional_contexts:
-        navigation: ../pkg_navigation
     networks:
       - pib-network
     volumes:

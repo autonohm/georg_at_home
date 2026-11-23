@@ -93,14 +93,14 @@ def test_abort_during_task(client, mocks):
     final = client.wait_final(response.burr_app_id, timeout=10)
     assert final.state == MissionStatus.ABORTED
     assert time.monotonic() - asked < 3.0             # plan: abort within 2 s (+ margin)
-    mocks.wait_text('nav/drive_route: canceled')
+    mocks.wait_text('navigate_to_pose: canceled')
 
 
 def test_package_unreachable_at_start(client, mocks):
-    mocks.run('unreachable')        # no drive server
+    mocks.run('unreachable')        # no Nav2
     response = client.start()
     assert not response.accepted
-    assert 'nav/drive_route' in response.reason
+    assert 'navigate_to_pose' in response.reason
 
 
 def test_ten_missions_in_a_row_without_restart(client, mocks, bridge):

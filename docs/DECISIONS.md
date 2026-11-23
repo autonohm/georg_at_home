@@ -36,8 +36,9 @@ does not apply to GLB) → the URDF counter-rotates the pib meshes; STL/OBJ need
 
 **Sam's `sim_mode` only for the drive chain in sim.** `drive` runs `twist_mux` + `twist_limiter`
 without the driver, so sim has the robot's command chain. SLAM/odometry stay with the simulator
-because the current navigation has no localisation in the map (see OPEN_ISSUES N1); with Nav2
-the simulator will publish wheel odometry only and rf2o/SLAM run like on the robot.
+because the map YAML places are in the simulator's odom frame. Now that Nav2 drives on the
+SLAM map, the simulator could publish wheel odometry only and run rf2o/SLAM like on the robot
+(OPEN_ISSUES N8).
 
 **Realistic sensors in sim:** two TiM571 at the URDF poses (270°, noise), merged like the
 scan merger; optional odometry drift and command latency; `/clock`. Simulator subscribes
@@ -90,6 +91,23 @@ packages: tests exactly what runs on the robot.
 
 **`pib-sdk` not installed in the gesture image** – unused (imports commented out), drives servos
 past the stack, and conflicts with ROS Jazzy's numpy on arm64.
+
+## Navigation
+
+**Nav2 on the live SLAM map** (2026-11-23, `pkg_nav2`). The own A* + route driver got stuck at
+door corners and had no localisation (OPEN_ISSUES N1–N5). Nav2 (Jazzy) uses the map and the
+`map -> odom` of slam_toolbox, so no map server and no AMCL. MPPI with the `Omni` motion model
+(mecanum, no preferred direction), footprint 0.50 × 0.42 m, speeds below the twist_limiter.
+Output goes through the collision monitor to `cmd_vel/nav`, so twist_mux and the twist_limiter
+of `pkg_drive` stay in charge and teleop keeps priority. Only the needed Nav2 nodes are started
+(own launch file), the parameters are generated from the nav2_bringup defaults and list every
+change. The task manager keeps its tasks: `NavigateObject` looks up the place in the map YAML
+and sends `navigate_to_pose`. Started from Sam's branch `pkg_nav2`.
+
+**`pkg_navigation` removed from this branch** (2026-11-23, user decision) after Nav2 drove the
+Arena tour 7/7 in sim. Nav2 is the only navigation; there is no `GEORG_NAV_BACKEND` switch any
+more. `main` keeps `pkg_navigation`; `georg_nav_msgs` (`Navigate`, `DriveRoute`) stays in
+`pkg_interfaces` but is unused here.
 
 ## Task manager (P0–P8, 2026-11-20)
 

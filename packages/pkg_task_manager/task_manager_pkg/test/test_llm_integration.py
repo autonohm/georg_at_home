@@ -120,7 +120,7 @@ def test_llm_plans_and_burr_executes_without_intervention(client, operator, fake
     log = mocks.text()
     assert 'audio/listen: goal received' in log
     assert 'pib_gestures_interface: goal received' in log
-    assert 'nav/navigate_object_x: goal received' in log
+    assert 'navigate_to_pose: goal received' in log
     # after every task the result went back to the LLM: 3 decisions
     assert len(fake_llm.requests) == 3
     third = json.loads(fake_llm.requests[2]['messages'][1]['content'])

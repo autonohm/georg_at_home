@@ -2,6 +2,4 @@
 listen: {result: success, after_s: 0.3}
 gesture: {result: success, after_s: 0.3}
 navigate_object: {result: success, after_s: 0.3}
-navigate_room: {result: success, after_s: 0.3}
-nav/drive_route: {result: success, after_s: 0.3}
 odom: false

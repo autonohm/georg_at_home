@@ -26,7 +26,7 @@ flowchart LR
   subgraph J["Jetson Thor - Georg's stack (Docker, compose project georg)"]
     FB["foxglove_bridge :8765"]
     TM["task_manager<br/>(Burr, missions, LLM planner)"]
-    NAV["navigation<br/>(planner + drive route)"]
+    NAV["nav2<br/>(Nav2 on the SLAM map)"]
     GES["gestures"]
     DRV["drive<br/>twist_mux → twist_limiter → driver"]
     SLAM["slam<br/>(lidars, rf2o, slam_toolbox)"]
@@ -69,7 +69,7 @@ are built into the base image.
 | `docker_base_image` | ROS 2 Jazzy base: all interfaces of `pkg_interfaces` + pib-backend's `datatypes` | stack |
 | `pkg_interfaces` | Messages/actions: `georg_nav_msgs`, `georg_gesture_msgs` (incl. `PibPose`), `georg_speech_msgs` (`Listen`, `Say`), `georg_sim_msgs`, `georg_task_manager_msgs` | stack |
 | `pkg_task_manager` | Missions and tasks on Burr, services `/task_manager/*`, mock packages, MCAP recorder, Burr UI | task manager team |
-| `pkg_navigation` | A* planner on the map YAML + route driver (to be replaced by Nav2) | navigation team |
+| `pkg_nav2` | Nav2 on the live SLAM map (MPPI for mecanum, collision monitor); the task manager's `NavigateObject`/`NavigateRoom` send `navigate_to_pose`. Replaces `pkg_navigation` (A* + route driver, still on `main`) | stack / navigation team |
 | `pkg_drive` | EduArt driver, joystick, `twist_mux`, `twist_limiter` | drive (Sam) |
 | `pkg_slam` | Lidar drivers, scan merger, rf2o odometry, slam_toolbox; **maps** in `maps/` | SLAM (Sam) |
 | `pkg_urdf` | Georg's robot description (`georg_description`) | Sam |
@@ -91,11 +91,11 @@ flowchart TB
   end
   subgraph sim["sim - simulated robot"]
     s1["simulator + sim_camera + fake pib motors"]
-    s2["navigation, gestures, slam, drive (without driver)"]
+    s2["Nav2, gestures, slam, drive (without driver)"]
   end
   subgraph real["real - the robot (Jetson on Georg only)"]
     r1["driver edu_robot, lidars, pib-backend"]
-    r2["navigation, gestures, slam, drive"]
+    r2["Nav2, gestures, slam, drive"]
   end
   subgraph mcap["mcap - replay a recording"]
     p1["player + slam + mocks"]
@@ -107,7 +107,7 @@ flowchart TB
 | task_manager, foxglove_bridge, recorder, burr_ui | ✓ | ✓ | ✓ | ✓ |
 | mock_packages (fake action servers) | ✓ | | | ✓ |
 | sim, sim_camera | | ✓ | | |
-| navigation, gestures, drive | | ✓ | ✓ | |
+| nav2, gestures, drive | | ✓ | ✓ | |
 | slam, urdf, pib_model | | ✓ | ✓ | ✓ |
 | player | | | | ✓ |
 | pib_bridge (`GEORG_WITH_PIB_BACKEND=1`) | | ✓ | ✓ | |
@@ -142,7 +142,7 @@ flowchart LR
 
 ```mermaid
 flowchart LR
-  NAV["navigation<br/>cmd_vel/nav"] --> MUX["twist_mux"]
+  NAV["Nav2<br/>cmd_vel/nav"] --> MUX["twist_mux"]
   JOY["joystick<br/>cmd_vel/teleop"] --> MUX
   MUX -->|cmd_vel/limiter| LIM["twist_limiter"]
   LIM -->|cmd_vel| OUT{"profile"}
@@ -156,7 +156,7 @@ flowchart LR
 sequenceDiagram
   participant U as Lichtblick panel / service call
   participant TM as task_manager (Burr)
-  participant P as packages (navigation, gestures, bridge, …)
+  participant P as packages (Nav2, gestures, bridge, …)
   U->>TM: /task_manager/start {mission_id}
   TM->>TM: check: every action server reachable, task allowed in this profile
   loop each task

@@ -17,7 +17,7 @@ name: georg
 
 include:
   - packages/pkg_task_manager/docker-compose.yaml
-  - packages/pkg_navigation/docker-compose.yaml
+  - packages/pkg_nav2/docker-compose.yaml
   - packages/pkg_gestures/docker-compose.yaml
   - packages/pkg_slam/docker-compose.yaml
   - packages/pkg_sim/docker-compose.yaml

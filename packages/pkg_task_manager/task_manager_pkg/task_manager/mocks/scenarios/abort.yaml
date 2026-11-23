@@ -1,2 +1,2 @@
-# driving takes long, so a cancel arrives while the drive action runs
-nav/drive_route: {result: success, after_s: 30}
+# driving takes long, so a cancel arrives while Nav2 drives
+navigate_to_pose: {result: success, after_s: 30}

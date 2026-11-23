@@ -1,7 +1,5 @@
-# profile sim: speech and gestures are mocked, navigation is the real package
+# profile sim: speech and gestures are mocked, navigation is the real Nav2
 listen: {result: success, after_s: 0.3}
 gesture: {result: success, after_s: 0.3}
 navigate_object: {result: unreachable}
-navigate_room: {result: unreachable}
-nav/drive_route: {result: unreachable}
 odom: false              # the simulator publishes odom

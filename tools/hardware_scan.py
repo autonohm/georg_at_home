@@ -128,10 +128,9 @@ def rate(f: Finding) -> None:
     if pkg == 'pkg_task_manager' and rule == 'hardware ip':
         return set_('Hinweis', 'IP-Adresse im Text (Doku/Konfiguration), kein Zugriff')
     if rule == 'cmd_vel publisher':
-        if pkg == 'pkg_navigation':
-            return set_('Hinweis', 'Fahrbefehl über ROS (cmd_vel). Im Profil real per Launch '
-                                   'auf cmd_vel/nav umgeleitet -> twist_mux -> twist_limiter '
-                                   '-> Treiber')
+        if pkg == 'pkg_nav2':
+            return set_('Hinweis', 'Fahrbefehl über ROS: Nav2 -> collision_monitor -> '
+                                   'cmd_vel/nav -> twist_mux -> twist_limiter -> Treiber')
         if pkg == 'pkg_sim':
             return set_('erlaubt', 'Simulator selbst')
         return set_('Hinweis', 'Fahrbefehl über ROS; läuft über twist_mux/twist_limiter')

@@ -4,7 +4,7 @@ All ROS interfaces that cross a container boundary. They are built into the base
 
 | ROS package | Content | Used by |
 | --- | --- | --- |
-| `georg_nav_msgs` | `Navigate.action`, `DriveRoute.action` | pkg_navigation, pkg_task_manager |
+| `georg_nav_msgs` | `Navigate.action`, `DriveRoute.action` | unused since Nav2 (former `pkg_navigation`, still on `main`) |
 | `georg_gesture_msgs` | `PibGesturesInterface.action` | pkg_gestures, pkg_task_manager |
 | `georg_speech_msgs` | `Listen.action`, `Say.action`, voice messages | pkg_task_manager, pkg_pib_bridge |
 | `georg_sim_msgs` | `ResetSim.action` | pkg_sim, pkg_task_manager |

@@ -181,7 +181,7 @@ def test_rejection_reason_reaches_the_panel(foxglove_bridge, mocks):
     async def scenario(c):
         response = await c.call('start', StartMission.Request(mission_id='mock_test'))
         assert not response.accepted
-        assert 'nav/drive_route' in response.reason
+        assert 'navigate_to_pose' in response.reason
 
     asyncio.run(_session(scenario))
 
