@@ -105,6 +105,9 @@ docker_cmd() {
     for dir in "$PACKAGES_DIR"/pkg_*/; do
         package=$(path_to_package_name "$dir")
 
+        if is_ignored "$package"; then
+            continue
+        fi
         if is_skipped "$package"; then
             continue
         fi
@@ -126,6 +129,9 @@ docker_logs() {
         package=$(path_to_package_name "$dir")
         packages+=($(path_to_package_name "$dir"))
 
+        if is_ignored "$package"; then
+            continue
+        fi
         if is_skipped "$package"; then
             continue
         fi
