@@ -31,12 +31,28 @@ class Speak(BaseTask):
         self.join = join
         self.timeout = timeout
 
+    def _resolve_text(self, state) -> str:
+        value = self.text(state) if callable(self.text) else self.text
+        return "" if value is None else str(value).strip()
+
     async def run(self, robot, state):
 
-        print(f"[TASK] Speak: Started")
+        print("[TASK] Speak: Started")
+
+        try:
+            text = self._resolve_text(state)
+        except Exception as exc:
+            print(f"[TASK] Speak: could not build text: {exc!r}")
+            return False
+
+        if not text:
+            print("[TASK] Speak: nothing to say")
+            return False
+
+        print(f"[TASK] Speak: {text}")
 
         request = PlayAudioFromSpeech.Request()
-        request.speech = self.text
+        request.speech = text
         request.gender = self.gender
         request.language = self.language
         request.join = self.join
@@ -54,4 +70,4 @@ class Speak(BaseTask):
 
         print(f"[TASK] Speak: Finished successfully")
         return True
-        
+    
