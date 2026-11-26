@@ -1,4 +1,5 @@
 services:
+  # Nav2 on the live SLAM map (config/nav2.launch.py); goals via the action navigate_to_pose
   nav2:
     image: nav2
     build:
@@ -8,11 +9,9 @@ services:
       - pib-network
     volumes:
       - ./config:/config:ro
-    privileged: true
-#    restart: always
     init: true
-    command: "ros2 launch nav2_bringup bringup_launch.py params_file:=/config/parameters/nav2_params.yaml"
-#    command: sleep 1d
+    restart: unless-stopped
+    command: ros2 launch /config/nav2.launch.py
 
 networks:
   pib-network:

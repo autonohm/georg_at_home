@@ -7,6 +7,7 @@ from launch.substitutions import PathJoinSubstitution
 from launch_ros.substitutions import FindPackageShare
 
 from launch.substitutions import LaunchConfiguration
+from launch_ros.parameter_descriptions import ParameterValue
 
 
 
@@ -20,6 +21,10 @@ def generate_launch_description():
         parameters=[
             { PathJoinSubstitution([ '.', 'parameters', 'rf2o_laser_odometry.yaml' ]) },
             { 'use_sim_time': sim_mode },
+            # Only one node may publish odom -> base_footprint. On the robot that is the
+            # wheel odometry of pkg_drive (odom/wheel); in sim mode there is no drive node,
+            # so rf2o publishes the tf there. The odom/lidar topic is published either way.
+            { 'publish_tf': ParameterValue(sim_mode, value_type=bool) },
         ],
         arguments=['--ros-args', '--log-level', 'warn'],
         output='screen',
@@ -75,8 +80,10 @@ def generate_launch_description():
     )
 
     return LaunchDescription([
-        tf_map_odom,
-        #tf_odom_basefootprint,
+        # No static map -> odom here: slam_toolbox publishes map -> odom itself
+        # (transform_publish_period), a second publisher makes the tf jump (Nav2 errors).
+        # tf_map_odom,
+        # tf_odom_basefootprint,
 
         rf2o_odom,
         slam_toolbox
