@@ -1,14 +1,15 @@
-from pib_gestures.core import greet_person
-from pib_gestures.config import gestures
+'''
+test scenario for pib waving with the right arm to a person
+1000 mm in front of pib, 200 mm to the left and 100 mm upwards
+'''
 
-import sys
+from pib_gestures.greet_person import greet_person
 
 if __name__ == "__main__":
-    pib_side = gestures.pib_side['none']
-    pib_gesture = gestures.pib_gesture['wave']
+    x_value = -1000
+    y_value = -200
+    z_value = 100
+    pib_side = 'right'
+    pib_gesture = 'wave'
     
-    camera_vector_x = -1000.0
-    camera_vector_y = 0.0
-    camera_vector_z = 0.0
-    
-    greet_person(camera_vector_x, camera_vector_y, camera_vector_z, pib_side, pib_gesture)
+    greet_person(x_value, y_value, z_value, pib_side, pib_gesture)

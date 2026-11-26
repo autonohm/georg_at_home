@@ -22,21 +22,21 @@ def generate_launch_description():
 
     # Navigation
 
-    nav_module = Node(
-        package="navigate_server",
-        executable="navigate_action_server",
-        name="nav_server",
-        arguments=["--node-name", "nav_server",
-                    "--action-name", "/nav/navigate"],
-        output="screen",
-    )
-
-    drive_route_module = Node(
-        package="drive_route_server",
-        executable="drive_route_action_server",
-        name="drive_route_action_server",
-        output="screen",
-    )
+    #nav_module = Node(
+    #    package="navigate_server",
+    #    executable="navigate_action_server",
+    #    name="nav_server",
+    #    arguments=["--node-name", "nav_server",
+    #                "--action-name", "/nav/navigate"],
+    #    output="screen",
+    #)
+#
+    #drive_route_module = Node(
+    #    package="drive_route_server",
+    #    executable="drive_route_action_server",
+    #    name="drive_route_action_server",
+    #    output="screen",
+    #)
 
 
 
@@ -83,8 +83,8 @@ def generate_launch_description():
         GroupAction(
             actions=[
                 PushRosNamespace(robot_namespace),
-                nav_module,
-                drive_route_module,
+                #nav_module,
+                #drive_route_module,
                 gesture_module,
                 #voice_module ,
                 task_manager_module,

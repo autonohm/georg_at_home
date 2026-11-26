@@ -4,8 +4,7 @@ used for transformation of vectors considering joint angles
 usage accordingly to Denavit-Hartenberg convention
 '''
 
-from ..config import param
-from ..classes.vectors import Object_Vector
+from pib_gestures.geometry.vectors import Object_Vector
 
 import numpy as np
 
@@ -25,8 +24,8 @@ class DH_Matrix:
         [             0.0            ,                 np.sin(self.alpha)               ,                 np.cos(self.alpha)               ,               self.d                ],
         [             0.0            ,                        0.0                       ,                        0.0                       ,                 1.0                 ]])
         
-    def create_vector_from_multiplication(self, name, vector, side = 'none', gesture = 'none'):
-        return Object_Vector.create_object_vector(name, np.matmul(self.values, vector.values), side, gesture)  
+    def create_vector_from_multiplication(self, name, vector, side = 'none', mode = 'none'):
+        return Object_Vector.create_object_vector(name, np.matmul(self.values, vector.values), side, mode)  
     
     def __mul__(self, matrix):
         matrix_temp = DH_Matrix("temporary transformation matrix")

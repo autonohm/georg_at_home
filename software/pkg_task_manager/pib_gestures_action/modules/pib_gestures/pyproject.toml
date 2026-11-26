@@ -5,26 +5,37 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "pib-gestures"
 version = "1.0.0"
-description = "Pointing and greeting functions for pib"
+description = "Different gestures for pib considering object coordinates: looking and pointing at objects, greeting persons"
 readme = "README.md"
 requires-python = ">=3.9"
-license = {file = "LICENSE"}
+license = { file = "LICENSE" }
 
 authors = [
-  {name = "pib.rocks", email = "team@pib.rocks"}
+    { name = "pib.rocks", email = "team@pib.rocks" }
 ]
 
 dependencies = [
-  "pib-sdk"
+    "pib-sdk",
+    "numpy>=1.26"
 ]
 
 classifiers = [
-  "Programming Language :: Python :: 3"
+    "Programming Language :: Python :: 3"
 ]
 
-[tool.setuptools]               
-package-dir = {"" = "src"}       # root of importable 
-license-files = []  
+[project.scripts]
+point_to = "pib_gestures.point_to:main"
+greet_person = "pib_gestures.greet_person:main"
+look_at = "pib_gestures.look_at:main"
+locate_object = "pib_gestures.locate_object:main"
 
-[tool.setuptools.packages.find] 
-where = ["src"]                  # scan “src/” for packages
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.setuptools.package-data]
+pib_gestures = [
+    "logging_utils/logger.config"
+]

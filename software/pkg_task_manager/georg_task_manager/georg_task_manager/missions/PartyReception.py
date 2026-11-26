@@ -6,39 +6,55 @@ from georg_task_manager.tasks.StopFaceTracking import StopFaceTracking
 from georg_task_manager.tasks.StartObjectDetection import StartObjectDetection
 from georg_task_manager.tasks.StopObjectDetection import StopObjectDetection
 from georg_task_manager.tasks.priority import TaskPriority
-from georg_task_manager.tasks.Gesture import GestureOfferCloseHand, GestureCloseHand, GestureOpenHand, GestureGreetPerson, GestureLookAt, GestureOfferHand, GesturePointTo
+from georg_task_manager.tasks.Remember import Remember
+from georg_task_manager.tasks.DescribeScene import DescribeScene
+from georg_task_manager.tasks.FaceFollow import GestureFaceFollow # GestureOfferCloseHand, GestureCloseHand, GestureOpenHand, GestureGreetPerson, GestureLookAt, GestureOfferHand, GesturePointTo
 
-listen = Listen()
 
-name = extract_name(listen.text)
 
 def get_mission():
     print("[MISSION] Qualification started")
+
+    ask_name = Listen()
+    name = None
+
+    def store_name(state):
+        nonlocal name
+        name = extract_name(ask_name.text)
+        print(f"[MISSION] Name stored: {name}")
+
     return [
+
+        # start vision models
+        StartObjectDetection(priority=TaskPriority.HIGH),
+        StartFaceTracking(priority=TaskPriority.MID),
+
         # listen to doorbell
 
         # drive to door when door bell is detected
 
         # start looking at person
-        StartFaceTracking(priority=TaskPriority.MID),
+        GestureFaceFollow(),
 
         # introduce yourself
         Speak("Hi, my name is Georg."),
 
         # wave to person? 
-        GestureGreetPerson("right"),
+        # GestureGreetPerson("right"),
 
         # listen to name
         Speak("What's your name?"),
-        listen,
+        ask_name,
+        Remember(store_name),
 
         # answer to person with name, ask to take bag
         Speak(lambda state: f"Nice to meet you {name or ''}!"),
         
         # offer hand to take bag of guest
-        GestureOfferCloseHand(),
+        # GestureOfferCloseHand(),
 
         # ask guest to follow pib to living room
+        Speak(lambda state: f"{ name or ''}, please follow me to the living room."),
 
         # stop looking at person
 
@@ -49,15 +65,15 @@ def get_mission():
         # introduce guest to host, ask/tell host to take the bag
 
         # offer hand with bag to host
-        GestureOfferCloseHand(),
+        # GestureOfferCloseHand(),
 
         # listen to host about where to find objects
 
         # stop looking at person
 
-        # look at objects
-        # StopFaceTracking(priority=TaskPriority.MID),
-        StartObjectDetection(priority=TaskPriority.HIGH),
+        # look at objects and describe scene
+        DescribeScene(),
+        Speak(lambda state: state.scene_description),
 
         # tell guest, which objects are there
 

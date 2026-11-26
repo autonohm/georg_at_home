@@ -1,9 +1,10 @@
-from georg_task_manager.missions.DigitalFestival import get_mission as DigitalFestival
-from georg_task_manager.missions.Test_Mapping import get_mission as TestMapping
+#from georg_task_manager.missions.DigitalFestival import get_mission as DigitalFestival
+#from georg_task_manager.missions.Test_Mapping import get_mission as TestMapping
 from georg_task_manager.missions.Greeting import get_mission as Greeting
 from georg_task_manager.missions.StartObjectFaceDetection import get_mission as StartObjectFaceDetection
 from georg_task_manager.missions.StopObjectFaceDetection import get_mission as StopObjectFaceDetection
 from georg_task_manager.missions.GreetPerson import get_mission as GreetPerson
+from georg_task_manager.missions.PartyReception import get_mission as PartyReception
 
 import os
 
@@ -27,10 +28,10 @@ def select_mission():
         mission_id = input("\nSelect Mission: ")
 
     if mission_id == "1":
-        return DigitalFestival()
+        return 0 #DigitalFestival()
 
     elif mission_id == "2":
-        return TestMapping()
+        return 0 #TestMapping()
 
     elif mission_id == "3":
         return Greeting() #say hello
@@ -43,6 +44,9 @@ def select_mission():
 
     elif mission_id =="6":
         return GreetPerson() #wave
+    
+    elif mission_id =="7":
+        return PartyReception() 
 
     elif mission_id == "0":
         return None

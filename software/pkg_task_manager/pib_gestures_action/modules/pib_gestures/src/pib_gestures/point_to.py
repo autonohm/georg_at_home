@@ -7,68 +7,91 @@ pointing gesture represents straight arm or bent arm
 
 straight arm: arm rotations and elbow form a straight arm,
 pointing orientation only by shoulder vertical and horizontal joints
+
 bent_arm: shoulder vertical and horizontal move arm downwards
 pointing orientation only by upper arm rotation and elbow
 
 pib hand represents index finger or open hand
 open hand used for more polite gesture or closer objects
 
-vector from camera to object is required
-center and pointing vector are calculated by DH matrices 
+vector from center to object is required
+pointing vector is calculated by DH matrices 
 '''
 
-from core import point_to
+from core.point_to_core import point_to as point_to_core
+from geometry import Object_Vector
 from config import gestures
 
-import sys
-    
-def usage_info():
-    print("Usage: python3.9 point_to.py x_value y_value z_value pib_side pib_gesture pib_hand\n")
-    print("Required values are in float: x value, y value, z value\n")
-    print("Optional values are:")
-    print("pib_side in", gestures.pib_side.keys())
-    print("pib_gesture in", gestures.pib_gesture.keys())
-    print("pib_hand in", gestures.pib_hand.keys())
-    print("global coordinate system, adapted to ros and onshape configuration:")
-    print("x axis pointing against pib, y axis pointing to pibs right side, z axis pointing upwards\n")
-    print("usage example: python3.9 pyoint_to.py -1000 500 -200 right bent_arm index_finger")
+import argparse
 
+
+
+def point_to(
+    x_value,
+    y_value,
+    z_value,
+    pib_side = "none",
+    pib_mode = "none",
+    pib_hand = "none"
+):
+    """pib points towards an object at the given coordinates"""
+
+    if pib_side not in gestures.pib_side.keys():
+        raise ValueError(f"Invalid pib_side <{pib_side}>")
+
+    if pib_mode not in gestures.pib_gesture_modes['point_to'].keys():
+        raise ValueError(f"Invalid pib_mode <{pib_mode}> for pib_gesture <point_to>")
+
+    if pib_hand not in gestures.pib_hand.keys():
+        raise ValueError(f"Invalid pib_hand <{pib_hand}>")
+
+    object_vector_center = Object_Vector.create_object_vector(
+        "vector from center to object",
+        (float(x_value), float(y_value), float(z_value)),
+    )
+    
+    return point_to_core(object_vector_center, pib_side, pib_mode, pib_hand)
+    
+    
+    
+def main():
+    parser = argparse.ArgumentParser(
+        description = "pib points towards an object at the given coordinates"
+    )
+
+    parser.add_argument("x", type = float, help = "X coordinate of the object")
+    parser.add_argument("y", type = float, help = "Y coordinate of the object")
+    parser.add_argument("z", type = float, help = "Z coordinate of the object")
+
+    parser.add_argument(
+        "pib_side",
+        choices = gestures.pib_side.keys(),
+        metavar = "pib_side",
+        help = "Side for the gesture",
+    )
+
+    parser.add_argument(
+        "pib_mode",
+        nargs = "?",
+        choices = gestures.pib_gesture_modes["point_to"].keys(),
+        default = gestures.pib_gesture_modes["none"],
+        metavar = "pib_mode",
+        help = "Gesture mode to use",
+    )
+
+    parser.add_argument(
+        "pib_hand",
+        nargs = "?",
+        choices = gestures.pib_hand.keys(),
+        default = gestures.pib_hand["none"],
+        metavar = "pib_hand",
+        help = "Hand configuration to use",
+    )
+
+    args = parser.parse_args()
+    print(point_to(args.x, args.y, args.z, args.pib_side, args.pib_mode, args.pib_hand))
+    
+    
+    
 if __name__ == "__main__":
-    if len(sys.argv) < 4 or len(sys.argv) > 7:
-        print("Faulty parameter count")
-        usage_info()
-        sys.exit()
-    
-    camera_vector_x = float(sys.argv[1])
-    camera_vector_y = float(sys.argv[2])
-    camera_vector_z = float(sys.argv[3])   
-    
-    if len(sys.argv) > 4:
-        pib_side = sys.argv[4]
-        if pib_side not in gestures.pib_side.keys():
-            usage_info()
-            print("pointing side", pib_side)
-            raise ValueError("pib side is faulty")
-    else:
-        pib_side = gestures.pib_side['none']
-    
-    if len(sys.argv) > 5:
-        pib_gesture = sys.argv[5]
-        if pib_gesture not in gestures.pib_gesture.keys():
-            usage_info()
-            print("pointing mode:", pib_gesture)
-            raise ValueError("pib gesture is faulty")
-    else:
-        pib_gesture = gestures.pib_gesture['none']
-        
-    if len(sys.argv) > 6:
-        pib_hand = sys.argv[6]
-        if pib_hand not in gestures.pib_hand.keys():
-            usage_info()
-            print("pointing gesture:", pib_hand)
-            raise ValueError("pib hand is faulty")
-    else:
-        pib_hand = gestures.pib_hand['none']
-    
-    point_to(camera_vector_x, camera_vector_y, camera_vector_z, pib_side, pib_gesture, pib_hand)
-
+    main()

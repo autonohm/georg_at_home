@@ -1,10 +1,22 @@
-string gesture
-geometry_msgs/Vector3 camera_vector
-string pib_side
+# goal_content
+
 string pib_gesture
+geometry_msgs/Vector3 input_vector
+bool has_input_vector
+string pib_side
+string pib_mode
 string pib_hand
+
 ---
+
+# result content
+
 int8 success
+geometry_msgs/Vector3 result_vector
 string message
+
 ---
+
+# feedback content
+
 string status
