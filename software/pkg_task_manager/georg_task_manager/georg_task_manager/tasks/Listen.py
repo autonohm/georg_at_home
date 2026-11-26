@@ -2,6 +2,7 @@ from .base import BaseTask
 from .timeout_watcher import wait_for_action_result
 from .priority import TaskPriority
 from datatypes.action import RecordAudio
+import re
 
 # Vorerst feste Einstellungen
 DEFAULT_MAX_SILENT_BEFORE = 8.0   # s: so lange auf Sprechbeginn warten
@@ -71,3 +72,16 @@ class Listen(BaseTask):
 
         print(f"[TASK] Listen: heard '{self.text}'")
         return True
+    
+
+def extract_name(text):
+    if not text:
+        return None
+    t = text.strip().strip(".!?, ")
+    m = re.search(
+        r"(?:ich heiße|ich heisse|mein name ist|ich bin|man nennt mich|nenn mich)\s+(?:der |die )?(\w[\w\-]*)",
+        t, flags=re.IGNORECASE)
+    if m:
+        return m.group(1).capitalize()
+    words = t.split()
+    return words[0].capitalize() if len(words) == 1 else None
