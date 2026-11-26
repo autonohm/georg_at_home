@@ -7,7 +7,7 @@ from datatypes.srv import PlayAudioFromSpeech
 # default parameters for georg's voice
 # todo: make these parameters configurable elsewhere
 DEFAULT_GENDER = "M1"
-DEFAULT_LANGUAGE = "de"
+DEFAULT_LANGUAGE = "en"
 DEFAULT_JOIN = True
 DEFAULT_TIMEOUT = 60.0
 

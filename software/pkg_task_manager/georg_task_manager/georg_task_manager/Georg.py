@@ -39,6 +39,8 @@ class Georg:
             StringMsg,
             "audio/say",
             10
+        )
+        
         self.listen_action_client = ActionClient(
             node,
             RecordAudio,

@@ -1,4 +1,6 @@
 from georg_task_manager.tasks.Speak import Speak
+from georg_task_manager.tasks.Listen import Listen
+from georg_task_manager.tasks.Listen import extract_name
 from georg_task_manager.tasks.StartFaceTracking import StartFaceTracking
 from georg_task_manager.tasks.StopFaceTracking import StopFaceTracking
 from georg_task_manager.tasks.StartObjectDetection import StartObjectDetection
@@ -6,6 +8,9 @@ from georg_task_manager.tasks.StopObjectDetection import StopObjectDetection
 from georg_task_manager.tasks.priority import TaskPriority
 from georg_task_manager.tasks.Gesture import GestureOfferCloseHand, GestureCloseHand, GestureOpenHand, GestureGreetPerson, GestureLookAt, GestureOfferHand, GesturePointTo
 
+listen = Listen()
+
+name = extract_name(listen.text)
 
 def get_mission():
     print("[MISSION] Qualification started")
@@ -18,15 +23,17 @@ def get_mission():
         StartFaceTracking(priority=TaskPriority.MID),
 
         # introduce yourself
-        Speak("Hallo, ich bin Geeeorg, meine Freunde nennen mich Schorsch."),
-        Speak("Wie ist dein Name?"),
+        Speak("Hi, my name is Georg."),
 
         # wave to person? 
         GestureGreetPerson("right"),
 
         # listen to name
+        Speak("What's your name?"),
+        listen,
 
         # answer to person with name, ask to take bag
+        Speak(lambda state: f"Nice to meet you {name or ''}!"),
         
         # offer hand to take bag of guest
         GestureOfferCloseHand(),

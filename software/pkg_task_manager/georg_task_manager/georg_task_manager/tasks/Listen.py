@@ -79,7 +79,7 @@ def extract_name(text):
         return None
     t = text.strip().strip(".!?, ")
     m = re.search(
-        r"(?:ich heiße|ich heisse|mein name ist|ich bin|man nennt mich|nenn mich)\s+(?:der |die )?(\w[\w\-]*)",
+        r"(?:I am|I'm|my name is|call me)\s+(?:der |die )?(\w[\w\-]*)",
         t, flags=re.IGNORECASE)
     if m:
         return m.group(1).capitalize()
