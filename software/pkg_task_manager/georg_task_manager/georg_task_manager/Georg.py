@@ -4,6 +4,8 @@ from std_msgs.msg import String
 from std_msgs.msg import Bool
 from pib_gestures_action.action import PibGesturesInterface
 from datatypes.srv import PlayAudioFromSpeech
+from datatypes.srv import StartModel    #Object Detection Models
+from datatypes.srv import StopModel     #Object Detection Models
 from datatypes.action import RecordAudio
 from georg_nav_msgs.action import Navigate, DriveRoute
 from std_msgs.msg import String as StringMsg
@@ -33,6 +35,10 @@ class Georg:
             "/play_audio_from_speech"
         )
 
+        self.audio_say_pub = node.create_publisher(
+            StringMsg,
+            "audio/say",
+            10
         self.listen_action_client = ActionClient(
             node,
             RecordAudio,
@@ -69,24 +75,18 @@ class Georg:
             "nav/drive_route"
         )
 
-        # # Vision (Placeholder)
+        # Vision 
+        self.StartModel = node.create_client(
+            StartModel,
+            "/start_model" 
+        )
 
-        # self.search_guest_pub = (
-        #     node.create_publisher(
-        #         Bool,
-        #         "vision/search_guest",
-        #         10
-        #     )
-        # )
-
-        # self.search_seat_pub = (
-        #     node.create_publisher(
-        #         Bool,
-        #         "vision/search_seat",
-        #         10
-        #     )
-        # )
-
+        self.StopModel = node.create_client(
+            StopModel,
+            "/stop_model" 
+        )
+        
+        # Odometrie
         self.odom_sub = node.create_subscription(
             Odometry,
             'odom',
@@ -94,14 +94,14 @@ class Georg:
             10
         )
         
-
-
-
-        self.audio_say_pub = node.create_publisher(
-            StringMsg,
-            "audio/say",
-            10
+        # Gestures
+        self.greet_action_client = ActionClient(
+            node,
+            PibGesturesInterface,
+            "pib_gestures_interface"
         )
+
+
 
     def odom_callback(self, msg: Odometry):
         self.state.current_position = (
