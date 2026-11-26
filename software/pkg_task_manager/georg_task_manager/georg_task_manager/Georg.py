@@ -34,10 +34,10 @@ class Georg:
             "/play_audio_from_speech"
         )
 
-        self.greet_action_client = ActionClient(
-            node,
-            PibGesturesInterface,
-            "pib_gestures_interface"
+        self.audio_say_pub = node.create_publisher(
+            StringMsg,
+            "audio/say",
+            10
         )
 
         # Navigate
@@ -81,14 +81,14 @@ class Georg:
             10
         )
         
-
-
-
-        self.audio_say_pub = node.create_publisher(
-            StringMsg,
-            "audio/say",
-            10
+        # Gestures
+        self.greet_action_client = ActionClient(
+            node,
+            PibGesturesInterface,
+            "pib_gestures_interface"
         )
+
+
 
     def odom_callback(self, msg: Odometry):
         self.state.current_position = (

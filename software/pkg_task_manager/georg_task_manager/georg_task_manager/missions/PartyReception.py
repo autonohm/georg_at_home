@@ -4,7 +4,7 @@ from georg_task_manager.tasks.StopFaceTracking import StopFaceTracking
 from georg_task_manager.tasks.StartObjectDetection import StartObjectDetection
 from georg_task_manager.tasks.StopObjectDetection import StopObjectDetection
 from georg_task_manager.tasks.priority import TaskPriority
-
+from georg_task_manager.tasks.Gesture import GestureOfferCloseHand, GestureCloseHand, GestureOpenHand, GestureGreetPerson, GestureLookAt, GestureOfferHand, GesturePointTo
 
 
 def get_mission():
@@ -22,12 +22,14 @@ def get_mission():
         Speak("Wie ist dein Name?"),
 
         # wave to person? 
+        GestureGreetPerson("right"),
 
         # listen to name
 
         # answer to person with name, ask to take bag
         
         # offer hand to take bag of guest
+        GestureOfferCloseHand(),
 
         # ask guest to follow pib to living room
 
@@ -40,6 +42,7 @@ def get_mission():
         # introduce guest to host, ask/tell host to take the bag
 
         # offer hand with bag to host
+        GestureOfferCloseHand(),
 
         # listen to host about where to find objects
 
