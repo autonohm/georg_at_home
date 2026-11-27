@@ -11,8 +11,8 @@ services:
     privileged: true
 #    restart: always
     init: true
-    command: "ros2 launch nav2_bringup bringup_launch.py params_file:=/config/parameters/nav2_params.yaml"
-#    command: sleep 1d
+   # command: "ros2 launch nav2_bringup bringup_launch.py params_file:=/config/parameters/nav2_params.yaml use_sim_time:=${GEORG_SIM_MODE:-false}"
+    command: sleep 1d
 
 networks:
   pib-network:
