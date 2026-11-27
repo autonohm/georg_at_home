@@ -21,7 +21,7 @@ def generate_launch_description():
         package='rviz2',
         executable='rviz2',
         name='rviz',
-        arguments=['-d', PathJoinSubstitution([ os.getcwd(), 'config/georg.rviz' ])],
+        arguments=['-d', PathJoinSubstitution([ os.getcwd(), 'georg.rviz' ])],
         emulate_tty=True,
     )
 
@@ -29,7 +29,7 @@ def generate_launch_description():
         package='rqt_gui',
         executable='rqt_gui',
         name='rqt',
-        arguments=['--perspective-file', PathJoinSubstitution([ os.getcwd(), 'config/rviz.perspective'])],
+        arguments=['--perspective-file', PathJoinSubstitution([ os.getcwd(), 'rviz.perspective'])],
         output='log',
         emulate_tty=True,
     )
