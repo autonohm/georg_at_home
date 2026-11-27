@@ -1,3 +1,5 @@
+import pathlib
+
 from launch import LaunchDescription
 from launch_ros.actions import Node
 
@@ -16,8 +18,10 @@ def generate_launch_description():
     #         'model': PathJoinSubstitution([ '.', 'parameters', 'bento-box-neo.urdf' ]),
     #     }.items()
     # )
+    cwd_path = pathlib.Path(__file__).parent.resolve()
     sick_scan_pkg_prefix = FindPackageShare('sick_scan_xd')
-    launch_file_path = PathJoinSubstitution([sick_scan_pkg_prefix, 'launch', 'sick_tim_5xx.launch'])  # 'launch/sick_tim_5xx.launch')
+#    launch_file_path = PathJoinSubstitution([sick_scan_pkg_prefix, 'launch', 'sick_tim_5xx.launch'])  # 'launch/sick_tim_5xx.launch')
+    launch_file_path = PathJoinSubstitution([cwd_path, 'parameters', 'sick_tim_5xx.launch'])  # 'launch/sick_tim_5xx.launch')
     node_arguments=[launch_file_path]
 
 
@@ -26,7 +30,6 @@ def generate_launch_description():
             executable='sick_generic_caller',
             output='screen',
             arguments=[node_arguments, "hostname:=192.168.2.104", "frame_id:=laser1_frame", "tf_publish_rate:=0.0"],
-            parameters=[{"min_ang": -2.26892802759}, {"max_ang": 2.26892802759}], # ±130° = 260° scan
             namespace="lidar1"
     )
 
@@ -35,7 +38,6 @@ def generate_launch_description():
             executable='sick_generic_caller',
             output='screen',
             arguments=[node_arguments, "hostname:=192.168.2.144", "frame_id:=laser2_frame", "tf_publish_rate:=0.0"],
-            parameters=[{"min_ang": -2.26892802759}, {"max_ang": 2.26892802759}], # ±130° = 260° scan
             namespace="lidar2"
     )
 
