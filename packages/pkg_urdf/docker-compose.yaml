@@ -10,7 +10,7 @@ services:
     restart: on-failure
     init: true
     working_dir: "/georg_urdf"
-    command: "ros2 launch georg_description publish_urdf.launch.py"
+    command: "ros2 launch georg_description publish_urdf.launch.py use_sim_time:=${GEORG_SIM_MODE:-false}"
 #    command: "ros2 launch georg_description publish_urdf.launch.py namespace:=georg"
 #    command: sleep 1d
 
