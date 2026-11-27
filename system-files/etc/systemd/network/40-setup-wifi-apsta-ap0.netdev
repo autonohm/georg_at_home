@@ -1,0 +1,8 @@
+[NetDev]
+Name=ap0
+Kind=wlan
+
+[WLAN]
+# phy#0, device index, not 'nothing'
+PhysicalDevice=0
+Type=ap
