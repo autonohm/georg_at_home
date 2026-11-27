@@ -26,6 +26,7 @@ def generate_launch_description():
             executable='sick_generic_caller',
             output='screen',
             arguments=[node_arguments, "hostname:=192.168.2.104", "frame_id:=laser1_frame", "tf_publish_rate:=0.0"],
+            parameters=[{"min_ang": -2.26892802759}, {"max_ang": 2.26892802759}], # ±130° = 260° scan
             namespace="lidar1"
     )
 
@@ -34,6 +35,7 @@ def generate_launch_description():
             executable='sick_generic_caller',
             output='screen',
             arguments=[node_arguments, "hostname:=192.168.2.144", "frame_id:=laser2_frame", "tf_publish_rate:=0.0"],
+            parameters=[{"min_ang": -2.26892802759}, {"max_ang": 2.26892802759}], # ±130° = 260° scan
             namespace="lidar2"
     )
 
