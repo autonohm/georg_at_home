@@ -1,0 +1,30 @@
+[Match]
+Name=br0
+
+[Network]
+Address=192.168.2.1/24
+DHCP=no
+DHCPServer=yes
+IPv6AcceptRA=no
+
+[DHCPServer]
+PoolOffset=100
+Poolsize=100
+EmitDNS=yes
+DNS=192.168.2.1
+
+# SICK LiDAR 1
+[DHCPServerStaticLease]
+MACAddress=00:06:77:21:a0:5e
+Address=192.168.2.104
+
+# SICK LiDAR 2
+[DHCPServerStaticLease]
+MACAddress=00:06:77:22:ae:20
+Address=192.168.2.144
+
+# EduArt base
+[DHCPServerStaticLease]
+MACAddress=36:30:2d:69:69:74
+Address=192.168.2.20
+

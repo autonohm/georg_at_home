@@ -47,11 +47,63 @@ install_thingy() {
 printf "\nbeginning installation, stop at anytime with <control-c>\n\n"
 sleep 1
 
+
+log_state "apt install dependencies"
+sudo apt update
+sudo apt install hostapd chrony stress iperf3 tree lolcat nmap git gh btop htop can-utils -y
+
 log_state "udev rules"
 install_thingy 644 root root "/etc/udev/rules.d/51-autonohm-joystick.rules"
 install_thingy 644 root root "/etc/udev/rules.d/99-pib-motors.rules"
 sudo udevadm control --reload
 sudo udevadm trigger
+
+log_state "network config"
+install_thingy 644 root root "/etc/NetworkManager/conf.d/00-georg.conf"
+install_thingy 644 root root "/etc/systemd/network/10-create-bridge-br0.netdev"
+install_thingy 644 root root "/etc/systemd/network/20-bind-ethernet-with-bridge-br0.network"
+install_thingy 644 root root "/etc/systemd/network/30-config-bridge-br0.network"
+#install_thingy 644 root root "/etc/systemd/network/80-can.network"
+#install_thingy 600 root root "/etc/dnsmasq.d/00-georg.conf"
+install_thingy 644 root root "/etc/systemd/system/georg-hostapd.service"
+install_thingy 600 root root "/etc/hostapd/georg-AP.conf"
+
+printf "${BOLD_GREEN}set wifi region? (y/n)${RESET}%s "
+read -r YN
+if [ "$YN" = "y" ]||[ "$YN" = "Y" ]; then
+  RET=1
+  while [ $RET != 0 ]; do
+    log_ok "what region? (ISO/IEC 3166-1 alpha2, 2 char name)"
+    read -r REG
+    # We're running on raspi here, otherwise use `iw reg`
+    sudo iw reg set "${REG}"
+    #sudo iw reg set "${REG}"
+    RET=$?
+  done
+  sudo iw reg get | grep country
+fi
+
+sudo systemctl daemon-reload
+# enable network configs
+sudo systemctl enable systemd-networkd
+sudo systemctl start systemd-networkd
+log_ok "enabled & started systemd-networkd"
+# resolved clashes with dnsmasq
+sudo systemctl stop systemd-resolved
+sudo systemctl disable systemd-resolved
+sudo systemctl mask systemd-resolved
+sudo rm /etc/resolv.conf
+sudo touch /etc/resolv.conf
+# enable DHCP & DNS server
+sudo systemctl enable dnsmasq &>/dev/null #STFU sysV
+sudo systemctl start dnsmasq
+log_ok "enabled & started dnsmasq"
+# set up wifi AP
+sudo systemctl unmask georg-hostapd.service
+sudo systemctl enable georg-hostapd.service &>/dev/null #STFU sysV
+sudo systemctl start georg-hostapd.service
+log_ok "enabled wifi AP"
+
 
 log_state "bashrc"
 BASHRC="$HOME/.bashrc"

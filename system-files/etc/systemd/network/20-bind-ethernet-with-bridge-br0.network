@@ -1,0 +1,5 @@
+[Match]
+Name=enP2p1s0
+
+[Network]
+Bridge=br0
