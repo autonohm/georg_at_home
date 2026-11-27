@@ -277,10 +277,10 @@ def parse_args(argv=None) -> argparse.Namespace:
     p.add_argument("--return-home", type=float, default=None, metavar="SECONDS",
                    help="re-centre the head after no face for this long")
     p.add_argument("-v", "--verbose", action="store_true")
-    return p.parse_args(argv)
+    return p.parse_args(argv if argv is not None else [])
 
 
-def main(argv=None) -> None:
+def face_follow(argv=None) -> None:
     args = parse_args(argv)
     # Handle signals ourselves: rclpy's handler shuts the context down at once,
     # and then we could no longer tell the camera to release YuNet.
@@ -311,4 +311,4 @@ def main(argv=None) -> None:
 
 
 if __name__ == "__main__":
-    main()
+    face_follow()

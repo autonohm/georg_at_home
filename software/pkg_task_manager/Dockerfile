@@ -24,16 +24,17 @@ RUN python3 -m pip install --no-cache-dir --break-system-packages \
     PyAudio==0.2.14 \
     faster-whisper==1.2.1
 
+# pib_sdk-Ersatz: leitet Aufrufe an den pib-sdk-service weiter (keine Abhängigkeiten)
+COPY ./pib_sdk_shim /opt/pib_sdk_shim
+RUN python3 -m pip install --no-cache-dir --break-system-packages --no-deps /opt/pib_sdk_shim && \
+    python3 -c "from pib_sdk.control import *; print('pib_sdk shim ok')"
+
 # change this variable to trick docker cache into rebuilding
 ENV REBUILD=1
 
 COPY ./georg_task_manager /ws/georg_task_manager
 COPY ./pib_gestures_action /ws/pib_gestures_action
-# COPY ./pib-audio /ws/pib-audio
-# COPY ./pkg_navigation /ws/pkg_navigation
 COPY ./maps /root/georg_maps
-
-#RUN git clone https://github.com/Giusaurus/pkg_navigation.git
 
 RUN rosdep install --from-paths . --ignore-src -r -y && \
     rm -rf /var/lib/apt/lists/*

@@ -1,4 +1,15 @@
 services:
+  pib-sdk-service:
+    image: pib-sdk-service
+    build:
+      context: ./pib_sdk_service
+    networks:
+      - pib-network
+    environment:
+      - PIB_HOST=pib-backend-rosbridge-ws-1
+      - PIB_PORT=9090
+    restart: unless-stopped
+
   task_manager:
     image: task_manager
     build:
@@ -6,18 +17,21 @@ services:
       dockerfile: ./Dockerfile
     networks:
       - pib-network
+    depends_on:
+      - pib-sdk-service
     volumes:
       - ./config:/config:ro
       - ./maps:/maps:ro
+      - ./logs/pib_gestures:/home/pib/.local/share/pib_gestures/logs
     environment:
       - GEORG_MAP_DIR=/georg_maps
       - GEORG_DEFAULT_MAP=Nav_Test.yaml
-      - MISSION_ID=6
+      - MISSION_ID=8
+      - PIB_SDK_URL=http://pib-sdk-service:8000
 
     privileged: true
     init: true
     command: ros2 launch /config/task_manager.launch.py
-    # command: sleep 1d
 
 networks:
   pib-network:

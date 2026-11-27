@@ -100,9 +100,9 @@ class ActionTemplateClient(Node):
     def get_result_callback(self, future):
         result = future.result().result
         self.get_logger().info(f"Result: {result.success:d}, {result.message}")
-        return result.success
         # stop action client after getting result
         rclpy.shutdown()
+        return result.success
 
 
 

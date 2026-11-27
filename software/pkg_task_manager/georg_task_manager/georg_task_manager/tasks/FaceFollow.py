@@ -1,4 +1,4 @@
-# greet_guest.py
+# FaceFollow.py
 from .base import BaseTask
 from .timeout_watcher import wait_for_action_result
 from .priority import TaskPriority
@@ -10,9 +10,8 @@ class GestureFaceFollow(BaseTask):
 
     def __init__(
         self,
-        priority: TaskPriority = TaskPriority.LOW
+        priority: TaskPriority = TaskPriority.MID
     ):
-        
         super().__init__("face_follow", priority)
         self.mode = "face_follow"
 
@@ -22,6 +21,9 @@ class GestureFaceFollow(BaseTask):
 
         goal_msg = PibGesturesInterface.Goal()
         goal_msg.pib_gesture = self.mode
+        goal_msg.pib_side = "none"
+        goal_msg.pib_mode = "none"
+        goal_msg.pib_hand = "none"
 
         state.is_following_face = True
 
@@ -33,6 +35,10 @@ class GestureFaceFollow(BaseTask):
         )
 
         state.is_following_face = False
+
+        # Debug: hier steht die Fehlerursache vom Server
+        if result is not None:
+            print(f"[TASK] Gesture {self.mode}: success={result.success} message={getattr(result, 'message', '')}")
 
         if result is None:
             print(f"[TASK] Gesture {self.mode}: REJECTED/TIMEOUT/ABORTED")

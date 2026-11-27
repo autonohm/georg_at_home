@@ -5,6 +5,7 @@ from georg_task_manager.missions.StartObjectFaceDetection import get_mission as 
 from georg_task_manager.missions.StopObjectFaceDetection import get_mission as StopObjectFaceDetection
 from georg_task_manager.missions.GreetPerson import get_mission as GreetPerson
 from georg_task_manager.missions.PartyReception import get_mission as PartyReception
+from georg_task_manager.missions.FaceTracking import get_mission as FaceTracking
 
 import os
 
@@ -23,6 +24,7 @@ def select_mission():
         print("5 - Vision off")
         print("6 - Greet person V2")
         print("7 - Party Reception")
+        print("8 - Face Tracking")
         print("0 - Exit")
 
         mission_id = input("\nSelect Mission: ")
@@ -47,6 +49,9 @@ def select_mission():
     
     elif mission_id =="7":
         return PartyReception() 
+
+    elif mission_id =="8":
+        return FaceTracking()
 
     elif mission_id == "0":
         return None

@@ -93,16 +93,22 @@ class PibGesturesServer(Node):
                     params["pib_side"] = goal_handle.request.pib_side
                     params["pib_mode"] = goal_handle.request.pib_mode
                     
+                case "go_rest":
+                    params["pib_mode"] = goal_handle.request.pib_mode
+
                 case "open_hand" | "close_hand":
                     params["pib_side"] = goal_handle.request.pib_side
                     
-                case "face_follow":
-                    params = {}
+                # case "face_follow":
+                #    params["gain"] = 0.5
 
                 case _:
                     raise ValueError(f"faulty gesture selection: gesture <{self.goal.pib_gesture}> not defined")
 
             # call core functionality
+            
+            # self.get_logger().info('starting execution')
+
             result.success = self.gesture_functions[goal_handle.request.pib_gesture](params)
 
             # self.get_logger().info('finished execution')
@@ -172,9 +178,12 @@ class PibGesturesServer(Node):
                     and goal_handle.pib_side != "none"
                     and goal_handle.pib_mode != "none"
                 )
+
+            case "go_rest":
+                return goal_handle.pib_mode != "none"
                 
-            case "face_follow":
-                return True
+            #case "face_follow":
+            #    return True
 
             case _:
                 return False
@@ -219,7 +228,13 @@ class PibGesturesServer(Node):
 
         "locate_object": lambda p: locate_object(
             p["object_vector"]
+        ),
+
+        "go_rest": lambda p: go_rest(
+            p["pib_mode"]
         )
+
+        #"face_follow": lambda p: face_follow()
     }
 
 

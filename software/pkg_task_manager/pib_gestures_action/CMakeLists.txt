@@ -21,11 +21,6 @@ ament_python_install_package(pib_gestures
   PACKAGE_DIR modules/pib_gestures/src/pib_gestures
 )
 
-# Install Python packages
-# ament_python_install_package(pib_sdk
-#   PACKAGE_DIR modules/pib_sdk/src/pib_sdk
-# )
-
 # Install executable ROS nodes
 install(PROGRAMS
   modules/pib_gestures_client.py

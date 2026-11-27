@@ -16,6 +16,7 @@ pib_gestures = {
     "open_hand": "open_hand",
     "close_hand": "close_hand",
     "locate_object": "locate_object",
+    "go_rest": "go_rest",
     "face_follow": "face_follow"
 }
 
@@ -53,6 +54,10 @@ pib_gesture_modes = {
     "locate_object": {
         "none": "none"
     },
+    "go_rest": {
+        "arms_down": "arms_down",
+        "arms_zero": "arms_zero"
+    },
     "face_follow": {
         "none": "none"
     }
@@ -84,6 +89,9 @@ pib_hand = {
     "locate_object": {
         "none": "none"
     },
+    "go_rest": {
+        "none": "none"
+    },
     "face_follow": {
         "none": "none"
     }
@@ -99,7 +107,11 @@ q_shoulder_horizontal_straight_arm = np.radians(0.0)
 q_shoulder_vertical_waving = np.radians(0.0)
 q_shoulder_horizontal_waving = np.radians(0.0) 
 q_shoulder_vertical_shake_hands = np.radians(-70.0)
-q_shoulder_horizontal_shake_hands = np.radians(90.0) 
+q_shoulder_horizontal_shake_hands = np.radians(90.0)
+q_shoulder_vertical_rest_zero = np.radians(0.0)
+q_shoulder_horizontal_rest_zero = np.radians(0.0)
+q_shoulder_vertical_rest_down = np.radians(-90.0)
+q_shoulder_horizontal_rest_down = np.radians(90.0)
 
 # elbow angles for pointing modes
 q_elbow_straight_arm = np.radians(0.0)
@@ -108,6 +120,8 @@ q_elbow_waving = np.radians(70.0)
 q_elbow_shake_hands = np.radians(70.0)
 q_elbow_gesture_angle = 20.0 # angle movement for waving or shaking hands
 q_elbow_offer_hand = np.radians(75.0)
+q_elbow_rest_down = np.radians(10.0)
+q_elbow_rest_zero = np.radians(45.0)
 q_elbow_zero_offset = np.radians(-45.0) # zero angle for elbow equals bent elbow by 45 degrees
 
 # arm rotation angles for pointing modes and gestures
@@ -126,6 +140,10 @@ q_lower_rot_shake_hands = np.radians(0.0)
 q_upper_rot_offer_hand = np.radians(-20.0)
 q_lower_rot_offer_hand_horizontal = np.radians(90.0)
 q_lower_rot_offer_hand_vertical = np.radians(0.0)
+q_upper_rot_rest_down = np.radians(0.0)
+q_lower_rot_rest_down = np.radians(0.0)
+q_upper_rot_rest_zero = np.radians(0.0)
+q_lower_rot_rest_zero = np.radians(0.0)
 
 # q_wrist angles
 q_wrist = np.radians(0.0)
@@ -201,7 +219,26 @@ arm_gesture_joint_angles = dict(
                     q_lower_rot_offer_hand_vertical,
                     q_wrist])
         )
-    ), 
+    ),
+
+    go_rest = dict(
+        arms_down = np.degrees(np.array([
+                    q_shoulder_vertical_rest_down,
+                    q_shoulder_horizontal_rest_down,
+                    q_upper_rot_rest_down,
+                    q_elbow_rest_down + q_elbow_zero_offset,
+                    q_lower_rot_rest_down,
+                    q_wrist])
+        ),
+        arms_zero = np.degrees(np.array([
+                    q_shoulder_vertical_rest_zero,
+                    q_shoulder_horizontal_rest_zero,
+                    q_upper_rot_rest_zero,
+                    q_elbow_rest_zero + q_elbow_zero_offset,
+                    q_lower_rot_rest_zero,
+                    q_wrist])
+        )
+    ),
     
     wave = dict(
         open_hand = np.degrees(np.array([
