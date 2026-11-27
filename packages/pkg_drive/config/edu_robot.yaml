@@ -22,7 +22,7 @@
         roll: 0.0
         yaw: 0.0
       publish_tf: false
-      publish_orientation_without_yaw_tf : true
+      publish_orientation_without_yaw_tf : false
 
     # TF2
     tf:
@@ -33,7 +33,7 @@
     # Odometry
     odometry:
       publishing_interval_ms: 100
-      publishing_tf: true
+      publishing_tf: false
 
 
     # Motor Controller
@@ -120,28 +120,28 @@
 
 
     # Range Sensor
-    range:
-      front:
-        left:
-          field_of_view: 0.1745329201221466
-          range_max: 5.0
-          range_min: 0.01
-
-        right:
-          field_of_view: 0.1745329201221466
-          range_max: 5.0
-          range_min: 0.01
-
-      rear:
-        left:
-          field_of_view: 0.1745329201221466
-          range_max: 5.0
-          range_min: 0.01
-
-        right:
-          field_of_view: 0.1745329201221466
-          range_max: 5.0
-          range_min: 0.01
+#    range:
+#      front:
+#        left:
+#          field_of_view: 0.1745329201221466
+#          range_max: 5.0
+#          range_min: 0.01
+#
+#        right:
+#          field_of_view: 0.1745329201221466
+#          range_max: 5.0
+#          range_min: 0.01
+#
+#      rear:
+#        left:
+#          field_of_view: 0.1745329201221466
+#          range_max: 5.0
+#          range_min: 0.01
+#
+#        right:
+#          field_of_view: 0.1745329201221466
+#          range_max: 5.0
+#          range_min: 0.01
 
     # Drive Kinematic
     skid:
