@@ -33,10 +33,10 @@
         <param name="scanner_type" type="string" value="sick_tim_5xx"/>
         <param name="nodename" type="string" value="$(arg nodename)"/>
         <!-- -135 deg -->
-        <param name="min_ang" type="double" value="-2.268928028"/>
+        <param name="min_ang" type="double" value="-2.094395102"/>
         <!-- 135 deg -->
-        <param name="max_ang" type="double" value="2.268928028"/>
-        <param name="use_binary_protocol" type="bool" value="true"/>
+        <param name="max_ang" type="double" value="2.094395102"/>
+        <param name="use_binary_protocol" type="bool" value="True"/>
         
         <!-- Optional range filter configuration: If the range of a scan point is less than range_min or greater than range_max, the point can be filtered. -->
         <!-- Depending on parameter range_filter_handling, the following filter can be applied for points with a range not within [range_min, range_max],   -->
