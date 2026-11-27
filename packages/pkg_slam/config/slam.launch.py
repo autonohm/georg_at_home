@@ -75,7 +75,7 @@ def generate_launch_description():
     )
 
     return LaunchDescription([
-        tf_map_odom,
+        #tf_map_odom,
         #tf_odom_basefootprint,
 
         rf2o_odom,
