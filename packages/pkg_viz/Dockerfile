@@ -17,6 +17,7 @@ RUN apt-get update && apt-get upgrade -y && apt-get install -y \
         ros-jazzy-rqt-reconfigure \
         ros-jazzy-rqt-tf-tree \
         ros-jazzy-rqt-image-view \
+        ros-jazzy-rqt-tf-tree \
         ros-jazzy-image-transport-plugins
 
 # change this variable to trick docker cache into rebuilding
